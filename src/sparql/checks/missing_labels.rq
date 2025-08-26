@@ -1,0 +1,19 @@
+PREFIX owl:  <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+# Fail if any entity (class/property/individual) lacks an English rdfs:label
+SELECT ?entity
+WHERE {
+  VALUES ?t { owl:Class owl:ObjectProperty owl:DatatypeProperty owl:AnnotationProperty owl:NamedIndividual }
+  ?entity a ?t .
+
+  # Scope to your ArchiMate namespace (adapt if needed)
+  FILTER( STRSTARTS(STR(?entity), "http://www.opengroup.org/ontology/archimate") )
+
+  # Must have at least one English label
+  FILTER NOT EXISTS {
+    ?entity rdfs:label ?lab .
+    FILTER ( LANGMATCHES(LANG(?lab), "en") )
+  }
+}
+

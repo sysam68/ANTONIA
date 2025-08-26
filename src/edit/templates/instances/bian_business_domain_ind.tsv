@@ -1,0 +1,7 @@
+prefix: bian: http://example.org/bian/
+prefix: biani: http://example.org/bian/instances/
+prefix: bianv: http://example.org/bian/vocab/
+ID	LABEL@en	TYPE	bianv:code	bianv:inBusinessArea
+biani:BD_Accounts	Accounts	bian:BusinessDomain	BD-ACC	biani:BA_BankingOperations
+biani:BD_LiquidityManagement	Liquidity Management	bian:BusinessDomain	BD-LIQ	biani:BA_BankingOperations
+

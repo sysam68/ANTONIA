@@ -1,0 +1,9 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+SELECT ?entity
+WHERE {
+  ?entity ?p ?o .
+  FILTER(STRSTARTS(STR(?entity), "http://www.opengroup.org/ontology/archimate/"))
+  FILTER regex(str(?entity), "3\\.2\\.0")
+}
+

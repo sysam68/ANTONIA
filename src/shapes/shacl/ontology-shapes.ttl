@@ -1,0 +1,12 @@
+@prefix sh:  <http://www.w3.org/ns/shacl#> .
+@prefix bian: <http://example.org/bian/> .
+@prefix bianv: <http://example.org/bian/vocab/> .
+
+[] a sh:NodeShape ;
+   sh:targetClass bian:ServiceDomain ;
+   sh:property [
+     sh:path bianv:inBusinessDomain ;
+     sh:minCount 1 ;
+     sh:maxCount 1 ;
+   ] .
+

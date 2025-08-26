@@ -1,0 +1,16 @@
+<head>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+<table class="table table-bordered table-striped">
+<thead class="bg-dark text-white header-row">
+<tr>
+  <th>Level</th>
+  <th>Rule Name</th>
+  <th>Subject</th>
+  <th>Property</th>
+  <th>Value</th>
+</tr>
+</thead>
+</table>
+</body>

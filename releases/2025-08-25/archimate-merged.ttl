@@ -1,0 +1,2047 @@
+@prefix : <http://www.opengroup.org/ontology/archimate#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xml: <http://www.w3.org/XML/1998/namespace> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@base <http://www.opengroup.org/ontology/archimate#> .
+
+<http://www.opengroup.org/ontology/archimate#> rdf:type owl:Ontology ;
+                                                <http://purl.org/dc/elements/1.1/license> "https://www.opengroup.org/archimate-32-non-commercial-license"@en ;
+                                                <http://purl.org/dc/terms/description> "Archimate Ontology"@en ;
+                                                <http://purl.org/dc/terms/license> "https://www.opengroup.org/archimate-32-non-commercial-license"@en ;
+                                                <http://purl.org/dc/terms/title> "Archimate Ontology"@en ;
+                                                rdfs:label "archimate language"@en .
+
+#################################################################
+#    Annotation properties
+#################################################################
+
+###  http://purl.org/dc/elements/1.1/license
+<http://purl.org/dc/elements/1.1/license> rdf:type owl:AnnotationProperty .
+
+
+###  http://purl.org/dc/terms/description
+<http://purl.org/dc/terms/description> rdf:type owl:AnnotationProperty .
+
+
+###  http://purl.org/dc/terms/licence
+<http://purl.org/dc/terms/licence> rdf:type owl:AnnotationProperty .
+
+
+###  http://purl.org/dc/terms/license
+<http://purl.org/dc/terms/license> rdf:type owl:AnnotationProperty .
+
+
+###  http://purl.org/dc/terms/title
+<http://purl.org/dc/terms/title> rdf:type owl:AnnotationProperty .
+
+
+###  http://www.w3.org/2004/02/skos/core#altLabel
+<http://www.w3.org/2004/02/skos/core#altLabel> rdf:type owl:AnnotationProperty ;
+                                               rdfs:comment "The range of skos:altLabel is the class of RDF plain literals."@en ,
+                                                            "skos:prefLabel, skos:altLabel and skos:hiddenLabel are pairwise disjoint properties."@en ;
+                                               rdfs:isDefinedBy <http://www.w3.org/2004/02/skos/core> ;
+                                               rdfs:label "alternative label"@en ;
+                                               <http://www.w3.org/2004/02/skos/core#definition> "An alternative lexical label for a resource."@en ;
+                                               <http://www.w3.org/2004/02/skos/core#example> "Acronyms, abbreviations, spelling variants, and irregular plural/singular forms may be included among the alternative labels for a concept. Mis-spelled terms are normally included as hidden labels (see skos:hiddenLabel)."@en ;
+                                               rdfs:subPropertyOf rdfs:label .
+
+
+###  http://www.w3.org/2004/02/skos/core#changeNote
+<http://www.w3.org/2004/02/skos/core#changeNote> rdf:type owl:AnnotationProperty ;
+                                                 rdfs:isDefinedBy <http://www.w3.org/2004/02/skos/core> ;
+                                                 rdfs:label "change note"@en ;
+                                                 <http://www.w3.org/2004/02/skos/core#definition> "A note about a modification to a concept."@en ;
+                                                 rdfs:subPropertyOf <http://www.w3.org/2004/02/skos/core#note> .
+
+
+###  http://www.w3.org/2004/02/skos/core#definition
+<http://www.w3.org/2004/02/skos/core#definition> rdf:type owl:AnnotationProperty ;
+                                                 rdfs:isDefinedBy <http://www.w3.org/2004/02/skos/core> ;
+                                                 rdfs:label "definition"@en ;
+                                                 <http://www.w3.org/2004/02/skos/core#definition> "A statement or formal explanation of the meaning of a concept."@en ;
+                                                 rdfs:subPropertyOf <http://www.w3.org/2004/02/skos/core#note> .
+
+
+###  http://www.w3.org/2004/02/skos/core#editorialNote
+<http://www.w3.org/2004/02/skos/core#editorialNote> rdf:type owl:AnnotationProperty ;
+                                                    rdfs:isDefinedBy <http://www.w3.org/2004/02/skos/core> ;
+                                                    rdfs:label "editorial note"@en ;
+                                                    <http://www.w3.org/2004/02/skos/core#definition> "A note for an editor, translator or maintainer of the vocabulary."@en ;
+                                                    rdfs:subPropertyOf <http://www.w3.org/2004/02/skos/core#note> .
+
+
+###  http://www.w3.org/2004/02/skos/core#example
+<http://www.w3.org/2004/02/skos/core#example> rdf:type owl:AnnotationProperty ;
+                                              rdfs:isDefinedBy <http://www.w3.org/2004/02/skos/core> ;
+                                              rdfs:label "example"@en ;
+                                              <http://www.w3.org/2004/02/skos/core#definition> "An example of the use of a concept."@en ;
+                                              rdfs:subPropertyOf <http://www.w3.org/2004/02/skos/core#note> .
+
+
+###  http://www.w3.org/2004/02/skos/core#hiddenLabel
+<http://www.w3.org/2004/02/skos/core#hiddenLabel> rdf:type owl:AnnotationProperty ;
+                                                  rdfs:comment "The range of skos:hiddenLabel is the class of RDF plain literals."@en ,
+                                                               "skos:prefLabel, skos:altLabel and skos:hiddenLabel are pairwise disjoint properties."@en ;
+                                                  rdfs:isDefinedBy <http://www.w3.org/2004/02/skos/core> ;
+                                                  rdfs:label "hidden label"@en ;
+                                                  <http://www.w3.org/2004/02/skos/core#definition> "A lexical label for a resource that should be hidden when generating visual displays of the resource, but should still be accessible to free text search operations."@en ;
+                                                  rdfs:subPropertyOf rdfs:label .
+
+
+###  http://www.w3.org/2004/02/skos/core#historyNote
+<http://www.w3.org/2004/02/skos/core#historyNote> rdf:type owl:AnnotationProperty ;
+                                                  rdfs:isDefinedBy <http://www.w3.org/2004/02/skos/core> ;
+                                                  rdfs:label "history note"@en ;
+                                                  <http://www.w3.org/2004/02/skos/core#definition> "A note about the past state/use/meaning of a concept."@en ;
+                                                  rdfs:subPropertyOf <http://www.w3.org/2004/02/skos/core#note> .
+
+
+###  http://www.w3.org/2004/02/skos/core#note
+<http://www.w3.org/2004/02/skos/core#note> rdf:type owl:AnnotationProperty ;
+                                           rdfs:isDefinedBy <http://www.w3.org/2004/02/skos/core> ;
+                                           rdfs:label "note"@en ;
+                                           <http://www.w3.org/2004/02/skos/core#definition> "A general note, for any purpose."@en ;
+                                           <http://www.w3.org/2004/02/skos/core#scopeNote> "This property may be used directly, or as a super-property for more specific note types."@en .
+
+
+###  http://www.w3.org/2004/02/skos/core#prefLabel
+<http://www.w3.org/2004/02/skos/core#prefLabel> rdf:type owl:AnnotationProperty ;
+                                                rdfs:comment "A resource has no more than one value of skos:prefLabel per language tag, and no more than one value of skos:prefLabel without language tag."@en ,
+                                                             "The range of skos:prefLabel is the class of RDF plain literals."@en ,
+                                                             """skos:prefLabel, skos:altLabel and skos:hiddenLabel are pairwise
+      disjoint properties."""@en ;
+                                                rdfs:isDefinedBy <http://www.w3.org/2004/02/skos/core> ;
+                                                rdfs:label "preferred label"@en ;
+                                                <http://www.w3.org/2004/02/skos/core#definition> "The preferred lexical label for a resource, in a given language."@en ;
+                                                rdfs:subPropertyOf rdfs:label .
+
+
+###  http://www.w3.org/2004/02/skos/core#scopeNote
+<http://www.w3.org/2004/02/skos/core#scopeNote> rdf:type owl:AnnotationProperty ;
+                                                rdfs:isDefinedBy <http://www.w3.org/2004/02/skos/core> ;
+                                                rdfs:label "scope note"@en ;
+                                                <http://www.w3.org/2004/02/skos/core#definition> "A note that helps to clarify the meaning and/or the use of a concept."@en ;
+                                                rdfs:subPropertyOf <http://www.w3.org/2004/02/skos/core#note> .
+
+
+#################################################################
+#    Object Properties
+#################################################################
+
+###  http://www.opengroup.org/ontology/archimate#Concept
+:Concept rdf:type owl:ObjectProperty .
+
+
+###  http://www.opengroup.org/ontology/archimate#Triggering
+:Triggering rdf:type owl:ObjectProperty ;
+            rdfs:subPropertyOf :dynamicRelationship ;
+            owl:inverseOf :isTriggeredBy ;
+            rdfs:domain :BehaviorElement ;
+            rdfs:range :BehaviorElement ;
+            rdfs:label "triggers"@en ;
+            <http://www.w3.org/2004/02/skos/core#definition> "The triggering relationship describes a temporal or causal relationship between elements." .
+
+
+###  http://www.opengroup.org/ontology/archimate#access
+:access rdf:type owl:ObjectProperty ;
+        rdfs:subPropertyOf :dependencyRelationship ;
+        owl:inverseOf :isAccessedBy ;
+        rdfs:domain :Event ,
+                    :ExternalBehaviourElement ,
+                    :InternalBehaviourElement ;
+        rdfs:range :PassiveStructureElement ;
+        rdfs:label "accesses"@en ;
+        <http://www.w3.org/2004/02/skos/core#definition> "The access relationship models the ability of behavior and active structure elements to observe or act upon passive structure elements."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#aggregation
+:aggregation rdf:type owl:ObjectProperty ;
+             rdfs:subPropertyOf :structuralRelationship ;
+             owl:inverseOf :isAggregatedBy ;
+             rdfs:domain :InternalBehaviourElement ;
+             rdfs:range :InternalBehaviourElement ;
+             rdfs:label "aggregates"@en ;
+             <http://www.w3.org/2004/02/skos/core#definition> """The aggregation relationship indicates that an element consists of one or more other concepts.
+An aggregation relationship is always allowed between two instances of the same element type.""" .
+
+
+###  http://www.opengroup.org/ontology/archimate#assignment
+:assignment rdf:type owl:ObjectProperty ;
+            rdfs:subPropertyOf :structuralRelationship ;
+            rdfs:domain :StructureElement ;
+            rdfs:range :BehaviorElement ;
+            rdfs:label "is assigned to"@en ;
+            <http://www.w3.org/2004/02/skos/core#definition> "The assignment relationship expresses the allocation of responsibility, performance of behavior, or execution." .
+
+
+###  http://www.opengroup.org/ontology/archimate#association
+:association rdf:type owl:ObjectProperty ;
+             rdfs:subPropertyOf :otherRelationship ;
+             rdfs:label "is associated with"@en ;
+             <http://www.w3.org/2004/02/skos/core#definition> "An association relationship models an unspecified relationship, or one that is not represented by another ArchiMate relationship." .
+
+
+###  http://www.opengroup.org/ontology/archimate#behaviourRealization
+:behaviourRealization rdf:type owl:ObjectProperty ;
+                      rdfs:subPropertyOf :realization ;
+                      rdfs:domain :InternalBehaviourElement ;
+                      rdfs:range :ExternalBehaviourElement ;
+                      rdfs:label "realizes (a behaviour)"@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#composition
+:composition rdf:type owl:ObjectProperty ;
+             rdfs:subPropertyOf :structuralRelationship ;
+             owl:inverseOf :isPartOf ;
+             rdfs:domain :InternalActiveStructureElement ;
+             rdfs:range :ExternalBehaviourElement ;
+             rdfs:label "is composed of"@en ;
+             <http://www.w3.org/2004/02/skos/core#definition> """The composition relationship indicates that an element consists of one or more other concepts.
+A composition relationship is always allowed between two instances of the same element type.""" .
+
+
+###  http://www.opengroup.org/ontology/archimate#compositionOfActiveStructureElement
+:compositionOfActiveStructureElement rdf:type owl:ObjectProperty ;
+                                     rdfs:subPropertyOf :composition ;
+                                     owl:propertyDisjointWith :compositionOfInternalBehaviorElement ;
+                                     rdfs:label "is composed of (active structure)"@en ;
+                                     <http://www.w3.org/2004/02/skos/core#altLabel> "is composed of"@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#compositionOfInternalBehaviorElement
+:compositionOfInternalBehaviorElement rdf:type owl:ObjectProperty ;
+                                      rdfs:subPropertyOf :composition ;
+                                      rdfs:domain :InternalBehaviourElement ;
+                                      rdfs:range :InternalBehaviourElement ;
+                                      rdfs:label "is composed of (internal behaviour)"@en ;
+                                      <http://www.w3.org/2004/02/skos/core#altLabel> "is composed of"@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#compositionOfStrategicBehaviourElement
+:compositionOfStrategicBehaviourElement rdf:type owl:ObjectProperty ;
+                                        rdfs:subPropertyOf :composition ;
+                                        rdfs:domain :StrategyBehaviourElement ;
+                                        rdfs:range :StrategyBehaviourElement ;
+                                        rdfs:label "is composed of (strategic behaviour)"@en ;
+                                        <http://www.w3.org/2004/02/skos/core#altLabel> "is composed of"@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#dependencyRelationship
+:dependencyRelationship rdf:type owl:ObjectProperty ;
+                        rdfs:subPropertyOf :relationships ;
+                        rdfs:label "Dependency Relationship"@en ;
+                        <http://www.w3.org/2004/02/skos/core#definition> "models how elements are used to support other elements."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#dynamicRelationship
+:dynamicRelationship rdf:type owl:ObjectProperty ;
+                     rdfs:subPropertyOf :relationships ;
+                     rdfs:label "Dynamic Relationship"@en ;
+                     <http://www.w3.org/2004/02/skos/core#definition> "A dynamic relationship is used to model behavioral dependencies between elements."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#flow
+:flow rdf:type owl:ObjectProperty ;
+      rdfs:subPropertyOf :dynamicRelationship ;
+      rdfs:domain :BehaviorElement ;
+      rdfs:range :BehaviorElement ;
+      rdfs:label "flows to"@en ;
+      <http://www.w3.org/2004/02/skos/core#definition> "The flow relationship represents transfer from one element to another." .
+
+
+###  http://www.opengroup.org/ontology/archimate#hasLayeredElement
+:hasLayeredElement rdf:type owl:ObjectProperty ;
+                   rdfs:subPropertyOf :structuration ;
+                   owl:inverseOf :isLayeredIn ;
+                   rdfs:label "classify element"@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#influence
+:influence rdf:type owl:ObjectProperty ;
+           rdfs:subPropertyOf :dependencyRelationship ;
+           owl:inverseOf :isInfluencedBy ;
+           rdfs:label "influences"@en ;
+           <http://www.w3.org/2004/02/skos/core#definition> ""@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#isAccessedBy
+:isAccessedBy rdf:type owl:ObjectProperty ;
+              rdfs:subPropertyOf :dependencyRelationship ;
+              rdfs:label "is accessed by"@en ;
+              <http://www.w3.org/2004/02/skos/core#definition> ""@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#isAggregatedBy
+:isAggregatedBy rdf:type owl:ObjectProperty ;
+                rdfs:subPropertyOf :structuralRelationship ;
+                rdfs:label "is aggregated by"@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#isInfluencedBy
+:isInfluencedBy rdf:type owl:ObjectProperty ;
+                rdfs:subPropertyOf :dependencyRelationship ;
+                rdfs:label "is influenced by"@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#isLayeredIn
+:isLayeredIn rdf:type owl:ObjectProperty ;
+             rdfs:subPropertyOf :structuration ;
+             rdfs:domain :Element ;
+             rdfs:range :Layer ;
+             rdfs:label "is classified in"@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#isPartOf
+:isPartOf rdf:type owl:ObjectProperty ;
+          rdfs:subPropertyOf :structuralRelationship ;
+          rdfs:label "is part of"@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#isRealizedBy
+:isRealizedBy rdf:type owl:ObjectProperty ;
+              rdfs:subPropertyOf :structuralRelationship ;
+              owl:inverseOf :realization ;
+              rdfs:label "is realized by"@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#isServedBy
+:isServedBy rdf:type owl:ObjectProperty ;
+            rdfs:subPropertyOf :dependencyRelationship ;
+            owl:inverseOf :serving ;
+            rdfs:label "is served by"@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#isTriggeredBy
+:isTriggeredBy rdf:type owl:ObjectProperty ;
+               rdfs:subPropertyOf :dynamicRelationship ;
+               rdfs:label "is triggered by"@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#motivationRealization
+:motivationRealization rdf:type owl:ObjectProperty ;
+                       rdfs:subPropertyOf :realization ;
+                       rdfs:domain :MotivationElement ;
+                       rdfs:range :MotivationElement ;
+                       rdfs:label "realizes (a motivation)"@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#otherRelationship
+:otherRelationship rdf:type owl:ObjectProperty ;
+                   rdfs:subPropertyOf :relationships ;
+                   rdfs:label "Other Relationship"@en ;
+                   <http://www.w3.org/2004/02/skos/core#definition> "Other relationships are all which do not fall into one of the above categories."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#readAccess
+:readAccess rdf:type owl:ObjectProperty ;
+            rdfs:subPropertyOf :access ;
+            rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+            rdfs:label "accesses to read to"@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#readWriteAccess
+:readWriteAccess rdf:type owl:ObjectProperty ;
+                 rdfs:subPropertyOf :access ;
+                 rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+                 rdfs:label "accesses to read and/or write to"@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#realization
+:realization rdf:type owl:ObjectProperty ;
+             rdfs:subPropertyOf :structuralRelationship ;
+             rdfs:label "realizes"@en ;
+             <http://www.w3.org/2004/02/skos/core#definition> "The realization relationship indicates that an entity plays a critical role in the creation, achievement, sustenance, or operation of a more abstract entity." .
+
+
+###  http://www.opengroup.org/ontology/archimate#relationships
+:relationships rdf:type owl:ObjectProperty ;
+               rdfs:subPropertyOf :Concept ;
+               rdfs:label "archimate relationships"@en ;
+               <http://www.w3.org/2004/02/skos/core#definition> "archimate relationship between elements"@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#serving
+:serving rdf:type owl:ObjectProperty ;
+         rdfs:subPropertyOf :dependencyRelationship ;
+         rdfs:label "serves"@en ;
+         <http://www.w3.org/2004/02/skos/core#definition> "The serving relationship models that an element provides its functionality to another element." .
+
+
+###  http://www.opengroup.org/ontology/archimate#structuralRelationship
+:structuralRelationship rdf:type owl:ObjectProperty ;
+                        rdfs:subPropertyOf :relationships ;
+                        rdfs:label "Structural Relationship"@en ;
+                        <http://www.w3.org/2004/02/skos/core#definition> "A structural relationship models the static construction or composition of concepts of the same or different types."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#structuration
+:structuration rdf:type owl:ObjectProperty ;
+               rdfs:subPropertyOf :Concept ;
+               rdfs:domain :Element ;
+               rdfs:range :Layer ;
+               rdfs:label "archimate structuration association"@en ;
+               <http://www.w3.org/2004/02/skos/core#definition> "models the association between elements and the architecture layers"@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#writeAccess
+:writeAccess rdf:type owl:ObjectProperty ;
+             rdfs:subPropertyOf :access ;
+             rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+             rdfs:label "accesses to write to"@en .
+
+
+###  http://www.w3.org/2004/02/skos/core#broadMatch
+<http://www.w3.org/2004/02/skos/core#broadMatch> rdf:type owl:ObjectProperty ;
+                                                 rdfs:subPropertyOf <http://www.w3.org/2004/02/skos/core#broader> ,
+                                                                    <http://www.w3.org/2004/02/skos/core#mappingRelation> ;
+                                                 owl:inverseOf <http://www.w3.org/2004/02/skos/core#narrowMatch> ;
+                                                 rdfs:isDefinedBy <http://www.w3.org/2004/02/skos/core> ;
+                                                 rdfs:label "has broader match"@en ;
+                                                 <http://www.w3.org/2004/02/skos/core#definition> "skos:broadMatch is used to state a hierarchical mapping link between two conceptual resources in different concept schemes."@en .
+
+
+###  http://www.w3.org/2004/02/skos/core#broader
+<http://www.w3.org/2004/02/skos/core#broader> rdf:type owl:ObjectProperty ;
+                                              rdfs:subPropertyOf <http://www.w3.org/2004/02/skos/core#broaderTransitive> ;
+                                              owl:inverseOf <http://www.w3.org/2004/02/skos/core#narrower> ;
+                                              rdfs:comment "Broader concepts are typically rendered as parents in a concept hierarchy (tree)."@en ;
+                                              rdfs:isDefinedBy <http://www.w3.org/2004/02/skos/core> ;
+                                              rdfs:label "has broader"@en ;
+                                              <http://www.w3.org/2004/02/skos/core#definition> "Relates a concept to a concept that is more general in meaning."@en ;
+                                              <http://www.w3.org/2004/02/skos/core#scopeNote> "By convention, skos:broader is only used to assert an immediate (i.e. direct) hierarchical link between two conceptual resources."@en .
+
+
+###  http://www.w3.org/2004/02/skos/core#broaderTransitive
+<http://www.w3.org/2004/02/skos/core#broaderTransitive> rdf:type owl:ObjectProperty ;
+                                                        rdfs:subPropertyOf <http://www.w3.org/2004/02/skos/core#semanticRelation> ;
+                                                        owl:inverseOf <http://www.w3.org/2004/02/skos/core#narrowerTransitive> ;
+                                                        rdf:type owl:TransitiveProperty ;
+                                                        rdfs:isDefinedBy <http://www.w3.org/2004/02/skos/core> ;
+                                                        rdfs:label "has broader transitive"@en ;
+                                                        <http://www.w3.org/2004/02/skos/core#definition> "skos:broaderTransitive is a transitive superproperty of skos:broader." ;
+                                                        <http://www.w3.org/2004/02/skos/core#scopeNote> "By convention, skos:broaderTransitive is not used to make assertions. Rather, the properties can be used to draw inferences about the transitive closure of the hierarchical relation, which is useful e.g. when implementing a simple query expansion algorithm in a search application."@en .
+
+
+###  http://www.w3.org/2004/02/skos/core#closeMatch
+<http://www.w3.org/2004/02/skos/core#closeMatch> rdf:type owl:ObjectProperty ;
+                                                 rdfs:subPropertyOf <http://www.w3.org/2004/02/skos/core#mappingRelation> ;
+                                                 rdf:type owl:SymmetricProperty ;
+                                                 rdfs:isDefinedBy <http://www.w3.org/2004/02/skos/core> ;
+                                                 rdfs:label "has close match"@en ;
+                                                 <http://www.w3.org/2004/02/skos/core#definition> "skos:closeMatch is used to link two concepts that are sufficiently similar that they can be used interchangeably in some information retrieval applications. In order to avoid the possibility of \"compound errors\" when combining mappings across more than two concept schemes, skos:closeMatch is not declared to be a transitive property."@en .
+
+
+###  http://www.w3.org/2004/02/skos/core#exactMatch
+<http://www.w3.org/2004/02/skos/core#exactMatch> rdf:type owl:ObjectProperty ;
+                                                 rdfs:subPropertyOf <http://www.w3.org/2004/02/skos/core#closeMatch> ;
+                                                 rdf:type owl:SymmetricProperty ,
+                                                          owl:TransitiveProperty ;
+                                                 rdfs:comment "skos:exactMatch is disjoint with each of the properties skos:broadMatch and skos:relatedMatch."@en ;
+                                                 rdfs:isDefinedBy <http://www.w3.org/2004/02/skos/core> ;
+                                                 rdfs:label "has exact match"@en ;
+                                                 <http://www.w3.org/2004/02/skos/core#definition> "skos:exactMatch is used to link two concepts, indicating a high degree of confidence that the concepts can be used interchangeably across a wide range of information retrieval applications. skos:exactMatch is a transitive property, and is a sub-property of skos:closeMatch."@en .
+
+
+###  http://www.w3.org/2004/02/skos/core#hasTopConcept
+<http://www.w3.org/2004/02/skos/core#hasTopConcept> rdf:type owl:ObjectProperty ;
+                                                    owl:inverseOf <http://www.w3.org/2004/02/skos/core#topConceptOf> ;
+                                                    rdfs:domain <http://www.w3.org/2004/02/skos/core#ConceptScheme> ;
+                                                    rdfs:range <http://www.w3.org/2004/02/skos/core#Concept> ;
+                                                    rdfs:isDefinedBy <http://www.w3.org/2004/02/skos/core> ;
+                                                    rdfs:label "has top concept"@en ;
+                                                    <http://www.w3.org/2004/02/skos/core#definition> "Relates, by convention, a concept scheme to a concept which is topmost in the broader/narrower concept hierarchies for that scheme, providing an entry point to these hierarchies."@en .
+
+
+###  http://www.w3.org/2004/02/skos/core#inScheme
+<http://www.w3.org/2004/02/skos/core#inScheme> rdf:type owl:ObjectProperty ;
+                                               rdfs:range <http://www.w3.org/2004/02/skos/core#ConceptScheme> ;
+                                               rdfs:isDefinedBy <http://www.w3.org/2004/02/skos/core> ;
+                                               rdfs:label "is in scheme"@en ;
+                                               <http://www.w3.org/2004/02/skos/core#definition> "Relates a resource (for example a concept) to a concept scheme in which it is included."@en ;
+                                               <http://www.w3.org/2004/02/skos/core#scopeNote> "A concept may be a member of more than one concept scheme."@en .
+
+
+###  http://www.w3.org/2004/02/skos/core#mappingRelation
+<http://www.w3.org/2004/02/skos/core#mappingRelation> rdf:type owl:ObjectProperty ;
+                                                      rdfs:subPropertyOf <http://www.w3.org/2004/02/skos/core#semanticRelation> ;
+                                                      rdfs:comment "These concept mapping relations mirror semantic relations, and the data model defined below is similar (with the exception of skos:exactMatch) to the data model defined for semantic relations. A distinct vocabulary is provided for concept mapping relations, to provide a convenient way to differentiate links within a concept scheme from links between concept schemes. However, this pattern of usage is not a formal requirement of the SKOS data model, and relies on informal definitions of best practice."@en ;
+                                                      rdfs:isDefinedBy <http://www.w3.org/2004/02/skos/core> ;
+                                                      rdfs:label "is in mapping relation with"@en ;
+                                                      <http://www.w3.org/2004/02/skos/core#definition> "Relates two concepts coming, by convention, from different schemes, and that have comparable meanings"@en .
+
+
+###  http://www.w3.org/2004/02/skos/core#member
+<http://www.w3.org/2004/02/skos/core#member> rdf:type owl:ObjectProperty ;
+                                             rdfs:domain <http://www.w3.org/2004/02/skos/core#Collection> ;
+                                             rdfs:range [ rdf:type owl:Class ;
+                                                          owl:unionOf ( <http://www.w3.org/2004/02/skos/core#Collection>
+                                                                        <http://www.w3.org/2004/02/skos/core#Concept>
+                                                                      )
+                                                        ] ;
+                                             rdfs:isDefinedBy <http://www.w3.org/2004/02/skos/core> ;
+                                             rdfs:label "has member"@en ;
+                                             <http://www.w3.org/2004/02/skos/core#definition> "Relates a collection to one of its members."@en .
+
+
+###  http://www.w3.org/2004/02/skos/core#memberList
+<http://www.w3.org/2004/02/skos/core#memberList> rdf:type owl:ObjectProperty ,
+                                                          owl:FunctionalProperty ;
+                                                 rdfs:domain <http://www.w3.org/2004/02/skos/core#OrderedCollection> ;
+                                                 rdfs:range rdf:List ;
+                                                 rdfs:comment """For any resource, every item in the list given as the value of the
+      skos:memberList property is also a value of the skos:member property."""@en ;
+                                                 rdfs:isDefinedBy <http://www.w3.org/2004/02/skos/core> ;
+                                                 rdfs:label "has member list"@en ;
+                                                 <http://www.w3.org/2004/02/skos/core#definition> "Relates an ordered collection to the RDF list containing its members."@en .
+
+
+###  http://www.w3.org/2004/02/skos/core#narrowMatch
+<http://www.w3.org/2004/02/skos/core#narrowMatch> rdf:type owl:ObjectProperty ;
+                                                  rdfs:subPropertyOf <http://www.w3.org/2004/02/skos/core#mappingRelation> ,
+                                                                     <http://www.w3.org/2004/02/skos/core#narrower> ;
+                                                  rdfs:isDefinedBy <http://www.w3.org/2004/02/skos/core> ;
+                                                  rdfs:label "has narrower match"@en ;
+                                                  <http://www.w3.org/2004/02/skos/core#definition> "skos:narrowMatch is used to state a hierarchical mapping link between two conceptual resources in different concept schemes."@en .
+
+
+###  http://www.w3.org/2004/02/skos/core#narrower
+<http://www.w3.org/2004/02/skos/core#narrower> rdf:type owl:ObjectProperty ;
+                                               rdfs:subPropertyOf <http://www.w3.org/2004/02/skos/core#narrowerTransitive> ;
+                                               rdfs:comment "Narrower concepts are typically rendered as children in a concept hierarchy (tree)."@en ;
+                                               rdfs:isDefinedBy <http://www.w3.org/2004/02/skos/core> ;
+                                               rdfs:label "has narrower"@en ;
+                                               <http://www.w3.org/2004/02/skos/core#definition> "Relates a concept to a concept that is more specific in meaning."@en ;
+                                               <http://www.w3.org/2004/02/skos/core#scopeNote> "By convention, skos:broader is only used to assert an immediate (i.e. direct) hierarchical link between two conceptual resources."@en .
+
+
+###  http://www.w3.org/2004/02/skos/core#narrowerTransitive
+<http://www.w3.org/2004/02/skos/core#narrowerTransitive> rdf:type owl:ObjectProperty ;
+                                                         rdfs:subPropertyOf <http://www.w3.org/2004/02/skos/core#semanticRelation> ;
+                                                         rdf:type owl:TransitiveProperty ;
+                                                         rdfs:isDefinedBy <http://www.w3.org/2004/02/skos/core> ;
+                                                         rdfs:label "has narrower transitive"@en ;
+                                                         <http://www.w3.org/2004/02/skos/core#definition> "skos:narrowerTransitive is a transitive superproperty of skos:narrower." ;
+                                                         <http://www.w3.org/2004/02/skos/core#scopeNote> "By convention, skos:narrowerTransitive is not used to make assertions. Rather, the properties can be used to draw inferences about the transitive closure of the hierarchical relation, which is useful e.g. when implementing a simple query expansion algorithm in a search application."@en .
+
+
+###  http://www.w3.org/2004/02/skos/core#related
+<http://www.w3.org/2004/02/skos/core#related> rdf:type owl:ObjectProperty ;
+                                              rdfs:subPropertyOf <http://www.w3.org/2004/02/skos/core#semanticRelation> ;
+                                              rdf:type owl:SymmetricProperty ;
+                                              rdfs:comment "skos:related is disjoint with skos:broaderTransitive"@en ;
+                                              rdfs:isDefinedBy <http://www.w3.org/2004/02/skos/core> ;
+                                              rdfs:label "has related"@en ;
+                                              <http://www.w3.org/2004/02/skos/core#definition> "Relates a concept to a concept with which there is an associative semantic relationship."@en .
+
+
+###  http://www.w3.org/2004/02/skos/core#relatedMatch
+<http://www.w3.org/2004/02/skos/core#relatedMatch> rdf:type owl:ObjectProperty ;
+                                                   rdfs:subPropertyOf <http://www.w3.org/2004/02/skos/core#mappingRelation> ,
+                                                                      <http://www.w3.org/2004/02/skos/core#related> ;
+                                                   rdf:type owl:SymmetricProperty ;
+                                                   rdfs:isDefinedBy <http://www.w3.org/2004/02/skos/core> ;
+                                                   rdfs:label "has related match"@en ;
+                                                   <http://www.w3.org/2004/02/skos/core#definition> "skos:relatedMatch is used to state an associative mapping link between two conceptual resources in different concept schemes."@en .
+
+
+###  http://www.w3.org/2004/02/skos/core#semanticRelation
+<http://www.w3.org/2004/02/skos/core#semanticRelation> rdf:type owl:ObjectProperty ;
+                                                       rdfs:domain <http://www.w3.org/2004/02/skos/core#Concept> ;
+                                                       rdfs:range <http://www.w3.org/2004/02/skos/core#Concept> ;
+                                                       rdfs:isDefinedBy <http://www.w3.org/2004/02/skos/core> ;
+                                                       rdfs:label "is in semantic relation with"@en ;
+                                                       <http://www.w3.org/2004/02/skos/core#definition> "Links a concept to a concept related by meaning."@en ;
+                                                       <http://www.w3.org/2004/02/skos/core#scopeNote> "This property should not be used directly, but as a super-property for all properties denoting a relationship of meaning between concepts."@en .
+
+
+###  http://www.w3.org/2004/02/skos/core#topConceptOf
+<http://www.w3.org/2004/02/skos/core#topConceptOf> rdf:type owl:ObjectProperty ;
+                                                   rdfs:subPropertyOf <http://www.w3.org/2004/02/skos/core#inScheme> ;
+                                                   rdfs:domain <http://www.w3.org/2004/02/skos/core#Concept> ;
+                                                   rdfs:range <http://www.w3.org/2004/02/skos/core#ConceptScheme> ;
+                                                   rdfs:isDefinedBy <http://www.w3.org/2004/02/skos/core> ;
+                                                   rdfs:label "is top concept in scheme"@en ;
+                                                   <http://www.w3.org/2004/02/skos/core#definition> "Relates a concept to the concept scheme that it is a top level concept of."@en .
+
+
+#################################################################
+#    Data properties
+#################################################################
+
+###  http://www.w3.org/2004/02/skos/core#notation
+<http://www.w3.org/2004/02/skos/core#notation> rdf:type owl:DatatypeProperty ;
+                                               rdfs:isDefinedBy <http://www.w3.org/2004/02/skos/core> ;
+                                               rdfs:label "notation"@en ;
+                                               <http://www.w3.org/2004/02/skos/core#definition> "A notation, also known as classification code, is a string of characters such as \"T58.5\" or \"303.4833\" used to uniquely identify a concept within the scope of a given concept scheme."@en ;
+                                               <http://www.w3.org/2004/02/skos/core#scopeNote> "By convention, skos:notation is used with a typed literal in the object position of the triple."@en .
+
+
+#################################################################
+#    Classes
+#################################################################
+
+###  http://www.opengroup.org/ontology/archimate#ActiveStructureElement
+:ActiveStructureElement rdf:type owl:Class ;
+                        rdfs:subClassOf :StructureElement ;
+                        rdfs:label "Active Structure Element"@en ;
+                        <http://www.w3.org/2004/02/skos/core#definition> """is the subject that can perform behavior. These can be subdivided 
+into internal active structure elements; i.e., the business actors, application components, nodes, etc., that realize this behavior, and external active structure elements; i.e., the interfaces that expose this behavior to the environment. An interface provides an external view on the service provider and hides its internal structure."""@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#ApplicationCollaboration
+:ApplicationCollaboration rdf:type owl:Class ;
+                          rdfs:subClassOf :ApplicationInternalActiveStructureElement ,
+                                          :Collaboration ,
+                                          [ rdf:type owl:Restriction ;
+                                            owl:onProperty :isLayeredIn ;
+                                            owl:someValuesFrom :ApplicationLayer
+                                          ] ;
+                          rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+                          rdfs:label "An Application Collaboration"@en ;
+                          <http://www.w3.org/2004/02/skos/core#definition> "represents an aggregate of two or more application components that work together to perform collective application behavior."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#ApplicationComponent
+:ApplicationComponent rdf:type owl:Class ;
+                      rdfs:subClassOf :ApplicationInternalActiveStructureElement ,
+                                      [ rdf:type owl:Restriction ;
+                                        owl:onProperty :isLayeredIn ;
+                                        owl:someValuesFrom :ApplicationLayer
+                                      ] ;
+                      rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+                      rdfs:label "An Application Component"@en ;
+                      <http://www.w3.org/2004/02/skos/core#definition> "represents an encapsulation of application functionality aligned to implementation structure, which is modular and replaceable. It encapsulates its behavior and data, exposes services, and makes them available through interfaces.."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#ApplicationEvent
+:ApplicationEvent rdf:type owl:Class ;
+                  rdfs:subClassOf :Event ;
+                  rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+                  rdfs:label "An Application Event"@en ;
+                  <http://www.w3.org/2004/02/skos/core#definition> "is a behavior element that denotes a state change. It may have a cause (triggering event), may be composed of other events, and may trigger other events or processes. An application event is generated or consumed by application components."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#ApplicationFunction
+:ApplicationFunction rdf:type owl:Class ;
+                     rdfs:subClassOf :ApplicationInternalBehaviourElement ,
+                                     :Function ,
+                                     [ rdf:type owl:Restriction ;
+                                       owl:onProperty :isLayeredIn ;
+                                       owl:someValuesFrom :ApplicationLayer
+                                     ] ;
+                     owl:disjointWith :TechnologyFunction ;
+                     rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+                     rdfs:label "An Application Function"@en ;
+                     <http://www.w3.org/2004/02/skos/core#definition> "represents automated behavior that can be performed by an application component."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#ApplicationInteraction
+:ApplicationInteraction rdf:type owl:Class ;
+                        rdfs:subClassOf :ApplicationInternalBehaviourElement ,
+                                        :Interaction ,
+                                        [ rdf:type owl:Restriction ;
+                                          owl:onProperty :isLayeredIn ;
+                                          owl:someValuesFrom :ApplicationLayer
+                                        ] ;
+                        rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+                        rdfs:label "An Application Interaction"@en ;
+                        <http://www.w3.org/2004/02/skos/core#definition> "is an application internal behavior element that describes behavior that results from the collective behavior of two or more application components."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#ApplicationInterface
+:ApplicationInterface rdf:type owl:Class ;
+                      rdfs:subClassOf :Interface ,
+                                      [ rdf:type owl:Restriction ;
+                                        owl:onProperty :isLayeredIn ;
+                                        owl:someValuesFrom :ApplicationLayer
+                                      ] ;
+                      rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+                      rdfs:label "An Application Interface"@en ;
+                      <http://www.w3.org/2004/02/skos/core#definition> "represents a point of access where application services are made available to a user, another application component, or a node."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#ApplicationInternalActiveStructureElement
+:ApplicationInternalActiveStructureElement rdf:type owl:Class ;
+                                           rdfs:subClassOf :InternalActiveStructureElement ;
+                                           rdfs:label "An Application Intrenal Active Structure Element"@en ;
+                                           <http://www.w3.org/2004/02/skos/core#definition> "is an element that performs application behavior and is assigned to one or more application behavior elements. The only defined application internal active structure element is the application component."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#ApplicationInternalBehaviourElement
+:ApplicationInternalBehaviourElement rdf:type owl:Class ;
+                                     rdfs:subClassOf :InternalBehaviourElement ;
+                                     rdfs:label "An application Internal Behaviour Element"@en ;
+                                     <http://www.w3.org/2004/02/skos/core#definition> "describes the internal behavior performed by an application component that is required to realize a service."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#ApplicationLayer
+:ApplicationLayer rdf:type owl:Class ;
+                  rdfs:subClassOf :Layer ,
+                                  [ rdf:type owl:Restriction ;
+                                    owl:onProperty :hasLayeredElement ;
+                                    owl:someValuesFrom :ApplicationComponent
+                                  ] ,
+                                  [ rdf:type owl:Restriction ;
+                                    owl:onProperty :hasLayeredElement ;
+                                    owl:someValuesFrom :ApplicationEvent
+                                  ] ,
+                                  [ rdf:type owl:Restriction ;
+                                    owl:onProperty :hasLayeredElement ;
+                                    owl:someValuesFrom :ApplicationFunction
+                                  ] ,
+                                  [ rdf:type owl:Restriction ;
+                                    owl:onProperty :hasLayeredElement ;
+                                    owl:someValuesFrom :ApplicationInteraction
+                                  ] ,
+                                  [ rdf:type owl:Restriction ;
+                                    owl:onProperty :hasLayeredElement ;
+                                    owl:someValuesFrom :ApplicationInterface
+                                  ] ,
+                                  [ rdf:type owl:Restriction ;
+                                    owl:onProperty :hasLayeredElement ;
+                                    owl:someValuesFrom :ApplicationProcess
+                                  ] ,
+                                  [ rdf:type owl:Restriction ;
+                                    owl:onProperty :hasLayeredElement ;
+                                    owl:someValuesFrom :ApplicationService
+                                  ] ,
+                                  [ rdf:type owl:Restriction ;
+                                    owl:onProperty :hasLayeredElement ;
+                                    owl:someValuesFrom :DataObject
+                                  ] ;
+                  rdfs:label "The Application Layer"@en ;
+                  <http://www.w3.org/2004/02/skos/core#definition> "describes application services that support the business, and the applications that realize them. It describes the structure, behavior, and interactions of the application components."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#ApplicationPassiveStructureElement
+:ApplicationPassiveStructureElement rdf:type owl:Class ;
+                                    rdfs:subClassOf :PassiveStructureElement ;
+                                    rdfs:label "An Application Passive Structure Element"@en ;
+                                    <http://www.w3.org/2004/02/skos/core#definition> "is an element that models an object on which behavior is performed within the application layer. The only defined application passive structure element is the data object."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#ApplicationProcess
+:ApplicationProcess rdf:type owl:Class ;
+                    rdfs:subClassOf :ApplicationInternalBehaviourElement ,
+                                    :Process ,
+                                    [ rdf:type owl:Restriction ;
+                                      owl:onProperty :isLayeredIn ;
+                                      owl:someValuesFrom :ApplicationLayer
+                                    ] ;
+                    rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+                    rdfs:label "An Application Process"@en ;
+                    <http://www.w3.org/2004/02/skos/core#definition> "Represents a sequence of application behaviors that achieves a specific outcome."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#ApplicationService
+:ApplicationService rdf:type owl:Class ;
+                    rdfs:subClassOf :Service ,
+                                    [ rdf:type owl:Restriction ;
+                                      owl:onProperty :isLayeredIn ;
+                                      owl:someValuesFrom :ApplicationLayer
+                                    ] ;
+                    rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+                    rdfs:label "An Application Service"@en ;
+                    <http://www.w3.org/2004/02/skos/core#definition> "Represents an explicitly defined exposed application behavior."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#Artifact
+:Artifact rdf:type owl:Class ;
+          rdfs:subClassOf :TechnologyObject ;
+          rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+          rdfs:label "An Artifact"@en ;
+          <http://www.w3.org/2004/02/skos/core#definition> "represents a piece of data that is used or produced in a software development process, or by deployment and operation of an IT system."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#Assessment
+:Assessment rdf:type owl:Class ;
+            rdfs:subClassOf :MotivationElement ,
+                            [ rdf:type owl:Restriction ;
+                              owl:onProperty :association ;
+                              owl:someValuesFrom :Driver
+                            ] ;
+            rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+            rdfs:label "An Assessment"@en ;
+            <http://www.w3.org/2004/02/skos/core#definition> "represents the result of an analysis of the state of affairs of the enterprise with respect to some driver."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#BehaviorElement
+:BehaviorElement rdf:type owl:Class ;
+                 rdfs:subClassOf :Element ;
+                 rdfs:label "A behavior element"@en ;
+                 <http://www.w3.org/2004/02/skos/core#definition> """represents the dynamic aspects of the enterprise. Similar to active structure 
+elements, behavior elements can be subdivided into internal behavior elements and external
+behavior elements; i.e., the services that are exposed to the environment."""@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#BusinessActor
+:BusinessActor rdf:type owl:Class ;
+               rdfs:subClassOf :BusinessInternalActiveStructureElement ,
+                               [ rdf:type owl:Restriction ;
+                                 owl:onProperty :assignment ;
+                                 owl:someValuesFrom :Stakeholder
+                               ] ,
+                               [ rdf:type owl:Restriction ;
+                                 owl:onProperty :isLayeredIn ;
+                                 owl:someValuesFrom :BusinessLayer
+                               ] ;
+               rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+               rdfs:label "A Business Actor"@en ;
+               <http://www.w3.org/2004/02/skos/core#definition> "Represents a business entity that is capable of performing behavior."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#BusinessCollaboration
+:BusinessCollaboration rdf:type owl:Class ;
+                       rdfs:subClassOf :BusinessInternalActiveStructureElement ,
+                                       [ rdf:type owl:Restriction ;
+                                         owl:onProperty :isLayeredIn ;
+                                         owl:someValuesFrom :BusinessLayer
+                                       ] ,
+                                       [ rdf:type owl:Restriction ;
+                                         owl:onProperty :aggregation ;
+                                         owl:minQualifiedCardinality "2"^^xsd:nonNegativeInteger ;
+                                         owl:onClass :BusinessInternalActiveStructureElement
+                                       ] ;
+                       rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+                       rdfs:label "A Business Collaboration"@en ;
+                       <http://www.w3.org/2004/02/skos/core#definition> "is an aggregate of two or more business internal active structure elements that work together to perform collective behavior."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#BusinessEvent
+:BusinessEvent rdf:type owl:Class ;
+               rdfs:subClassOf :Event ;
+               rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+               rdfs:label "A Business Event"@en ;
+               <http://www.w3.org/2004/02/skos/core#definition> "is a business behavior element that denotes an organizational state change. It may originate from and be resolved inside or outside the organization."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#BusinessFunction
+:BusinessFunction rdf:type owl:Class ;
+                  rdfs:subClassOf :BusinessInternalBehaviorElement ,
+                                  :Function ,
+                                  [ rdf:type owl:Restriction ;
+                                    owl:onProperty :isLayeredIn ;
+                                    owl:someValuesFrom :BusinessLayer
+                                  ] ;
+                  rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+                  rdfs:label "A Business Function"@en ;
+                  <http://www.w3.org/2004/02/skos/core#definition> "is a collection of business behavior based on a chosen set of criteria (typically required business resources and/or competencies), closely aligned to an organization, but not necessarily explicitly governed by the organization."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#BusinessInteraction
+:BusinessInteraction rdf:type owl:Class ;
+                     rdfs:subClassOf :BusinessInternalBehaviorElement ,
+                                     :Interaction ,
+                                     [ rdf:type owl:Restriction ;
+                                       owl:onProperty :isLayeredIn ;
+                                       owl:someValuesFrom :BusinessLayer
+                                     ] ;
+                     rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+                     rdfs:label "A Business Interaction"@en ;
+                     <http://www.w3.org/2004/02/skos/core#definition> "is a unit of collective business behavior performed by (a collaboration of) two or more business roles."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#BusinessInterface
+:BusinessInterface rdf:type owl:Class ;
+                   rdfs:subClassOf :Interface ;
+                   rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+                   rdfs:label "A business interface"@en ;
+                   <http://www.w3.org/2004/02/skos/core#definition> "represents a point of access where a business service is made available to the environment."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#BusinessInternalActiveStructureElement
+:BusinessInternalActiveStructureElement rdf:type owl:Class ;
+                                        rdfs:subClassOf :InternalActiveStructureElement ;
+                                        rdfs:label "A Business Internal Active Structure"@en ;
+                                        <http://www.w3.org/2004/02/skos/core#definition> "is an element that performs business behavior and is assigned to one or more business behavior elements."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#BusinessInternalBehaviorElement
+:BusinessInternalBehaviorElement rdf:type owl:Class ;
+                                 rdfs:subClassOf :InternalBehaviourElement ;
+                                 rdfs:label "A Business Internal Behaviour Element"@en ;
+                                 <http://www.w3.org/2004/02/skos/core#definition> "describes the internal behavior performed by a business role or business collaboration that is required to realize a business service."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#BusinessLayer
+:BusinessLayer rdf:type owl:Class ;
+               rdfs:subClassOf :Layer ,
+                               [ rdf:type owl:Restriction ;
+                                 owl:onProperty :hasLayeredElement ;
+                                 owl:someValuesFrom :BusinessActor
+                               ] ,
+                               [ rdf:type owl:Restriction ;
+                                 owl:onProperty :hasLayeredElement ;
+                                 owl:someValuesFrom :BusinessCollaboration
+                               ] ,
+                               [ rdf:type owl:Restriction ;
+                                 owl:onProperty :hasLayeredElement ;
+                                 owl:someValuesFrom :BusinessEvent
+                               ] ,
+                               [ rdf:type owl:Restriction ;
+                                 owl:onProperty :hasLayeredElement ;
+                                 owl:someValuesFrom :BusinessFunction
+                               ] ,
+                               [ rdf:type owl:Restriction ;
+                                 owl:onProperty :hasLayeredElement ;
+                                 owl:someValuesFrom :BusinessInteraction
+                               ] ,
+                               [ rdf:type owl:Restriction ;
+                                 owl:onProperty :hasLayeredElement ;
+                                 owl:someValuesFrom :BusinessInterface
+                               ] ,
+                               [ rdf:type owl:Restriction ;
+                                 owl:onProperty :hasLayeredElement ;
+                                 owl:someValuesFrom :BusinessObject
+                               ] ,
+                               [ rdf:type owl:Restriction ;
+                                 owl:onProperty :hasLayeredElement ;
+                                 owl:someValuesFrom :BusinessProcess
+                               ] ,
+                               [ rdf:type owl:Restriction ;
+                                 owl:onProperty :hasLayeredElement ;
+                                 owl:someValuesFrom :BusinessRole
+                               ] ,
+                               [ rdf:type owl:Restriction ;
+                                 owl:onProperty :hasLayeredElement ;
+                                 owl:someValuesFrom :BusinessService
+                               ] ,
+                               [ rdf:type owl:Restriction ;
+                                 owl:onProperty :hasLayeredElement ;
+                                 owl:someValuesFrom :Contract
+                               ] ,
+                               [ rdf:type owl:Restriction ;
+                                 owl:onProperty :hasLayeredElement ;
+                                 owl:someValuesFrom :Product
+                               ] ;
+               rdfs:label "The Business Layer"@en ;
+               <http://www.w3.org/2004/02/skos/core#definition> "describes the products and services an enterprise offers to external customers, and the organization, roles, processes, and functions that realize these."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#BusinessObject
+:BusinessObject rdf:type owl:Class ;
+                rdfs:subClassOf :BusinessPassiveStructureElement ,
+                                [ rdf:type owl:Restriction ;
+                                  owl:onProperty :isLayeredIn ;
+                                  owl:someValuesFrom :BusinessLayer
+                                ] ;
+                rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+                rdfs:label "A Business Object"@en ;
+                <http://www.w3.org/2004/02/skos/core#definition> "represents a concept used within a particular business domain."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#BusinessPassiveStructureElement
+:BusinessPassiveStructureElement rdf:type owl:Class ;
+                                 rdfs:subClassOf :PassiveStructureElement ;
+                                 rdfs:label "A Business Passive Structure Element"@en ;
+                                 <http://www.w3.org/2004/02/skos/core#definition> "is an element that models an object on which behavior is performed within the business layer. The only defined business passive structure element is the business object."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#BusinessProcess
+:BusinessProcess rdf:type owl:Class ;
+                 rdfs:subClassOf :BusinessInternalBehaviorElement ,
+                                 :Process ;
+                 rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+                 rdfs:label "A Business Process"@en ;
+                 <http://www.w3.org/2004/02/skos/core#definition> "represents a sequence of business behaviors that achieves a specific outcome such as a defined set of products or business services."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#BusinessRole
+:BusinessRole rdf:type owl:Class ;
+              rdfs:subClassOf :BusinessInternalActiveStructureElement ,
+                              [ rdf:type owl:Restriction ;
+                                owl:onProperty :assignment ;
+                                owl:someValuesFrom :BusinessRole
+                              ] ,
+                              [ rdf:type owl:Restriction ;
+                                owl:onProperty :isLayeredIn ;
+                                owl:someValuesFrom :BusinessLayer
+                              ] ;
+              rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+              rdfs:label "A Business Role"@en ;
+              <http://www.w3.org/2004/02/skos/core#definition> "is the responsibility for performing specific behavior, to which an actor can be assigned, or the part an actor plays in a particular action or event."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#BusinessService
+:BusinessService rdf:type owl:Class ;
+                 rdfs:subClassOf :Service ;
+                 rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+                 rdfs:label "A Business Service"@en ;
+                 <http://www.w3.org/2004/02/skos/core#definition> "represents an explicitly defined exposed business behavior."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#Capability
+:Capability rdf:type owl:Class ;
+            rdfs:subClassOf :StrategyBehaviourElement ,
+                            [ rdf:type owl:Restriction ;
+                              owl:onProperty :realization ;
+                              owl:someValuesFrom :CourseOfAction
+                            ] ,
+                            [ rdf:type owl:Restriction ;
+                              owl:onProperty :serving ;
+                              owl:someValuesFrom :CourseOfAction
+                            ] ;
+            rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+            rdfs:label "a capability"@en ;
+            <http://www.w3.org/2004/02/skos/core#definition> "represents an ability that an active structure element, such as an organization, person, or system, possesses."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#Collaboration
+:Collaboration rdf:type owl:Class ;
+               rdfs:subClassOf :InternalActiveStructureElement ;
+               rdfs:label "A collaboration"@en ;
+               <http://www.w3.org/2004/02/skos/core#definition> "is an aggregate of two or more active structure elements, working together to perform some collective behavior"@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#CommunicationNetwork
+:CommunicationNetwork rdf:type owl:Class ;
+                      rdfs:subClassOf :TechnologyInternalActiveStructureElement ;
+                      rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+                      rdfs:label "A Communication Network"@en ;
+                      <http://www.w3.org/2004/02/skos/core#definition> """represents a set of structures that connects computer systems or other 
+electronic devices for transmission, routing, and reception of data or data-based communications 
+such as voice and video."""@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#CompositeElement
+:CompositeElement rdf:type owl:Class ;
+                  rdfs:subClassOf :Element ;
+                  rdfs:label "A composite Element"@en ;
+                  <http://www.w3.org/2004/02/skos/core#definition> "is an element that consists of other elements as its parts. In the ArchiMate language, certain elements can be composed of other elements, such as an Application Collaboration or a Group, and this composition is modeled by means of the Composition relationship."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#Concept
+:Concept rdf:type owl:Class ;
+         rdfs:subClassOf owl:Thing .
+
+
+###  http://www.opengroup.org/ontology/archimate#Constraint
+:Constraint rdf:type owl:Class ;
+            rdfs:subClassOf :Requirement ;
+            rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+            rdfs:label "A Constraint"@en ;
+            <http://www.w3.org/2004/02/skos/core#definition> "represents a factor that prevents or obstructs the realization of goals."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#Contract
+:Contract rdf:type owl:Class ;
+          rdfs:subClassOf :BusinessObject ;
+          rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+          rdfs:label "A Contract"@en ;
+          <http://www.w3.org/2004/02/skos/core#definition> "represents a formal or informal specification of an agreement between a provider and a consumer that specifies the rights and obligations associated with a product and establishes functional and non-functional parameters for interaction."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#CourseOfAction
+:CourseOfAction rdf:type owl:Class ;
+                rdfs:subClassOf :BehaviorElement ;
+                rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+                rdfs:label "A course of actionsen"@en ;
+                <http://www.w3.org/2004/02/skos/core#definition> "is an approach or plan for configuring some capabilities and resources of the enterprise, undertaken to achieve a goal."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#DataObject
+:DataObject rdf:type owl:Class ;
+            rdfs:subClassOf :ApplicationPassiveStructureElement ,
+                            [ rdf:type owl:Restriction ;
+                              owl:onProperty :isLayeredIn ;
+                              owl:someValuesFrom :ApplicationLayer
+                            ] ;
+            rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+            rdfs:label "DataObject"@en ;
+            <http://www.w3.org/2004/02/skos/core#definition> "Represents data structured for automated processing."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#Deliverable
+:Deliverable rdf:type owl:Class ;
+             rdfs:subClassOf :PassiveStructureElement ,
+                             [ rdf:type owl:Restriction ;
+                               owl:onProperty :realization ;
+                               owl:someValuesFrom :Plateau
+                             ] ;
+             rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+             rdfs:label "A deliverable"@en ;
+             <http://www.w3.org/2004/02/skos/core#definition> "represents a precisely-defined outcome of a work package."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#Device
+:Device rdf:type owl:Class ;
+        rdfs:subClassOf :Node ;
+        rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+        rdfs:label "A Device"@en ;
+        <http://www.w3.org/2004/02/skos/core#definition> "Represents a physical computational resource with processing capability."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#DistributionNetwork
+:DistributionNetwork rdf:type owl:Class ;
+                     rdfs:subClassOf :PhysicalInternalActiveStructureElement ,
+                                     [ rdf:type owl:Restriction ;
+                                       owl:onProperty :aggregation ;
+                                       owl:someValuesFrom :Equipment
+                                     ] ,
+                                     [ rdf:type owl:Restriction ;
+                                       owl:onProperty :aggregation ;
+                                       owl:someValuesFrom :Facility
+                                     ] ,
+                                     [ rdf:type owl:Restriction ;
+                                       owl:onProperty :isLayeredIn ;
+                                       owl:someValuesFrom :PhysicalLayer
+                                     ] ,
+                                     [ rdf:type owl:Restriction ;
+                                       owl:onProperty :realization ;
+                                       owl:someValuesFrom :Path
+                                     ] ;
+                     rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+                     rdfs:label "A Distribution Network"@en ;
+                     <http://www.w3.org/2004/02/skos/core#definition> "represents a physical network used to transport materials or energy."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#Driver
+:Driver rdf:type owl:Class ;
+        rdfs:subClassOf :MotivationElement ;
+        rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+        rdfs:label "A Driver"@en ;
+        <http://www.w3.org/2004/02/skos/core#definition> "represents an external or internal condition that motivates an organization to define its goals and implement the changes necessary to achieve them."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#Element
+:Element rdf:type owl:Class ;
+         rdfs:subClassOf :Concept ;
+         rdfs:label "Element"@en ;
+         <http://www.w3.org/2004/02/skos/core#definition> "An element is a fundamental modeling concept in the ArchiMate language. Elements are the basic building blocks of models. The ArchiMate language defines a set of element types, each with its own specific meaning and role within architectural descriptions."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#Equipment
+:Equipment rdf:type owl:Class ;
+           rdfs:subClassOf :Node ,
+                           :PhysicalInternalActiveStructureElement ,
+                           [ rdf:type owl:Restriction ;
+                             owl:onProperty :assignment ;
+                             owl:someValuesFrom :TechnologyInternalBehaviourElement
+                           ] ,
+                           [ rdf:type owl:Restriction ;
+                             owl:onProperty :assignment ;
+                             owl:someValuesFrom :TechnologyObject
+                           ] ,
+                           [ rdf:type owl:Restriction ;
+                             owl:onProperty :isLayeredIn ;
+                             owl:someValuesFrom :PhysicalLayer
+                           ] ;
+           rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+           rdfs:label "An Equipment"@en ;
+           <http://www.w3.org/2004/02/skos/core#definition> "represents one or more physical machines, tools, or instruments that can create, use, store, move, or transform materials."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#Event
+:Event rdf:type owl:Class ;
+       rdfs:subClassOf :BehaviorElement ;
+       owl:disjointUnionOf ( :ApplicationEvent
+                             :BusinessEvent
+                             :ImplementationEvent
+                             :TechnologyEvent
+                           ) ;
+       rdfs:label "Event"@en ;
+       <http://www.w3.org/2004/02/skos/core#definition> "is a behavior element that denotes a state change"@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#ExternalActiveStructureElement
+:ExternalActiveStructureElement rdf:type owl:Class ;
+                                rdfs:subClassOf :ActiveStructureElement ,
+                                                [ rdf:type owl:Restriction ;
+                                                  owl:onProperty :assignment ;
+                                                  owl:someValuesFrom :ExternalBehaviourElement
+                                                ] ,
+                                                [ rdf:type owl:Restriction ;
+                                                  owl:onProperty :serving ;
+                                                  owl:someValuesFrom :InternalActiveStructureElement
+                                                ] ;
+                                owl:disjointWith :InternalActiveStructureElement ;
+                                rdfs:label "External Active Structure Element"@en ;
+                                <http://www.w3.org/2004/02/skos/core#definition> "represents a point of access where one or more services are provided to the environment and is called an interface."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#ExternalBehaviourElement
+:ExternalBehaviourElement rdf:type owl:Class ;
+                          rdfs:subClassOf :BehaviorElement ,
+                                          [ rdf:type owl:Restriction ;
+                                            owl:onProperty :Triggering ;
+                                            owl:someValuesFrom :Event
+                                          ] ,
+                                          [ rdf:type owl:Restriction ;
+                                            owl:onProperty :Triggering ;
+                                            owl:someValuesFrom :ExternalBehaviourElement
+                                          ] ,
+                                          [ rdf:type owl:Restriction ;
+                                            owl:onProperty :flow ;
+                                            owl:someValuesFrom :Event
+                                          ] ,
+                                          [ rdf:type owl:Restriction ;
+                                            owl:onProperty :flow ;
+                                            owl:someValuesFrom :ExternalBehaviourElement
+                                          ] ,
+                                          [ rdf:type owl:Restriction ;
+                                            owl:onProperty :serving ;
+                                            owl:someValuesFrom :InternalBehaviourElement
+                                          ] ;
+                          rdfs:label "External Behavior Element"@en ;
+                          <http://www.w3.org/2004/02/skos/core#definition> "represents an explicitly defined exposed behavior and is called a service."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#Facility
+:Facility rdf:type owl:Class ;
+          rdfs:subClassOf :Node ,
+                          :PhysicalInternalActiveStructureElement ,
+                          [ rdf:type owl:Restriction ;
+                            owl:onProperty :assignment ;
+                            owl:someValuesFrom :BusinessActor
+                          ] ,
+                          [ rdf:type owl:Restriction ;
+                            owl:onProperty :assignment ;
+                            owl:someValuesFrom :Node
+                          ] ,
+                          [ rdf:type owl:Restriction ;
+                            owl:onProperty :isLayeredIn ;
+                            owl:someValuesFrom :PhysicalLayer
+                          ] ;
+          rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+          rdfs:label "A Facility"@en ;
+          <http://www.w3.org/2004/02/skos/core#definition> "represents a physical structure or environment."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#Function
+:Function rdf:type owl:Class ;
+          rdfs:subClassOf :InternalBehaviourElement ;
+          rdfs:label "A function"@en ;
+          <http://www.w3.org/2004/02/skos/core#definition> "A function represents a collection of behavior based on specific criteria, such as required resources, competences, or location."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#Gap
+:Gap rdf:type owl:Class ;
+     rdfs:subClassOf :PassiveStructureElement ,
+                     [ rdf:type owl:Restriction ;
+                       owl:onProperty :isLayeredIn ;
+                       owl:someValuesFrom :ImplementationAndMigrationLayer
+                     ] ,
+                     [ rdf:type owl:Restriction ;
+                       owl:onProperty :association ;
+                       owl:minQualifiedCardinality "2"^^xsd:nonNegativeInteger ;
+                       owl:onClass :Plateau
+                     ] ;
+     rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+     rdfs:label "A gap"@en ;
+     <http://www.w3.org/2004/02/skos/core#definition> "represents a statement of difference between two plateaus"@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#Goal
+:Goal rdf:type owl:Class ;
+      rdfs:subClassOf :MotivationElement ,
+                      [ rdf:type owl:Restriction ;
+                        owl:onProperty :association ;
+                        owl:someValuesFrom :Assessment
+                      ] ,
+                      [ rdf:type owl:Restriction ;
+                        owl:onProperty :association ;
+                        owl:someValuesFrom :Driver
+                      ] ;
+      rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+      rdfs:label "A Goal"@en ;
+      <http://www.w3.org/2004/02/skos/core#definition> "represents a high-level statement of intent, direction, or desired end state for an organization and its stakeholders."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#Grouping
+:Grouping rdf:type owl:Class ;
+          rdfs:subClassOf :CompositeElement ;
+          rdfs:label "A grouping element"@en ;
+          <http://www.w3.org/2004/02/skos/core#definition> """aggregates or composes concepts that belong together based on some 
+common characteristic."""@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#ImplementationAndMigrationLayer
+:ImplementationAndMigrationLayer rdf:type owl:Class ;
+                                 rdfs:subClassOf :Layer ,
+                                                 [ rdf:type owl:Restriction ;
+                                                   owl:onProperty :composition ;
+                                                   owl:someValuesFrom :Deliverable
+                                                 ] ,
+                                                 [ rdf:type owl:Restriction ;
+                                                   owl:onProperty :composition ;
+                                                   owl:someValuesFrom :Gap
+                                                 ] ,
+                                                 [ rdf:type owl:Restriction ;
+                                                   owl:onProperty :composition ;
+                                                   owl:someValuesFrom :ImplementationEvent
+                                                 ] ,
+                                                 [ rdf:type owl:Restriction ;
+                                                   owl:onProperty :composition ;
+                                                   owl:someValuesFrom :Plateau
+                                                 ] ,
+                                                 [ rdf:type owl:Restriction ;
+                                                   owl:onProperty :composition ;
+                                                   owl:someValuesFrom :WorkPackage
+                                                 ] ;
+                                 rdfs:label "The Implementation and Migration Layer"@en ;
+                                 <http://www.w3.org/2004/02/skos/core#definition> "supports modeling of the transition from baseline to target architectures. It describes work packages, projects, programs, implementation steps, and the relationships between them."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#ImplementationEvent
+:ImplementationEvent rdf:type owl:Class ;
+                     rdfs:subClassOf :Event ,
+                                     [ rdf:type owl:Restriction ;
+                                       owl:onProperty :access ;
+                                       owl:someValuesFrom :Deliverable
+                                     ] ,
+                                     [ rdf:type owl:Restriction ;
+                                       owl:onProperty :isLayeredIn ;
+                                       owl:someValuesFrom :ImplementationAndMigrationLayer
+                                     ] ;
+                     rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+                     rdfs:label "An implementation event"@en ;
+                     <http://www.w3.org/2004/02/skos/core#definition> "represents a precisely-defined outcome of a work package."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#Interaction
+:Interaction rdf:type owl:Class ;
+             rdfs:subClassOf :InternalBehaviourElement ;
+             rdfs:label "An interaction"@en ;
+             <http://www.w3.org/2004/02/skos/core#definition> "is a unit of collective behavior performed by (a collaboration of) two or more active structure elements."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#Interface
+:Interface rdf:type owl:Class ;
+           rdfs:subClassOf :ExternalActiveStructureElement ;
+           rdfs:label "An interface"@en ;
+           <http://www.w3.org/2004/02/skos/core#definition> "is a point of access where one or more services are exposed to the environment."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#InternalActiveStructureElement
+:InternalActiveStructureElement rdf:type owl:Class ;
+                                rdfs:subClassOf :ActiveStructureElement ,
+                                                [ rdf:type owl:Restriction ;
+                                                  owl:onProperty :assignment ;
+                                                  owl:someValuesFrom :Event
+                                                ] ,
+                                                [ rdf:type owl:Restriction ;
+                                                  owl:onProperty :composition ;
+                                                  owl:someValuesFrom :ExternalActiveStructureElement
+                                                ] ;
+                                rdfs:label "Internal Active Structure Element"@en ;
+                                <http://www.w3.org/2004/02/skos/core#definition> "represents an entity that is capable of performing behavior."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#InternalBehaviourElement
+:InternalBehaviourElement rdf:type owl:Class ;
+                          rdfs:subClassOf :BehaviorElement ,
+                                          [ rdf:type owl:Restriction ;
+                                            owl:onProperty :Triggering ;
+                                            owl:someValuesFrom :Event
+                                          ] ,
+                                          [ rdf:type owl:Restriction ;
+                                            owl:onProperty :Triggering ;
+                                            owl:someValuesFrom :InternalBehaviourElement
+                                          ] ,
+                                          [ rdf:type owl:Restriction ;
+                                            owl:onProperty :flow ;
+                                            owl:someValuesFrom :Event
+                                          ] ,
+                                          [ rdf:type owl:Restriction ;
+                                            owl:onProperty :flow ;
+                                            owl:someValuesFrom :InternalBehaviourElement
+                                          ] ,
+                                          [ rdf:type owl:Restriction ;
+                                            owl:onProperty :realization ;
+                                            owl:someValuesFrom :ExternalBehaviourElement
+                                          ] ;
+                          rdfs:label "Internal Behavior Element"@en ;
+                          <http://www.w3.org/2004/02/skos/core#definition> """represents a unit of activity performed by one or more active 
+structure elements"""@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#Junction
+:Junction rdf:type owl:Class ;
+          rdfs:subClassOf :Element ;
+          rdfs:label "a junction"@en ;
+          <http://www.w3.org/2004/02/skos/core#definition> "A connector used to combine or split relationships of the same type. Not a relationship itself, but used to structure them."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#Layer
+:Layer rdf:type owl:Class ;
+       rdfs:subClassOf :Structure ;
+       rdfs:label "An Archimate Layer"@en ;
+       <http://www.w3.org/2004/02/skos/core#definition> "The structure of the ArchiMate core framework reflects the layered nature of enterprises, but the layers themselves are not elements of the language; rather, they are used to group elements with similar types and roles."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#Location
+:Location rdf:type owl:Class ;
+          rdfs:subClassOf :CompositeElement ;
+          rdfs:label "A location"@en ;
+          <http://www.w3.org/2004/02/skos/core#definition> "is a place or position where structure elements can be located or behavior can be performed."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#Material
+:Material rdf:type owl:Class ;
+          rdfs:subClassOf :PhysicalPassiveStructureElement ,
+                          :TechnologyObject ,
+                          [ rdf:type owl:Restriction ;
+                            owl:onProperty :access ;
+                            owl:someValuesFrom :PhysicalPassiveStructureElement
+                          ] ,
+                          [ rdf:type owl:Restriction ;
+                            owl:onProperty :isLayeredIn ;
+                            owl:someValuesFrom :PhysicalLayer
+                          ] ;
+          rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+          rdfs:label "A Material"@en ;
+          <http://www.w3.org/2004/02/skos/core#definition> "represents tangible physical matter or physical elements"@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#Meaning
+:Meaning rdf:type owl:Class ;
+         rdfs:subClassOf :MotivationElement ;
+         rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+         rdfs:label "A Meaning"@en ;
+         <http://www.w3.org/2004/02/skos/core#definition> "represents the knowledge or expertise present in, or the interpretation given to, a core element in a particular context"@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#MotivationElement
+:MotivationElement rdf:type owl:Class ;
+                   rdfs:subClassOf :Element ,
+                                   [ rdf:type owl:Restriction ;
+                                     owl:onProperty :association ;
+                                     owl:someValuesFrom :Value
+                                   ] ;
+                   rdfs:label "A motivation element"@en ;
+                   <http://www.w3.org/2004/02/skos/core#definition> """is an element that provides the context of or reason behind the 
+architecture of an enterprise."""@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#MotivationLayer
+:MotivationLayer rdf:type owl:Class ;
+                 rdfs:subClassOf :Layer ,
+                                 [ rdf:type owl:Restriction ;
+                                   owl:onProperty :composition ;
+                                   owl:someValuesFrom :Assessment
+                                 ] ,
+                                 [ rdf:type owl:Restriction ;
+                                   owl:onProperty :composition ;
+                                   owl:someValuesFrom :Constraint
+                                 ] ,
+                                 [ rdf:type owl:Restriction ;
+                                   owl:onProperty :composition ;
+                                   owl:someValuesFrom :Driver
+                                 ] ,
+                                 [ rdf:type owl:Restriction ;
+                                   owl:onProperty :composition ;
+                                   owl:someValuesFrom :Goal
+                                 ] ,
+                                 [ rdf:type owl:Restriction ;
+                                   owl:onProperty :composition ;
+                                   owl:someValuesFrom :Meaning
+                                 ] ,
+                                 [ rdf:type owl:Restriction ;
+                                   owl:onProperty :composition ;
+                                   owl:someValuesFrom :Outcome
+                                 ] ,
+                                 [ rdf:type owl:Restriction ;
+                                   owl:onProperty :composition ;
+                                   owl:someValuesFrom :Principle
+                                 ] ,
+                                 [ rdf:type owl:Restriction ;
+                                   owl:onProperty :composition ;
+                                   owl:someValuesFrom :Requirement
+                                 ] ,
+                                 [ rdf:type owl:Restriction ;
+                                   owl:onProperty :composition ;
+                                   owl:someValuesFrom :Stakeholder
+                                 ] ,
+                                 [ rdf:type owl:Restriction ;
+                                   owl:onProperty :composition ;
+                                   owl:someValuesFrom :Value
+                                 ] ;
+                 rdfs:label "The Motivation Layer"@en ;
+                 <http://www.w3.org/2004/02/skos/core#definition> "provides elements to model the reasons, drivers, and intentions behind the architecture. It captures goals, principles, requirements, and constraints that influence the design and evolution of the enterprise architecture."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#Node
+:Node rdf:type owl:Class ;
+      rdfs:subClassOf :TechnologyInternalActiveStructureElement ;
+      rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+      rdfs:label "A Node"@en ;
+      <http://www.w3.org/2004/02/skos/core#definition> "represents a computational or physical resource that hosts, manipulates, or interacts with other computational or physical resources."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#Outcome
+:Outcome rdf:type owl:Class ;
+         rdfs:subClassOf :MotivationElement ,
+                         [ rdf:type owl:Restriction ;
+                           owl:onProperty :realization ;
+                           owl:someValuesFrom :Goal
+                         ] ;
+         rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+         rdfs:label "An Outcome"@en ;
+         <http://www.w3.org/2004/02/skos/core#definition> "represents an end result that has been achieved."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#PassiveStructureElement
+:PassiveStructureElement rdf:type owl:Class ;
+                         rdfs:subClassOf :StructureElement ;
+                         rdfs:label "A passive structure element"@en ;
+                         <http://www.w3.org/2004/02/skos/core#definition> """is a structural element that cannot perform behavior. Active 
+structure elements can perform behavior on passive structure elements."""@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#Path
+:Path rdf:type owl:Class ;
+      rdfs:subClassOf :TechnologyInternalActiveStructureElement ;
+      rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+      rdfs:label "A Path"@en ;
+      <http://www.w3.org/2004/02/skos/core#definition> "represents a link between two or more nodes, through which these nodes can exchange data or material."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#PhysicalInternalActiveStructureElement
+:PhysicalInternalActiveStructureElement rdf:type owl:Class ;
+                                        rdfs:subClassOf :InternalActiveStructureElement ;
+                                        rdfs:label "A Physical Active Structure Element"@en ;
+                                        <http://www.w3.org/2004/02/skos/core#definition> "is an element that performs physical behavior and is assigned to one or more physical behavior elements. The only defined physical internal active structure element is the equipment."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#PhysicalLayer
+:PhysicalLayer rdf:type owl:Class ;
+               rdfs:subClassOf :Layer ,
+                               [ rdf:type owl:Restriction ;
+                                 owl:onProperty :composition ;
+                                 owl:someValuesFrom :DistributionNetwork
+                               ] ,
+                               [ rdf:type owl:Restriction ;
+                                 owl:onProperty :composition ;
+                                 owl:someValuesFrom :Equipment
+                               ] ,
+                               [ rdf:type owl:Restriction ;
+                                 owl:onProperty :composition ;
+                                 owl:someValuesFrom :Facility
+                               ] ,
+                               [ rdf:type owl:Restriction ;
+                                 owl:onProperty :composition ;
+                                 owl:someValuesFrom :Material
+                               ] ,
+                               [ rdf:type owl:Restriction ;
+                                 owl:onProperty :composition ;
+                                 owl:someValuesFrom :Path
+                               ] ;
+               rdfs:label "The Physical Layer"@en ;
+               <http://www.w3.org/2004/02/skos/core#definition> "describes the physical equipment, materials, and distribution networks, including their interconnections and behavior. It is typically used in modeling industrial, manufacturing, or logistics systems, and infrastructure environments such as data centers."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#PhysicalPassiveStructureElement
+:PhysicalPassiveStructureElement rdf:type owl:Class ;
+                                 rdfs:subClassOf :PassiveStructureElement ;
+                                 rdfs:label "A Physical Passive Structure Element"@en ;
+                                 <http://www.w3.org/2004/02/skos/core#definition> "is an element that models a tangible object on which behavior is performed within the physical layer. The physical passive structure elements are material and equipment."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#Plateau
+:Plateau rdf:type owl:Class ;
+         rdfs:subClassOf :CompositeElement ,
+                         [ rdf:type owl:Restriction ;
+                           owl:onProperty :isLayeredIn ;
+                           owl:someValuesFrom :ImplementationAndMigrationLayer
+                         ] ;
+         rdfs:isDefinedBy <https://bp4mc2.org/def/archimate#Plateau> ;
+         rdfs:label "A plateau"@en ;
+         <http://www.w3.org/2004/02/skos/core#definition> """represents a relatively stable state of the architecture that exists during a limited period 
+of time."""@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#Principle
+:Principle rdf:type owl:Class ;
+           rdfs:subClassOf :MotivationElement ,
+                           [ rdf:type owl:Restriction ;
+                             owl:onProperty :realization ;
+                             owl:someValuesFrom :Outcome
+                           ] ;
+           rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+           rdfs:label "A Principle"@en ;
+           <http://www.w3.org/2004/02/skos/core#definition> "represents a qualitative statement of intent that should be met by the architecture."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#Process
+:Process rdf:type owl:Class ;
+         rdfs:subClassOf :InternalBehaviourElement ;
+         rdfs:label "A process"@en ;
+         <http://www.w3.org/2004/02/skos/core#definition> "Represents a sequence of behaviors that achieves a specific outcome."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#Product
+:Product rdf:type owl:Class ;
+         rdfs:subClassOf :CompositeElement ,
+                         [ rdf:type owl:Restriction ;
+                           owl:onProperty :aggregation ;
+                           owl:someValuesFrom :ApplicationService
+                         ] ,
+                         [ rdf:type owl:Restriction ;
+                           owl:onProperty :aggregation ;
+                           owl:someValuesFrom :BusinessService
+                         ] ,
+                         [ rdf:type owl:Restriction ;
+                           owl:onProperty :aggregation ;
+                           owl:someValuesFrom :DataObject
+                         ] ,
+                         [ rdf:type owl:Restriction ;
+                           owl:onProperty :aggregation ;
+                           owl:someValuesFrom :TechnologyService
+                         ] ,
+                         [ rdf:type owl:Restriction ;
+                           owl:onProperty :composition ;
+                           owl:someValuesFrom :ApplicationService
+                         ] ,
+                         [ rdf:type owl:Restriction ;
+                           owl:onProperty :composition ;
+                           owl:someValuesFrom :BusinessService
+                         ] ,
+                         [ rdf:type owl:Restriction ;
+                           owl:onProperty :composition ;
+                           owl:someValuesFrom :DataObject
+                         ] ,
+                         [ rdf:type owl:Restriction ;
+                           owl:onProperty :composition ;
+                           owl:someValuesFrom :TechnologyService
+                         ] ,
+                         [ rdf:type owl:Restriction ;
+                           owl:onProperty :isLayeredIn ;
+                           owl:someValuesFrom :BusinessLayer
+                         ] ;
+         rdfs:isDefinedBy <https://bp4mc2.org/def/archimate#Product> ;
+         rdfs:label "A Product"@en ;
+         <http://www.w3.org/2004/02/skos/core#definition> """represents a coherent collection of services and/or passive structure elements, 
+accompanied by a contract/set of agreements, which is offered as a whole to (internal or 
+external) customers."""@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#Representation
+:Representation rdf:type owl:Class ;
+                rdfs:subClassOf :BusinessPassiveStructureElement ,
+                                [ rdf:type owl:Restriction ;
+                                  owl:onProperty :realization ;
+                                  owl:someValuesFrom :BusinessObject
+                                ] ;
+                rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+                rdfs:label "A Representation"@en ;
+                <http://www.w3.org/2004/02/skos/core#definition> "represents a perceptible form of the information carried by a business object."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#Requirement
+:Requirement rdf:type owl:Class ;
+             rdfs:subClassOf :MotivationElement ,
+                             [ rdf:type owl:Restriction ;
+                               owl:onProperty :realization ;
+                               owl:someValuesFrom :Outcome
+                             ] ,
+                             [ rdf:type owl:Restriction ;
+                               owl:onProperty :realization ;
+                               owl:someValuesFrom :Principle
+                             ] ;
+             rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+             rdfs:label "A Requirement"@en ;
+             <http://www.w3.org/2004/02/skos/core#definition> "represents a statement of need that must be met by the architecture."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#Resource
+:Resource rdf:type owl:Class ;
+          rdfs:subClassOf :StructureElement ,
+                          [ rdf:type owl:Restriction ;
+                            owl:onProperty :assignment ;
+                            owl:someValuesFrom :Capability
+                          ] ;
+          rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+          rdfs:label "Resource"@en ;
+          <http://www.w3.org/2004/02/skos/core#definition> "A resource represents an asset owned or controlled by an individual or organization."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#Service
+:Service rdf:type owl:Class ;
+         rdfs:subClassOf :ExternalBehaviourElement ;
+         rdfs:label "A service"@en ;
+         <http://www.w3.org/2004/02/skos/core#definition> "is an explicitly defined exposed behavior."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#Stakeholder
+:Stakeholder rdf:type owl:Class ;
+             rdfs:subClassOf :ActiveStructureElement ,
+                             [ rdf:type owl:Restriction ;
+                               owl:onProperty :influence ;
+                               owl:someValuesFrom :Stakeholder
+                             ] ,
+                             [ rdf:type owl:Restriction ;
+                               owl:onProperty :isLayeredIn ;
+                               owl:someValuesFrom :MotivationLayer
+                             ] ;
+             rdfs:isDefinedBy <https://bp4mc2.org/def/archimate#Stakeholder> ;
+             rdfs:label "A stakeholder"@en ;
+             <http://www.w3.org/2004/02/skos/core#definition> "is the role of an individual, team, or organization (or classes thereof) that represents their interests in the outcome of the architecture."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#StrategicLayer
+:StrategicLayer rdf:type owl:Class ;
+                rdfs:subClassOf :Layer ;
+                rdfs:label "The Strategic Layer"@en ;
+                <http://www.w3.org/2004/02/skos/core#definition> "represents the highest conceptual layer within the enterprise architecture landscape. It provides constructs to model strategic intent and planning, bridging business objectives and actionable architecture elements."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#StrategyBehaviourElement
+:StrategyBehaviourElement rdf:type owl:Class ;
+                          rdfs:subClassOf :BehaviorElement ,
+                                          [ rdf:type owl:Restriction ;
+                                            owl:onProperty :Triggering ;
+                                            owl:someValuesFrom :StrategyBehaviourElement
+                                          ] ,
+                                          [ rdf:type owl:Restriction ;
+                                            owl:onProperty :flow ;
+                                            owl:someValuesFrom :StrategyBehaviourElement
+                                          ] ,
+                                          [ rdf:type owl:Restriction ;
+                                            owl:onProperty :serving ;
+                                            owl:someValuesFrom :StrategyBehaviourElement
+                                          ] ;
+                          rdfs:label "A Strategy Behaviour Element"@en ;
+                          <http://www.w3.org/2004/02/skos/core#definition> "represents a unit of strategic activity performed to realize intent"@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#Structure
+:Structure rdf:type owl:Class ;
+           rdfs:subClassOf :Concept ;
+           rdfs:label "Structure"@en ;
+           <http://www.w3.org/2004/02/skos/core#definition> "A generic ArchiMate meta-concept that represents the structural organization of the language, grouping elements into layers to reflect their primary role and level of abstraction."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#StructureElement
+:StructureElement rdf:type owl:Class ;
+                  rdfs:subClassOf :Element ;
+                  rdfs:label "A structure element"@en ;
+                  <http://www.w3.org/2004/02/skos/core#definition> "is an element that represents an active or passive structural aspect of an architecture, such as an organizational actor, application component, or device. Structure elements are the basic building blocks of the architecture, and may be assigned behavior elements to model their functionality."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#SystemSoftware
+:SystemSoftware rdf:type owl:Class ;
+                rdfs:subClassOf :Node ,
+                                [ rdf:type owl:Restriction ;
+                                  owl:onProperty :isLayeredIn ;
+                                  owl:someValuesFrom :TechnologyLayer
+                                ] ;
+                rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+                rdfs:label "A System Software"@en ;
+                <http://www.w3.org/2004/02/skos/core#definition> "represents software that provides or contributes to an environment for storing, executing, and using software or data deployed within it."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#TechnologyCollaboration
+:TechnologyCollaboration rdf:type owl:Class ;
+                         rdfs:subClassOf :Node ,
+                                         [ rdf:type owl:Restriction ;
+                                           owl:onProperty :isLayeredIn ;
+                                           owl:someValuesFrom :TechnologyLayer
+                                         ] ;
+                         rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+                         rdfs:label "A Technology Collaboration"@en ;
+                         <http://www.w3.org/2004/02/skos/core#definition> "represents an aggregate of two or more nodes that work together to perform collective technology behavior."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#TechnologyEvent
+:TechnologyEvent rdf:type owl:Class ;
+                 rdfs:subClassOf :Event ,
+                                 [ rdf:type owl:Restriction ;
+                                   owl:onProperty :isLayeredIn ;
+                                   owl:someValuesFrom :TechnologyLayer
+                                 ] ;
+                 rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+                 rdfs:label "A Technology Event"@en ;
+                 <http://www.w3.org/2004/02/skos/core#definition> "represents a technology behavior element that denotes a state change."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#TechnologyFunction
+:TechnologyFunction rdf:type owl:Class ;
+                    rdfs:subClassOf :Function ,
+                                    :TechnologyInternalBehaviourElement ,
+                                    [ rdf:type owl:Restriction ;
+                                      owl:onProperty :isLayeredIn ;
+                                      owl:someValuesFrom :TechnologyLayer
+                                    ] ;
+                    rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+                    rdfs:label "A Technology Function"@en ;
+                    <http://www.w3.org/2004/02/skos/core#definition> """represents a collection of technology behavior that can be performed by a 
+node."""@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#TechnologyInteraction
+:TechnologyInteraction rdf:type owl:Class ;
+                       rdfs:subClassOf :Interaction ,
+                                       :TechnologyInternalBehaviourElement ,
+                                       [ rdf:type owl:Restriction ;
+                                         owl:onProperty :isLayeredIn ;
+                                         owl:someValuesFrom :TechnologyLayer
+                                       ] ;
+                       rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+                       rdfs:label "A Technology Interaction"@en ;
+                       <http://www.w3.org/2004/02/skos/core#definition> "represents a unit of collective technology behavior performed by (a collaboration of) two or more nodes."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#TechnologyInterface
+:TechnologyInterface rdf:type owl:Class ;
+                     rdfs:subClassOf :Interface ,
+                                     [ rdf:type owl:Restriction ;
+                                       owl:onProperty :isLayeredIn ;
+                                       owl:someValuesFrom :TechnologyLayer
+                                     ] ;
+                     rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+                     rdfs:label "A Technology Interface"@en ;
+                     <http://www.w3.org/2004/02/skos/core#definition> "represents a point of access where technology services offered by a node can be accessed."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#TechnologyInternalActiveStructureElement
+:TechnologyInternalActiveStructureElement rdf:type owl:Class ;
+                                          rdfs:subClassOf :InternalActiveStructureElement ;
+                                          rdfs:label "A Technology Internal Active Structure Element"@en ;
+                                          <http://www.w3.org/2004/02/skos/core#definition> "element is an element that performs technology behavior and is assigned to one or more technology behavior elements. The three types of technology internal active structure elements are node, device, and system software."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#TechnologyInternalBehaviourElement
+:TechnologyInternalBehaviourElement rdf:type owl:Class ;
+                                    rdfs:subClassOf :InternalBehaviourElement ;
+                                    rdfs:label "A Technology Internal Behaviour Element"@en ;
+                                    <http://www.w3.org/2004/02/skos/core#definition> "describes the internal behavior performed by a node or communication path that is required to realize a technology service."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#TechnologyLayer
+:TechnologyLayer rdf:type owl:Class ;
+                 rdfs:subClassOf :Layer ,
+                                 [ rdf:type owl:Restriction ;
+                                   owl:onProperty :composition ;
+                                   owl:someValuesFrom :Artifact
+                                 ] ,
+                                 [ rdf:type owl:Restriction ;
+                                   owl:onProperty :composition ;
+                                   owl:someValuesFrom :Device
+                                 ] ,
+                                 [ rdf:type owl:Restriction ;
+                                   owl:onProperty :composition ;
+                                   owl:someValuesFrom :Equipment
+                                 ] ,
+                                 [ rdf:type owl:Restriction ;
+                                   owl:onProperty :composition ;
+                                   owl:someValuesFrom :Facility
+                                 ] ,
+                                 [ rdf:type owl:Restriction ;
+                                   owl:onProperty :composition ;
+                                   owl:someValuesFrom :Path
+                                 ] ,
+                                 [ rdf:type owl:Restriction ;
+                                   owl:onProperty :composition ;
+                                   owl:someValuesFrom :SystemSoftware
+                                 ] ,
+                                 [ rdf:type owl:Restriction ;
+                                   owl:onProperty :composition ;
+                                   owl:someValuesFrom :TechnologyCollaboration
+                                 ] ,
+                                 [ rdf:type owl:Restriction ;
+                                   owl:onProperty :composition ;
+                                   owl:someValuesFrom :TechnologyFunction
+                                 ] ,
+                                 [ rdf:type owl:Restriction ;
+                                   owl:onProperty :composition ;
+                                   owl:someValuesFrom :TechnologyInteraction
+                                 ] ,
+                                 [ rdf:type owl:Restriction ;
+                                   owl:onProperty :composition ;
+                                   owl:someValuesFrom :TechnologyInterface
+                                 ] ,
+                                 [ rdf:type owl:Restriction ;
+                                   owl:onProperty :composition ;
+                                   owl:someValuesFrom :TechnologyObject
+                                 ] ,
+                                 [ rdf:type owl:Restriction ;
+                                   owl:onProperty :composition ;
+                                   owl:someValuesFrom :TechnologyProcess
+                                 ] ;
+                 rdfs:label "the Technology Layer"@en ;
+                 <http://www.w3.org/2004/02/skos/core#definition> "describes the hardware and software infrastructure that supports applications, such as devices, system software (e.g., operating systems, databases), and networks."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#TechnologyObject
+:TechnologyObject rdf:type owl:Class ;
+                  rdfs:subClassOf :TechnologyPassiveStructureElement ,
+                                  [ rdf:type owl:Restriction ;
+                                    owl:onProperty :isLayeredIn ;
+                                    owl:someValuesFrom :TechnologyLayer
+                                  ] ;
+                  rdfs:label "A technology Object"@en ;
+                  <http://www.w3.org/2004/02/skos/core#definition> "represents a passive element that is used or produced by technology behavior."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#TechnologyPassiveStructureElement
+:TechnologyPassiveStructureElement rdf:type owl:Class ;
+                                   rdfs:subClassOf :PassiveStructureElement ;
+                                   rdfs:label "A Technology Passive Structure Element"@en ;
+                                   <http://www.w3.org/2004/02/skos/core#definition> "is an element that models an object on which behavior is performed within the technology layer. The only defined technology passive structure element is the artifact."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#TechnologyProcess
+:TechnologyProcess rdf:type owl:Class ;
+                   rdfs:subClassOf :Process ,
+                                   :TechnologyInternalBehaviourElement ,
+                                   [ rdf:type owl:Restriction ;
+                                     owl:onProperty :isLayeredIn ;
+                                     owl:someValuesFrom :TechnologyLayer
+                                   ] ;
+                   rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+                   rdfs:label "A Technology Process"@en ;
+                   <http://www.w3.org/2004/02/skos/core#definition> """represents a sequence of technology behaviors that achieves a specific 
+outcome."""@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#TechnologyService
+:TechnologyService rdf:type owl:Class ;
+                   rdfs:subClassOf :Service ,
+                                   [ rdf:type owl:Restriction ;
+                                     owl:onProperty :isLayeredIn ;
+                                     owl:someValuesFrom :TechnologyLayer
+                                   ] ;
+                   rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+                   rdfs:label "A Technology Service"@en ;
+                   <http://www.w3.org/2004/02/skos/core#definition> "represents an explicitly defined exposed technology behavior."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#Value
+:Value rdf:type owl:Class ;
+       rdfs:subClassOf :MotivationElement ,
+                       [ rdf:type owl:Restriction ;
+                         owl:onProperty :association ;
+                         owl:someValuesFrom :Stakeholder
+                       ] ;
+       rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+       rdfs:label "A Value"@en ;
+       <http://www.w3.org/2004/02/skos/core#definition> "represents the relative worth, utility, or importance of a core element or an outcome."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#ValueStream
+:ValueStream rdf:type owl:Class ;
+             rdfs:subClassOf :StrategyBehaviourElement ;
+             rdfs:label "Value Stream"@en ;
+             <http://www.w3.org/2004/02/skos/core#definition> "A value stream represents a sequence of activities that create an overall result for a customer, stakeholder, or end user."@en .
+
+
+###  http://www.opengroup.org/ontology/archimate#WorkPackage
+:WorkPackage rdf:type owl:Class ;
+             rdfs:subClassOf :BehaviorElement ,
+                             [ rdf:type owl:Restriction ;
+                               owl:onProperty :access ;
+                               owl:someValuesFrom :Deliverable
+                             ] ,
+                             [ rdf:type owl:Restriction ;
+                               owl:onProperty :composition ;
+                               owl:someValuesFrom :WorkPackage
+                             ] ,
+                             [ rdf:type owl:Restriction ;
+                               owl:onProperty :isLayeredIn ;
+                               owl:someValuesFrom :ImplementationAndMigrationLayer
+                             ] ,
+                             [ rdf:type owl:Restriction ;
+                               owl:onProperty :realization ;
+                               owl:someValuesFrom :Deliverable
+                             ] ;
+             rdfs:isDefinedBy <http://bp4mc2.org/def/archimate> ;
+             rdfs:label "A Work Package"@en ;
+             <http://www.w3.org/2004/02/skos/core#definition> """represents a series of actions identified and designed to achieve specific results 
+within specified time and resource constraints."""@en .
+
+
+###  http://www.w3.org/1999/02/22-rdf-syntax-ns#List
+rdf:List rdf:type owl:Class .
+
+
+###  http://www.w3.org/2004/02/skos/core#Collection
+<http://www.w3.org/2004/02/skos/core#Collection> rdf:type owl:Class ;
+                                                 owl:disjointWith <http://www.w3.org/2004/02/skos/core#Concept> ,
+                                                                  <http://www.w3.org/2004/02/skos/core#ConceptScheme> ;
+                                                 rdfs:isDefinedBy <http://www.w3.org/2004/02/skos/core> ;
+                                                 rdfs:label "Collection"@en ;
+                                                 <http://www.w3.org/2004/02/skos/core#definition> "A meaningful collection of concepts."@en ;
+                                                 <http://www.w3.org/2004/02/skos/core#scopeNote> "Labelled collections can be used where you would like a set of concepts to be displayed under a 'node label' in the hierarchy."@en .
+
+
+###  http://www.w3.org/2004/02/skos/core#Concept
+<http://www.w3.org/2004/02/skos/core#Concept> rdf:type owl:Class ;
+                                              owl:disjointWith <http://www.w3.org/2004/02/skos/core#ConceptScheme> ;
+                                              rdfs:isDefinedBy <http://www.w3.org/2004/02/skos/core> ;
+                                              rdfs:label "Concept"@en ;
+                                              <http://www.w3.org/2004/02/skos/core#definition> "An idea or notion; a unit of thought."@en .
+
+
+###  http://www.w3.org/2004/02/skos/core#ConceptScheme
+<http://www.w3.org/2004/02/skos/core#ConceptScheme> rdf:type owl:Class ;
+                                                    rdfs:isDefinedBy <http://www.w3.org/2004/02/skos/core> ;
+                                                    rdfs:label "Concept Scheme"@en ;
+                                                    <http://www.w3.org/2004/02/skos/core#definition> "A set of concepts, optionally including statements about semantic relationships between those concepts."@en ;
+                                                    <http://www.w3.org/2004/02/skos/core#example> "Thesauri, classification schemes, subject heading lists, taxonomies, 'folksonomies', and other types of controlled vocabulary are all examples of concept schemes. Concept schemes are also embedded in glossaries and terminologies."@en ;
+                                                    <http://www.w3.org/2004/02/skos/core#scopeNote> "A concept scheme may be defined to include concepts from different sources."@en .
+
+
+###  http://www.w3.org/2004/02/skos/core#OrderedCollection
+<http://www.w3.org/2004/02/skos/core#OrderedCollection> rdf:type owl:Class ;
+                                                        rdfs:subClassOf <http://www.w3.org/2004/02/skos/core#Collection> ;
+                                                        rdfs:isDefinedBy <http://www.w3.org/2004/02/skos/core> ;
+                                                        rdfs:label "Ordered Collection"@en ;
+                                                        <http://www.w3.org/2004/02/skos/core#definition> "An ordered collection of concepts, where both the grouping and the ordering are meaningful."@en ;
+                                                        <http://www.w3.org/2004/02/skos/core#scopeNote> "Ordered collections can be used where you would like a set of concepts to be displayed in a specific order, and optionally under a 'node label'."@en .
+
+
+#################################################################
+#    Annotations
+#################################################################
+
+:Concept rdfs:label "archimate concept"@en ;
+         <http://www.w3.org/2004/02/skos/core#definition> "a fundamental semantic construct of the ArchiMate language, representing an element, relation, or structural modeling unit in enterprise architecture."@en .
+
+
+#################################################################
+#    General axioms
+#################################################################
+
+[ rdf:type owl:AllDisjointClasses ;
+  owl:members ( :ApplicationFunction
+                :BusinessFunction
+                :TechnologyFunction
+              )
+] .
+
+
+[ rdf:type owl:AllDisjointClasses ;
+  owl:members ( :ApplicationInteraction
+                :BusinessInteraction
+                :TechnologyInteraction
+              )
+] .
+
+
+[ rdf:type owl:AllDisjointClasses ;
+  owl:members ( :ApplicationInternalBehaviourElement
+                :BusinessInternalBehaviorElement
+                :TechnologyInternalBehaviourElement
+              )
+] .
+
+
+[ rdf:type owl:AllDisjointClasses ;
+  owl:members ( :ApplicationProcess
+                :BusinessProcess
+                :TechnologyProcess
+              )
+] .
+
+
+[ rdf:type owl:AllDisjointClasses ;
+  owl:members ( :ApplicationService
+                :BusinessService
+                :TechnologyService
+              )
+] .
+
+
+###  Generated by the OWL API (version 4.5.29) https://github.com/owlcs/owlapi
