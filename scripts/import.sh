@@ -16,8 +16,26 @@
 # -----------------------------------------------------------------------------
 set -euo pipefail
 
+# --- Portable temp dir helper (macOS/GNU) ---
+make_temp_dir() {
+  # Try macOS-style: -t <prefix> with pattern
+  if d="$(mktemp -d -t import.XXXXXX 2>/dev/null)"; then
+    printf '%s\n' "$d"; return
+  fi
+  # Try GNU-style with explicit template
+  if d="$(mktemp -d "${TMPDIR:-/tmp}/import.XXXXXX" 2>/dev/null)"; then
+    printf '%s\n' "$d"; return
+  fi
+  # Last resort: manual
+  d="${TMPDIR:-/tmp}/import.$$.${RANDOM}"
+  mkdir -p "$d" || return 1
+  printf '%s\n' "$d"
+}
+# --------------------------------------------
+
+# Paths
 ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
-CONF_FILE="$ROOT/conf/import.env"
+CONF_FILE="$ROOT/config/import.env"
 DEST_DIR="$ROOT/src/import"
 
 # Tools required
@@ -48,28 +66,22 @@ while IFS=$'\t' read -r URL REF LOCAL_NAME || [ -n "${URL:-}" ]; do
     exit 1
   fi
 
-  # Detect mode
-  if [[ "$URL" =~ ^https?:// ]] && [[ "$URL" =~ \.(ttl|owl|rdf|jsonld)$ ]]; then
-    MODE="RAW"
-    RAW_URL="$URL"
-    SRC_EXT="${URL##*.}"   # extension from URL
-    REPO_URL=""
-    FILE_PATH=""
-    echo "→ [$lineno] RAW: $RAW_URL  → ${LOCAL_NAME}.${SRC_EXT}"
-
-  else
+  # Detect mode:
+  if [[ "$URL" == *"#"* ]]; then
     MODE="GIT"
-    # Split REPO and PATH using '#'
-    if [[ "$URL" != *"#"* ]]; then
-      echo "✖ Line $lineno: GIT mode requires '#<path/to/file>' in URL (got: $URL)" >&2
-      exit 1
-    fi
     REPO_URL="${URL%%#*}"
-    FILE_PATH="${URL#*#}"   # path inside repo
+    FILE_PATH="${URL#*#}"
+    # REF requis en GIT mode
     [ -n "$REF" ] && [ "$REF" != "-" ] || { echo "✖ Line $lineno: missing REF (branch/tag) for GIT mode" >&2; exit 1; }
     # Extension from file path
     SRC_EXT="${FILE_PATH##*.}"
     echo "→ [$lineno] GIT: $REPO_URL@$REF:$FILE_PATH  → ${LOCAL_NAME}.${SRC_EXT}"
+  else
+    MODE="RAW"
+    RAW_URL="$URL"
+    # Extension from URL (best effort)
+    SRC_EXT="${URL##*.}"
+    echo "→ [$lineno] RAW: $RAW_URL  → ${LOCAL_NAME}.${SRC_EXT}"
   fi
 
   DEST_FILE="$DEST_DIR/${LOCAL_NAME}.${SRC_EXT}"
@@ -81,30 +93,32 @@ while IFS=$'\t' read -r URL REF LOCAL_NAME || [ -n "${URL:-}" ]; do
 
   else
     # GIT sparse checkout into a temp dir
-    TMPDIR="$(mktemp -d "${TMPDIR:-/tmp}/import.XXXXXX")"
+    WORKDIR="$(make_temp_dir)" || { echo "✖ Line $lineno: cannot create temp dir" >&2; exit 1; }
     (
       set -e
-      cd "$TMPDIR"
-      # Shallow clone without checkout
+      cd "$WORKDIR"
       git init -q
       git remote add origin "$REPO_URL"
-      git fetch --depth 1 origin "$REF"
-      git checkout -q -b import "$REF"
 
-      # Enable sparse-checkout to fetch only the file
+      git fetch --depth 1 origin "refs/heads/$REF:refs/remotes/origin/$REF" 2>/dev/null \
+      || git fetch --depth 1 origin "refs/tags/$REF:refs/tags/$REF" 2>/dev/null \
+      || git fetch --depth 1 origin "$REF"
+
+      git checkout -q --detach FETCH_HEAD
+
+      PATH_DIR="$(dirname "$FILE_PATH")"
       git sparse-checkout init --cone >/dev/null 2>&1 || true
-      git sparse-checkout set "$FILE_PATH" >/dev/null 2>&1 || true
-      # Ensure file exists
+      git sparse-checkout set "$PATH_DIR" >/dev/null 2>&1 || true
+      git sparse-checkout reapply >/dev/null 2>&1 || true
+
       [ -f "$FILE_PATH" ] || { echo "✖ Line $lineno: file not found in repo: $FILE_PATH" >&2; exit 1; }
 
-      # Copy preserving original extension
       mkdir -p "$(dirname "$DEST_FILE")"
       cp -f "$FILE_PATH" "$DEST_FILE"
     )
-    rm -rf "$TMPDIR" || true
+    rm -rf "$WORKDIR" || true
     echo "  ✓ Pulled → ${DEST_FILE#$ROOT/}"
   fi
-
 done < "$CONF_FILE"
 
 echo "✓ All imports updated in ${DEST_DIR#$ROOT/}"
