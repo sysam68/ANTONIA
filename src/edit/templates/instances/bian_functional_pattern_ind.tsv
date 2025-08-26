@@ -1,0 +1,8 @@
+prefix: bian: http://example.org/bian/
+prefix: biani: http://example.org/bian/instances/
+prefix: bianv: http://example.org/bian/vocab/
+ID	LABEL@en	TYPE	bianv:code
+biani:FP_ProductDesign	Product Design	bian:FunctionalPattern	FP-DES
+biani:FP_ProductFulfillment	Product Fulfillment	bian:FunctionalPattern	FP-FUL
+biani:FP_ProductMonitoring	Product Monitoring	bian:FunctionalPattern	FP-MON
+

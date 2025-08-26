@@ -1,0 +1,18 @@
+PREFIX owl:  <http://www.w3.org/2002/07/owl#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+# Fail if any ontology entity lacks a skos:definition in English
+SELECT ?entity
+WHERE {
+  VALUES ?t { owl:Class owl:DatatypeProperty owl:AnnotationProperty owl:NamedIndividual }
+  ?entity a ?t .
+
+  # Scope to your ArchiMate namespace
+  FILTER( STRSTARTS(STR(?entity), "http://www.opengroup.org/ontology/archimate") )
+
+  FILTER NOT EXISTS {
+    ?entity skos:definition ?def .
+    FILTER ( LANGMATCHES(LANG(?def), "en") )
+  }
+}
+

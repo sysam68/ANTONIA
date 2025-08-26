@@ -1,0 +1,12 @@
+ERROR	duplicate_label
+ERROR	multiple_labels
+ERROR	label_formatting
+ERROR	label_whitespace
+ERROR	invalid_entity_uri
+WARN	invalid_xref
+ERROR	deprecated_class_reference
+ERROR	deprecated_property_reference
+ERROR	missing_label
+ERROR	missing_ontology_license
+ERROR	missing_ontology_title
+ERROR	missing_ontology_description

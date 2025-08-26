@@ -1,0 +1,20 @@
+# Count distinct subjects per namespace (string form), sorted by namespace
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+SELECT ?namespace (COUNT(DISTINCT ?s) AS ?count)
+WHERE {
+  {
+    ?s a ?t .
+  } UNION {
+    ?s ?p ?o .
+  }
+  BIND(STR(?s) AS ?sStr)
+  BIND(
+    IF(CONTAINS(?sStr, "#"),
+       STRBEFORE(?sStr, "#"),
+       REPLACE(?sStr, "/[^/]*$", "/")
+    ) AS ?namespace
+  )
+}
+GROUP BY ?namespace
+ORDER BY ?namespace

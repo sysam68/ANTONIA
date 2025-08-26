@@ -1,0 +1,12 @@
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?entity ?value
+WHERE {
+  ?entity rdfs:label ?value .
+  FILTER (
+      regex(str(?value), "[\t\n\r]")       # tab / retour ligne
+   || regex(str(?value), "  ")             # double espace interne
+   || regex(str(?value), " $")             # espace en fin de chaîne
+  )
+}
+
