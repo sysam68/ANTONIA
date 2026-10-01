@@ -166,17 +166,22 @@ PY
     --shapes-dir "$ROOT/tests/data/shacl/shapes" \
     --report-rdf "$TEMP_ROOT/conforming-report.ttl" \
     --report-text "$TEMP_ROOT/conforming-report.txt" \
-    --fail-on VIOLATION
+    --fail-on VIOLATION > "$TEMP_ROOT/shacl-conforming.log" 2>&1
+  grep -Fq 'Conforms: True' "$TEMP_ROOT/shacl-conforming.log"
+  echo "SHACL conforming fixture: passed"
+
   if "$ROOT/.tools/semantic/bin/python" "$ROOT/toolbox/validate_shacl.py" \
       --data "$ROOT/tests/data/shacl/nonconforming.ttl" \
       --shapes-dir "$ROOT/tests/data/shacl/shapes" \
       --report-rdf "$TEMP_ROOT/nonconforming-report.ttl" \
       --report-text "$TEMP_ROOT/nonconforming-report.txt" \
-      --fail-on VIOLATION; then
+      --fail-on VIOLATION > "$TEMP_ROOT/shacl-nonconforming.log" 2>&1; then
     echo "Error: SHACL violation did not fail validation" >&2
     exit 1
   fi
   grep -Fq 'Conforms: False' "$TEMP_ROOT/nonconforming-report.txt"
+  grep -Fq 'Conforms: False' "$TEMP_ROOT/shacl-nonconforming.log"
+  echo "SHACL violation rejection: passed"
 
   REPORT_ROOT="$TEMP_ROOT/report-host"
   mkdir -p "$REPORT_ROOT/config" "$REPORT_ROOT/.tools/bin" \
