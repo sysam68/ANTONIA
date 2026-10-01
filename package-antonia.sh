@@ -38,6 +38,14 @@ if [ ! -f "$ROOT/toolbox/AGENTS.md" ]; then
 fi
 cp "$ROOT/toolbox/AGENTS.md" "$TEMP_ROOT/toolbox/AGENTS.md"
 
+for lifecycle_script in install-antonia.sh update-antonia.sh; do
+  if [ ! -f "$ROOT/$lifecycle_script" ]; then
+    echo "Error: missing lifecycle script: $lifecycle_script" >&2
+    exit 1
+  fi
+  cp "$ROOT/$lifecycle_script" "$TEMP_ROOT/toolbox/$lifecycle_script"
+done
+
 TOOLBOX_FILES=(
   common.sh
   diff.sh

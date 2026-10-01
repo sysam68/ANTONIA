@@ -50,18 +50,35 @@ for command_name in git curl tar; do
 done
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
-HOST_ROOT="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel 2>/dev/null || true)"
+SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
+GIT_ROOT="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel 2>/dev/null || true)"
+BOOTSTRAP_INSTALLER=""
 
-if [ -z "$HOST_ROOT" ]; then
+if [ -z "$GIT_ROOT" ]; then
   echo "Error: install-antonia.sh must be copied into a Git repository." >&2
   exit 1
 fi
 
-if [ "$SCRIPT_DIR" != "$HOST_ROOT" ]; then
-  echo "Error: install-antonia.sh must be located at the repository root." >&2
-  echo "Expected: $HOST_ROOT/install-antonia.sh" >&2
-  echo "Current:  $SCRIPT_DIR/install-antonia.sh" >&2
+if [ "$SCRIPT_NAME" != "install-antonia.sh" ]; then
+  echo "Error: the installer must be named install-antonia.sh." >&2
   exit 1
+fi
+
+if [ -f "$SCRIPT_DIR/.antonia-managed" ] && [ "$(basename "$SCRIPT_DIR")" = "$TOOLBOX_PATH" ]; then
+  HOST_ROOT="$(cd "$SCRIPT_DIR/.." && pwd -P)"
+  if [ "$HOST_ROOT" != "$GIT_ROOT" ]; then
+    echo "Error: the managed toolbox is not directly under the Git repository root." >&2
+    exit 1
+  fi
+else
+  HOST_ROOT="$GIT_ROOT"
+  if [ "$SCRIPT_DIR" != "$HOST_ROOT" ]; then
+    echo "Error: the bootstrap installer must be located at the repository root." >&2
+    echo "Expected: $HOST_ROOT/install-antonia.sh" >&2
+    echo "Current:  $SCRIPT_DIR/install-antonia.sh" >&2
+    exit 1
+  fi
+  BOOTSTRAP_INSTALLER="$HOST_ROOT/install-antonia.sh"
 fi
 
 case "$VERSION" in
@@ -86,7 +103,7 @@ DESTINATION="$HOST_ROOT/$TOOLBOX_PATH"
 if [ "$MODE" = "install" ]; then
   if [ -e "$DESTINATION" ]; then
     echo "Error: '$DESTINATION' already exists." >&2
-    echo "Run ./update-antonia.sh to update a managed installation." >&2
+    echo "Run ./toolbox/update-antonia.sh to update a managed installation." >&2
     exit 1
   fi
 else
@@ -164,6 +181,8 @@ CANDIDATE="$EXTRACTED/toolbox"
 if [ ! -f "$CANDIDATE/.antonia-managed" ] \
     || [ ! -f "$CANDIDATE/Makefile" ] \
     || [ ! -f "$CANDIDATE/AGENTS.md" ] \
+    || [ ! -f "$CANDIDATE/install-antonia.sh" ] \
+    || [ ! -f "$CANDIDATE/update-antonia.sh" ] \
     || [ ! -f "$CANDIDATE/init_project.sh" ] \
     || [ ! -f "$CANDIDATE/common.sh" ] \
     || [ ! -f "$CANDIDATE/update_config.sh" ] \
@@ -203,6 +222,10 @@ if [ "$MODE" = "install" ]; then
     bash "$DESTINATION/init_project.sh" "${INIT_ARGS[@]}"
   fi
   echo "ANTONIA $INSTALLED_VERSION installed successfully."
+  if [ -n "$BOOTSTRAP_INSTALLER" ] && [ -f "$BOOTSTRAP_INSTALLER" ]; then
+    rm -- "$BOOTSTRAP_INSTALLER"
+    echo "Removed bootstrap installer: install-antonia.sh"
+  fi
 else
   cp "$DESTINATION/Makefile" "$HOST_ROOT/Makefile"
   echo "Ontology Makefile updated from toolbox/Makefile"

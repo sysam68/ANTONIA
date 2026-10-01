@@ -7,7 +7,7 @@ SHELL := /bin/bash
 
 VERSION ?=
 
-.PHONY: help check test test-config-update test-package package release clean
+.PHONY: help check test test-config-update test-package test-lifecycle package release clean
 
 help:
 	@echo "ANTONIA Toolbox"
@@ -17,6 +17,7 @@ help:
 	@echo "  test               run all ANTONIA tests"
 	@echo "  test-config-update verify additive configuration migration"
 	@echo "  test-package       verify the distributable toolbox archive"
+	@echo "  test-lifecycle     verify bootstrap cleanup and in-toolbox updates"
 	@echo "  package            build Release assets (VERSION=<tag>)"
 	@echo "  release            tag and publish ANTONIA (VERSION=<tag>)"
 	@echo "  clean              remove locally generated Release assets"
@@ -33,9 +34,13 @@ check:
 	@test -f toolbox/Makefile
 	@test -f toolbox/AGENTS.md
 	@test -f toolbox/templates/config/config.env
+	@if grep -Eq '^[[:space:]]*source .*common\.sh' toolbox/install_robot.sh; then \
+		echo "Error: install_robot.sh must not require common.sh before bootstrap" >&2; \
+		exit 1; \
+	fi
 	@echo "ANTONIA checks: passed"
 
-test: check test-config-update test-package
+test: check test-config-update test-lifecycle
 
 test-config-update:
 	@./tests/robot/config-update.test.sh
@@ -44,6 +49,8 @@ test-package:
 	@./package-antonia.sh test-local
 	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/Makefile$$'
 	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/AGENTS.md$$'
+	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/install-antonia.sh$$'
+	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/update-antonia.sh$$'
 	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/update_config.sh$$'
 	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/templates/config/config.env$$'
 	@if tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/toolbox/'; then \
@@ -51,6 +58,9 @@ test-package:
 		exit 1; \
 	fi
 	@echo "ANTONIA package test: passed"
+
+test-lifecycle: test-package
+	@./tests/robot/lifecycle-scripts.test.sh
 
 package:
 	@if [ -z "$(VERSION)" ]; then \

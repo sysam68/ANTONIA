@@ -36,7 +36,7 @@ ANTONIA-maintenance targets or instructions in those distributed files.
 - `toolbox/templates/config/` contains the expected project configuration.
 - `toolbox/docs/` contains documentation shipped with the toolbox.
 - `install-antonia.sh` installs a released toolbox and initializes a project.
-- `update-antonia.sh` updates an existing managed toolbox.
+- `update-antonia.sh` is the source of the updater packaged under `toolbox/`.
 - `package-antonia.sh` builds the Release archive and checksum.
 - `release-antonia.sh` tags and publishes a GitHub Release.
 - `tests/` contains ANTONIA-specific fixtures and regression tests.
@@ -68,6 +68,8 @@ Installation and update must:
 - avoid a nested `toolbox/toolbox/` layout;
 - replace only the managed toolbox directory;
 - copy the released Makefile and AGENTS.md to the ontology root;
+- package installation and update scripts inside `toolbox/`;
+- remove the root bootstrap installer only after successful initialization;
 - preserve existing configuration values and obsolete variables;
 - append only configuration variables introduced by the new Release.
 

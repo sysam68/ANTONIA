@@ -3,8 +3,10 @@
 # Generated tools live under .tools/, which is intentionally ignored by Git.
 set -euo pipefail
 
-# Resolve ROOT using common.sh logic (supports released toolbox mode)
-source "$(dirname "$0")/common.sh"
+# Bootstrap must not source common.sh: common.sh intentionally requires ROBOT
+# and Java to be ready, while this script is responsible for installing them.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+ROOT="$(cd "$SCRIPT_DIR/.." && pwd -P)"
 TOOLS_DIR="$ROOT/.tools"
 BIN_DIR="$TOOLS_DIR/bin"
 ROBOT_VERSION="${ROBOT_VERSION:-1.9.10}"
@@ -18,6 +20,17 @@ INSTALL_LOCAL_JAVA="${INSTALL_LOCAL_JAVA:-auto}"
 command -v curl >/dev/null 2>&1 || { echo "✖ curl is required" >&2; exit 1; }
 command -v tar >/dev/null 2>&1 || { echo "✖ tar is required" >&2; exit 1; }
 
+sha256_file() {
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "$1" | awk '{print $1}'
+  elif command -v shasum >/dev/null 2>&1; then
+    shasum -a 256 "$1" | awk '{print $1}'
+  else
+    echo "✖ sha256sum or shasum is required" >&2
+    return 1
+  fi
+}
+
 case "$INSTALL_LOCAL_JAVA" in
   auto|always|never) ;;
   *) echo "✖ INSTALL_LOCAL_JAVA must be auto, always, or never" >&2; exit 1 ;;
@@ -25,11 +38,11 @@ esac
 
 make_temp_dir() {
   local d
-  if d="$(mktemp -d -t imd-tools.XXXXXX 2>/dev/null)"; then
+  if d="$(mktemp -d -t antonia-tools.XXXXXX 2>/dev/null)"; then
     printf '%s\n' "$d"
     return
   fi
-  mktemp -d "${TMPDIR:-/tmp}/imd-tools.XXXXXX"
+  mktemp -d "${TMPDIR:-/tmp}/antonia-tools.XXXXXX"
 }
 
 java_major() {
@@ -105,7 +118,7 @@ install_robot_jar() {
   url="https://github.com/ontodev/robot/releases/download/v${ROBOT_VERSION}/robot.jar"
 
   if [ -f "$ROBOT_JAR" ]; then
-    actual_sha="$(shasum -a 256 "$ROBOT_JAR" | awk '{print $1}')"
+    actual_sha="$(sha256_file "$ROBOT_JAR")"
     if [ "$actual_sha" = "$ROBOT_SHA256" ]; then
       echo "✓ ROBOT $ROBOT_VERSION already downloaded"
       return
@@ -117,7 +130,7 @@ install_robot_jar() {
   staged="$TEMP_DIR/robot.jar"
   echo "▶ Downloading ROBOT $ROBOT_VERSION"
   curl -fL --retry 3 --output "$staged" "$url"
-  actual_sha="$(shasum -a 256 "$staged" | awk '{print $1}')"
+  actual_sha="$(sha256_file "$staged")"
   [ "$actual_sha" = "$ROBOT_SHA256" ] || {
     echo "✖ ROBOT checksum mismatch: expected $ROBOT_SHA256, got $actual_sha" >&2
     exit 1

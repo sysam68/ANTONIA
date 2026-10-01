@@ -23,8 +23,8 @@ boundaries.
 
 ## Quick start (host repository)
 
-Copy `install-antonia.sh` and `update-antonia.sh` to the root of the host Git
-repository, then initialize the project structure:
+Copy only `install-antonia.sh` to the root of the host Git repository, then
+initialize the project structure:
 
 ```bash
 # Download the latest released toolbox and initialize the host project
@@ -47,12 +47,15 @@ make test-equivalences
 Installation copies the released `toolbox/Makefile` to the ontology repository
 root. It also copies `toolbox/AGENTS.md` to the ontology root. This keeps the
 usual `make <target>` commands and ontology-agent instructions while their
-authoritative versions remain part of the versioned toolbox.
+authoritative versions remain part of the versioned toolbox. The bootstrap
+`install-antonia.sh` at the ontology root is deleted after successful
+initialization; maintained installation and update scripts remain under
+`toolbox/`.
 
 To update only the managed toolbox files to the latest release:
 
 ```bash
-./update-antonia.sh
+./toolbox/update-antonia.sh
 ```
 
 During an update, ANTONIA compares each project `.env` file with the template

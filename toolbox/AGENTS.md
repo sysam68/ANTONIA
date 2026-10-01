@@ -22,6 +22,8 @@ current and dated packages belong in `releases/`.
 The root `Makefile` and `AGENTS.md` are managed copies of `toolbox/Makefile` and
 `toolbox/AGENTS.md`. ANTONIA updates replace both root copies. Put reusable
 pipeline changes in `toolbox/`; do not customize only the generated root copies.
+Update ANTONIA with `./toolbox/update-antonia.sh`; installation and update
+scripts are maintained inside the managed toolbox directory.
 
 ## Local toolchain
 
