@@ -31,6 +31,7 @@ check:
 		bash -n "$$script"; \
 	done
 	@test -f toolbox/Makefile
+	@test -f toolbox/AGENTS.md
 	@test -f toolbox/templates/config/config.env
 	@echo "ANTONIA checks: passed"
 
@@ -42,6 +43,7 @@ test-config-update:
 test-package:
 	@./package-antonia.sh test-local
 	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/Makefile$$'
+	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/AGENTS.md$$'
 	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/update_config.sh$$'
 	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/templates/config/config.env$$'
 	@if tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/toolbox/'; then \

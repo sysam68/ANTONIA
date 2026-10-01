@@ -32,6 +32,12 @@ if [ ! -f "$ROOT/toolbox/Makefile" ]; then
 fi
 cp "$ROOT/toolbox/Makefile" "$TEMP_ROOT/toolbox/Makefile"
 
+if [ ! -f "$ROOT/toolbox/AGENTS.md" ]; then
+  echo "Error: missing ontology host guidance: toolbox/AGENTS.md" >&2
+  exit 1
+fi
+cp "$ROOT/toolbox/AGENTS.md" "$TEMP_ROOT/toolbox/AGENTS.md"
+
 TOOLBOX_FILES=(
   common.sh
   diff.sh

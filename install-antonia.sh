@@ -163,6 +163,7 @@ tar -xzf "$ARCHIVE" -C "$EXTRACTED"
 CANDIDATE="$EXTRACTED/toolbox"
 if [ ! -f "$CANDIDATE/.antonia-managed" ] \
     || [ ! -f "$CANDIDATE/Makefile" ] \
+    || [ ! -f "$CANDIDATE/AGENTS.md" ] \
     || [ ! -f "$CANDIDATE/init_project.sh" ] \
     || [ ! -f "$CANDIDATE/common.sh" ] \
     || [ ! -f "$CANDIDATE/update_config.sh" ] \
@@ -205,6 +206,8 @@ if [ "$MODE" = "install" ]; then
 else
   cp "$DESTINATION/Makefile" "$HOST_ROOT/Makefile"
   echo "Ontology Makefile updated from toolbox/Makefile"
+  cp "$DESTINATION/AGENTS.md" "$HOST_ROOT/AGENTS.md"
+  echo "Ontology AGENTS.md updated from toolbox/AGENTS.md"
   bash "$DESTINATION/update_config.sh"
   echo "ANTONIA toolbox updated: $CURRENT_VERSION -> $INSTALLED_VERSION"
 fi

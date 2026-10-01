@@ -1,158 +1,128 @@
-# Repository Guidelines
+# ANTONIA Repository Guidelines
 
-## Project structure
+## Repository purpose
 
-This repository builds the Industry Model Directory (IMD) ontology with ROBOT.
-The authoritative schema is `src/edit/imd-tbox.rdf`; the optional ABox is
-`src/edit/ontology-abox.rdf`; an optional ontology mapping is configured through
-`MAPPINGS`; Ontop mappings are held in `src/edit/imd-tbox.obda`. Never package
-datasource `.properties` files.
+This repository develops and publishes ANTONIA, a reusable ROBOT-based ontology
+toolbox. It is not an ontology project itself. Ontology sources, imported
+ontologies, generated reasoning outputs, and ontology release packages do not
+belong in this repository.
 
-External dependencies are selected in `config/import.env` as GitHub Release
-assets, downloaded into `src/edit/imports/`, and resolved through
-`src/edit/catalog-v001.xml`. Selectors may be immutable release tags or
-`latest`; the latter is resolved to a concrete tag and reported during import.
-The BIAN import is already merged with its transitive ArchiMate and SKOS
-content. Treat these imported ontology files as versioned source dependencies,
-not as build outputs.
+ANTONIA is distributed as the GitHub Release asset
+`antonia-toolbox.tar.gz`, accompanied by
+`antonia-toolbox.tar.gz.sha256`. The archive must contain exactly one
+top-level `toolbox/` directory.
 
-Keep generated ontology modules in `src/edit/modules/`, SHACL constraints in
-`src/shapes/`, and SPARQL checks, reports, and updates under `src/sparql/`.
-Transient build artifacts belong in `tmp/`; distributable current and dated
-packages belong in `releases/`.
+## Responsibility split
 
-## Local toolchain
+The two root-level governance files apply only to ANTONIA development:
 
-Java 17 or later and ROBOT are required. The recommended setup is:
+- `Makefile` runs ANTONIA checks, tests, packaging, and publication;
+- `AGENTS.md` defines how ANTONIA itself is maintained.
 
-```bash
-make install-robot
-```
+The two files under `toolbox/` are part of the distributed product:
 
-This installs the pinned ROBOT version and, when necessary, a local Temurin JDK
-under `.tools/`. That directory is ignored by Git. `toolbox/common.sh`
-automatically prefers `.tools/bin`, so no global `PATH`, package manager, or
-`sudo` operation is required. See `docs/robot-installation.md` for verification,
-configuration, and cleanup instructions.
+- `toolbox/Makefile` runs ontology build, validation, and release processes;
+- `toolbox/AGENTS.md` defines how an ontology repository is maintained.
 
-GitHub Release imports require the GitHub CLI (`gh`) authenticated with read
-access to each repository declared in `config/import.env`.
+During installation and update, the distributed `toolbox/Makefile` and
+`toolbox/AGENTS.md` are copied to the ontology repository root. Do not put
+ANTONIA-maintenance targets or instructions in those distributed files.
 
-`make java-conf` can generate a machine-specific `conf/java.conf` that bounds
-the processor count and heap used through `JAVA_TOOL_OPTIONS`. The file is
-ignored by Git; the generator `toolbox/java_conf.sh` remains tracked.
+## Source structure
 
-Do not commit `.tools/`, `conf/java.conf`, downloaded Java runtimes, ROBOT JARs,
-`tmp/`, or ad-hoc release packages.
+- `toolbox/*.sh` contains the runtime scripts distributed to ontology projects.
+- `toolbox/Makefile` is the authoritative ontology-project Makefile.
+- `toolbox/AGENTS.md` is the authoritative ontology-project agent guidance.
+- `toolbox/templates/config/` contains the expected project configuration.
+- `toolbox/docs/` contains documentation shipped with the toolbox.
+- `install-antonia.sh` installs a released toolbox and initializes a project.
+- `update-antonia.sh` updates an existing managed toolbox.
+- `package-antonia.sh` builds the Release archive and checksum.
+- `release-antonia.sh` tags and publishes a GitHub Release.
+- `tests/` contains ANTONIA-specific fixtures and regression tests.
+- `dist/` contains ignored local packaging outputs.
 
-## Build commands
+Do not restore historical ontology content, generated `target/` or `tmp/`
+trees, ontology-specific mappings, or old ontology releases to this repository.
 
-Run commands from the repository root:
+## Distribution contract
 
-- `make import` refreshes the configured external ontology Release asset.
-- `make generate` expands TSV templates into RDF/XML modules.
-- `make reason` merges the complete import closure into `tmp/merged.rdf` and
-  classifies the OWL 2 DL reference ontology into `tmp/classified.rdf`.
-- `REASONER=hermit make reason` overrides the configured reasoner.
-- `make project-ql` derives `tmp/ontop-ql.rdf` for Ontop from the merged
-  ontology; it does not weaken the expressive DL reference ontology.
-- `make report` runs QC reports and blocking SPARQL checks; use
-  `FAIL_ON=WARN make report` when warnings must fail.
-- `make validate` validates the classified reference as OWL 2 DL and the Ontop
-  projection as OWL 2 QL.
-- `make all` runs generate, reason, QL projection, report, and validation. It
-  does not refresh imports or run the focused test scripts.
-- `make progress` invokes the same five Make targets, in the same order and
-  with the same environment overrides and stop-on-error behavior as `make all`,
-  while displaying progress indicators.
-- `make diff OLD=releases/imd.rdf NEW=tmp/classified.rdf` compares ontology
-  versions semantically.
+The package allowlist in `package-antonia.sh` is authoritative. A valid archive
+must include at least:
 
-`make clean` removes `tmp/`; do not use it when uncommitted build evidence
-must be preserved.
+- `toolbox/Makefile` and `toolbox/AGENTS.md`;
+- every runtime shell script required by the ontology pipeline;
+- `toolbox/templates/config/config.env`;
+- toolbox documentation;
+- `.antonia-managed`, recording the concrete Release version.
 
-## Import-closure contract
+Never package datasource `.properties` files, local Java installations,
+downloaded ROBOT JARs, ontology build outputs, or repository-local secrets.
 
-`toolbox/reason.sh` must merge with `--collapse-import-closure true` and the
-portable XML catalog. A valid `tmp/merged.rdf` is self-contained: it includes
-IMD, BIAN, ArchiMate, and SKOS axioms and has no residual `owl:imports`.
+Installation and update must:
 
-Run `make test-imports` after changing `config/import.env`, the XML catalog, an
-ontology import declaration, or merge behavior. Do not replace a raw ontology
-URL with a GitHub `/blob/` HTML page. Prefer an immutable Release tag for
-reproducible builds; use `latest` only when intentionally tracking the newest
-published release. Retain the download-content validation in
-`toolbox/import.sh`.
+- download a concrete or latest public GitHub Release asset;
+- verify its published SHA-256 checksum before extraction;
+- reject unexpected archive paths and symbolic links;
+- refuse to update a `toolbox/` directory without `.antonia-managed`;
+- avoid a nested `toolbox/toolbox/` layout;
+- replace only the managed toolbox directory;
+- copy the released Makefile and AGENTS.md to the ontology root;
+- preserve existing configuration values and obsolete variables;
+- append only configuration variables introduced by the new Release.
 
-## Modeling and serialization conventions
+## Development commands
 
-Use UTF-8 RDF/XML (`.rdf`) for authoritative ontology sources and generated
-outputs, TSV for templates, and SPARQL (`.rq` checks/reports and `.ru` updates)
-for validation and transformations. Turtle is acceptable for pinned external
-imports and compact test fixtures.
-
-ROBOT does not recognize `.rdf` as an output-format extension. When ROBOT must
-write RDF/XML, scripts must write an intermediate `.owl` file, copy that
-byte-equivalent RDF/XML document to the required `.rdf` delivery name, then
-remove the intermediate file. Do not pass a `.rdf` output path directly to
-ROBOT, even when specifying an explicit format.
-
-Preserve the configured IMD IRIs from `config/config.env`. Keep generated
-content template-driven rather than editing files in `tmp/`. Name checks
-descriptively with snake_case, for example `missing_labels.rq`.
-
-The ontology products have distinct content:
-
-- `merged.rdf`: asserted and generated input graph before reasoning;
-- `classified.rdf`: expressive OWL 2 DL reference after reasoning;
-- `ontop-ql.rdf`: conservative OWL 2 QL projection for Ontop.
-
-The release also retains `<name>.owl`, a compatibility reserialization of the
-same classified graph as `<name>.rdf`; it is not a fourth semantic product.
-
-## Testing and validation
-
-Before proposing ontology or pipeline changes, run:
+Run commands from the ANTONIA repository root:
 
 ```bash
-make import
-make test-imports
-make all
-make test-profiles
-make test-equivalences
+make check
+make test
+make package VERSION=v1.0.0
+make release VERSION=v1.0.0
 ```
 
-A successful change leaves the import closure self-contained, blocking SPARQL
-checks empty, QC acceptable, and both OWL profile validations clean. Inspect
-reports under `tmp/` on failure. Add focused fixtures under `tests/data/`,
-shell tests under `tests/robot/`, and SPARQL contracts under `tests/sparql/`.
-The focused individual-equivalence tests use the OWL 2 DL HermiT reasoner by
-default on the IMD TBox without its external import declaration; import closure
-is tested separately. Set `TEST_REASONER` only to compare another reasoner.
+`make check` validates shell syntax and required distribution files.
+`make test` adds configuration-migration and archive-structure tests.
+`make package` creates local ignored assets without publishing them.
+`make release` is an external publication operation: it requires a clean
+`main` branch exactly synchronized with `origin/main`, creates the tag, pushes
+it, and creates the GitHub Release.
 
-If Java or ROBOT is unavailable, run `make install-robot`; do not report full
-validation as successful when only shell, XML, or dry-run checks were executed.
+Do not invoke `make release` merely to test packaging. Never bypass the clean
+worktree or synchronized-main guards: the published archive must correspond
+exactly to the tagged commit.
 
-## Release contract
+## Compatibility and testing
 
-Run `make all` and the focused tests before `make release`. The release script
-packages existing artifacts and does not rebuild them. A release contains:
+Runtime scripts must remain compatible with macOS Bash 3.2 unless a newer Bash
+requirement is explicitly adopted and documented. Prefer portable shell
+constructs and support both `shasum -a 256` and `sha256sum`.
 
-- `<name>.rdf` and its retained `<name>.owl` compatibility copy;
-- `<name>-merged.rdf`;
-- `<name>-ql.rdf`;
-- the configured RDF mapping ontology, byte-for-byte, when present;
-- `<name>.obda` when the configured source exists;
-- available QC, profile-validation, and diff reports.
+After changing installation, update, packaging, configuration migration,
+`toolbox/Makefile`, or `toolbox/AGENTS.md`, run:
 
-Do not release Turtle files or datasource `.properties` files. The release
-script performs Git commits, branch/tag operations, pushes, and optional GitHub
-release creation; do not invoke it merely to test packaging.
+```bash
+make check
+make test
+```
+
+Also exercise installation and update in a temporary Git repository when the
+archive layout or root-file synchronization changes. Verify that:
+
+- the archive has one `toolbox/` root;
+- installation creates root `Makefile` and `AGENTS.md` copies;
+- update replaces both root copies;
+- project configuration remains byte-for-byte unchanged before appended new
+  assignments;
+- a second update is idempotent.
+
+Do not report publication success unless the remote tag, GitHub Release, both
+assets, and their checksum have been verified.
 
 ## Commits and pull requests
 
-Preserve unrelated working-tree changes. Use short imperative commit subjects,
-keep each commit scoped to one modeling or pipeline concern, and do not commit
-accidental build outputs. Pull requests should explain semantic impact, list
-the exact validation commands run, link the relevant issue, and include report
-or ontology-diff excerpts when output semantics change.
+Preserve unrelated working-tree changes. Use short imperative commit subjects
+and keep packaging, runtime, and documentation changes coherent. Pull requests
+must explain changes to the distribution contract, list exact validation
+commands, and call out any compatibility impact for existing ontology projects.

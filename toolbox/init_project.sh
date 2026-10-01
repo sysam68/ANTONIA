@@ -11,6 +11,7 @@
 #
 # Creates:
 #   Makefile          copied from the released toolbox
+#   AGENTS.md         copied from the released toolbox
 #   config/           with template config.env and import.env
 #   qc/               with example QC files
 #   src/edit/         with myOntology-tbox.rdf and mapping example
@@ -81,6 +82,8 @@ make_dir() {
 # -----------------------------------------------------------------------------
 cp "$TOOLBOX_DIR/Makefile" "$HOST_ROOT/Makefile"
 echo "  ✅ Makefile — ontology build entry point from toolbox/Makefile"
+cp "$TOOLBOX_DIR/AGENTS.md" "$HOST_ROOT/AGENTS.md"
+echo "  ✅ AGENTS.md — ontology guidance from toolbox/AGENTS.md"
 
 # -----------------------------------------------------------------------------
 # 2. config/

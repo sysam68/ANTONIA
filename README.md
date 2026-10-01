@@ -45,8 +45,9 @@ make test-equivalences
 ```
 
 Installation copies the released `toolbox/Makefile` to the ontology repository
-root. This keeps the usual `make <target>` commands while the authoritative
-ontology pipeline Makefile remains part of the versioned toolbox.
+root. It also copies `toolbox/AGENTS.md` to the ontology root. This keeps the
+usual `make <target>` commands and ontology-agent instructions while their
+authoritative versions remain part of the versioned toolbox.
 
 To update only the managed toolbox files to the latest release:
 
@@ -58,8 +59,9 @@ During an update, ANTONIA compares each project `.env` file with the template
 shipped in the new Release. It reports variables that already exist, variables
 introduced by the Release, and variables that are no longer expected. Only new
 assignments are appended with their default value; existing and obsolete
-assignments are preserved unchanged. The root ontology `Makefile` is replaced
-by the `toolbox/Makefile` supplied by the new Release.
+assignments are preserved unchanged. The root ontology `Makefile` and
+`AGENTS.md` are replaced by the corresponding files supplied by the new
+Release.
 
 Set `ANTONIA_VERSION=<tag>` on either command to install a specific immutable
 release. Each downloaded archive is checked against its published SHA-256
