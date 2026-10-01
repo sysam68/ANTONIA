@@ -7,7 +7,7 @@ SHELL := /bin/bash
 
 VERSION ?=
 
-.PHONY: help check test test-agent-skills test-config-update test-semantic-authoring test-database-integration test-release-channels test-package test-lifecycle package release prerelease clean
+.PHONY: help check test test-agent-skills test-config-update test-import-release test-semantic-authoring test-database-integration test-release-channels test-package test-lifecycle package release prerelease clean
 
 help:
 	@echo "ANTONIA Toolbox"
@@ -17,6 +17,7 @@ help:
 	@echo "  test               run all ANTONIA tests"
 	@echo "  test-agent-skills  verify Make target coverage by distributed skills"
 	@echo "  test-config-update verify additive configuration migration"
+	@echo "  test-import-release verify latest and explicit GitHub Release imports"
 	@echo "  test-semantic-authoring verify semantic skills and helper safety"
 	@echo "  test-database-integration verify PostgreSQL/MySQL sampling and Ontop bootstrap"
 	@echo "  test-release-channels verify stable and development publication guards"
@@ -55,13 +56,16 @@ check:
 	@python3 -c 'import pathlib; [compile(p.read_text(), str(p), "exec") for p in pathlib.Path("toolbox").rglob("*.py")]'
 	@echo "ANTONIA checks: passed"
 
-test: check test-agent-skills test-config-update test-semantic-authoring test-release-channels test-lifecycle
+test: check test-agent-skills test-config-update test-import-release test-semantic-authoring test-release-channels test-lifecycle
 
 test-agent-skills:
 	@./tests/robot/agent-skills.test.sh
 
 test-config-update:
 	@./tests/robot/config-update.test.sh
+
+test-import-release:
+	@./tests/robot/import-release.test.sh
 
 test-semantic-authoring:
 	@./tests/robot/semantic-authoring.test.sh

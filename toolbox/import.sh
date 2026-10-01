@@ -1,126 +1,197 @@
 #!/usr/bin/env bash
 # -----------------------------------------------------------------------------
 # import.sh
-# Pull/import ontology files into src/import/ from a config file (conf/import.env)
+# Fetch GitHub Release ontology assets into the configured IMPORTS_DIR.
 #
-# conf/import.env is a TSV with 3 columns per line:
-#   1) GIT URL with path after '#', or a RAW direct URL (http/https)
-#   2) ref (branch/tag), or '-' for RAW
-#   3) local base name (without extension)
-#
-# Examples (GIT mode):
-#   https://github.com/opengroup/archimate-owl.git#dist/archimate.ttl    v3.2.0    archimate
-#
-# Examples (RAW mode):
-#   https://raw.githubusercontent.com/opengroup/archimate-owl/v3.2.0/dist/archimate.ttl  -  archimate
+# config/import.env is a strict TSV file with three columns:
+#   1) GitHub repository URL followed by #release-asset
+#   2) immutable GitHub Release tag, or "latest"
+#   3) local basename without extension
 # -----------------------------------------------------------------------------
 set -euo pipefail
 
-# --- Portable temp dir helper (macOS/GNU) ---
-make_temp_dir() {
-  # Try macOS-style: -t <prefix> with pattern
-  if d="$(mktemp -d -t import.XXXXXX 2>/dev/null)"; then
-    printf '%s\n' "$d"; return
-  fi
-  # Try GNU-style with explicit template
-  if d="$(mktemp -d "${TMPDIR:-/tmp}/import.XXXXXX" 2>/dev/null)"; then
-    printf '%s\n' "$d"; return
-  fi
-  # Last resort: manual
-  d="${TMPDIR:-/tmp}/import.$$.${RANDOM}"
-  mkdir -p "$d" || return 1
-  printf '%s\n' "$d"
-}
-# --------------------------------------------
-
-# Paths
-# Resolve ROOT using common.sh logic (supports released toolbox mode)
-source "$(dirname "$0")/common.sh"
-
+ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 CONF_FILE="$ROOT/config/import.env"
-DEST_DIR="$IMPORTS_DIR"
+ENV_FILE="$ROOT/config/config.env"
 
-# Tools required
-command -v git  >/dev/null 2>&1 || { echo "✖ 'git' not found in PATH" >&2; exit 1; }
-command -v curl >/dev/null 2>&1 || { echo "✖ 'curl' not found in PATH" >&2; exit 1; }
+[ -f "$CONF_FILE" ] || { echo "✖ Config not found: ${CONF_FILE#$ROOT/}" >&2; exit 1; }
+[ -f "$ENV_FILE" ] || { echo "✖ Config not found: ${ENV_FILE#$ROOT/}" >&2; exit 1; }
+
+# Load IMPORTS_DIR without pulling in common.sh, because downloading imports
+# must not require Java or ROBOT.
+set -o allexport
+# shellcheck disable=SC1090
+source "$ENV_FILE"
+set +o allexport
+: "${IMPORTS_DIR:=src/edit/imports}"
+
+case "$IMPORTS_DIR" in
+  /*) DEST_DIR="$IMPORTS_DIR" ;;
+  *)  DEST_DIR="$ROOT/$IMPORTS_DIR" ;;
+esac
+
+make_temp_dir() {
+  local d
+  if d="$(mktemp -d -t antonia-import.XXXXXX 2>/dev/null)"; then
+    printf '%s\n' "$d"
+    return
+  fi
+  mktemp -d "${TMPDIR:-/tmp}/antonia-import.XXXXXX"
+}
+
+trim() {
+  awk '{$1=$1; print}'
+}
+
+validate_download() {
+  local file="$1"
+  [ -s "$file" ] || { echo "✖ Downloaded import is empty: $file" >&2; return 1; }
+
+  # A GitHub /blob/ page can return HTTP 200 while containing HTML rather than
+  # RDF. Reject common HTML signatures before installing the file.
+  if LC_ALL=C head -c 1024 "$file" | grep -Eiq '<!doctype[[:space:]]+html|<html([[:space:]>])'; then
+    echo "✖ Downloaded import is HTML, not an ontology: $file" >&2
+    return 1
+  fi
+}
+
+github_repo_slug() {
+  local repo_url="$1"
+  local slug
+
+  case "$repo_url" in
+    https://github.com/*) slug="${repo_url#https://github.com/}" ;;
+    git@github.com:*) slug="${repo_url#git@github.com:}" ;;
+    ssh://git@github.com/*) slug="${repo_url#ssh://git@github.com/}" ;;
+    *) return 1 ;;
+  esac
+
+  slug="${slug%/}"
+  slug="${slug%.git}"
+  case "$slug" in
+    */*/*|/*|*/) return 1 ;;
+    */*) ;;
+    *) return 1 ;;
+  esac
+  printf '%s\n' "$slug"
+}
+
+install_import() {
+  local source_file="$1"
+  local destination="$2"
+  local local_name="$3"
+  local staged="${destination}.tmp.$$"
+
+  validate_download "$source_file"
+  cp -f "$source_file" "$staged"
+  mv -f "$staged" "$destination"
+
+  # Avoid merging a stale previous serialization of the same imported graph.
+  local candidate
+  for candidate in \
+    "$DEST_DIR/${local_name}.rdf" \
+    "$DEST_DIR/${local_name}.owl" \
+    "$DEST_DIR/${local_name}.ttl"; do
+    [ "$candidate" = "$destination" ] || rm -f "$candidate"
+  done
+}
 
 mkdir -p "$DEST_DIR"
-[ -f "$CONF_FILE" ] || { echo "✖ Config not found: ${CONF_FILE#$ROOT/}"; exit 1; }
+TEMP_ROOT="$(make_temp_dir)"
+trap 'rm -rf "$TEMP_ROOT"' EXIT
 
-# Trim helper
-trim() { awk '{$1=$1;print}'; }
-
-# Read TSV lines
-echo "▶ Reading config: ${CONF_FILE#$ROOT/}"
+echo "▶ Reading import manifest: ${CONF_FILE#$ROOT/}"
 lineno=0
-while IFS=$'\t' read -r URL REF LOCAL_NAME || [ -n "${URL:-}" ]; do
-  lineno=$((lineno+1))
-  # Skip comments and blank lines
-  [ -z "${URL:-}" ] && continue
-  case "$URL" in \#*|";"* ) continue ;; esac
+imported=0
 
-  URL="$(printf '%s' "$URL" | trim)"
-  REF="${REF:-"-"}"; REF="$(printf '%s' "$REF" | trim)"
+while IFS=$'\t' read -r URL REF LOCAL_NAME EXTRA || [ -n "${URL:-}" ]; do
+  lineno=$((lineno + 1))
+  URL="$(printf '%s' "${URL:-}" | trim)"
+
+  [ -z "$URL" ] && continue
+  case "$URL" in \#*|";"*) continue ;; esac
+
+  REF="$(printf '%s' "${REF:-}" | trim)"
   LOCAL_NAME="$(printf '%s' "${LOCAL_NAME:-}" | trim)"
+  EXTRA="$(printf '%s' "${EXTRA:-}" | trim)"
 
-  if [ -z "$URL" ] || [ -z "$LOCAL_NAME" ]; then
-    echo "✖ Line $lineno: missing required fields (URL and LOCAL_NAME)" >&2
+  if [ -z "$LOCAL_NAME" ] || [ -n "$EXTRA" ]; then
+    echo "✖ Line $lineno must contain exactly three tab-separated columns" >&2
+    exit 1
+  fi
+  case "$LOCAL_NAME" in
+    *[!A-Za-z0-9._-]*) echo "✖ Line $lineno has an unsafe local name: $LOCAL_NAME" >&2; exit 1 ;;
+  esac
+
+  if [[ "$URL" != *"#"* ]]; then
+    echo "✖ Line $lineno must use GitHub repository#release-asset syntax" >&2
     exit 1
   fi
 
-  # Detect mode:
-  if [[ "$URL" == *"#"* ]]; then
-    MODE="GIT"
-    REPO_URL="${URL%%#*}"
-    FILE_PATH="${URL#*#}"
-    # REF requis en GIT mode
-    [ -n "$REF" ] && [ "$REF" != "-" ] || { echo "✖ Line $lineno: missing REF (branch/tag) for GIT mode" >&2; exit 1; }
-    # Extension from file path
-    SRC_EXT="${FILE_PATH##*.}"
-    echo "→ [$lineno] GIT: $REPO_URL@$REF:$FILE_PATH  → ${LOCAL_NAME}.${SRC_EXT}"
+  command -v gh >/dev/null 2>&1 || {
+    echo "✖ 'gh' not found in PATH (required for GitHub Release imports)" >&2
+    exit 1
+  }
+
+  REPO_URL="${URL%%#*}"
+  ASSET_NAME="${URL#*#}"
+  [ -n "$REF" ] && [ "$REF" != "-" ] || {
+    echo "✖ Line $lineno requires a GitHub Release tag or 'latest'" >&2
+    exit 1
+  }
+  case "$ASSET_NAME" in
+    ""|*[!A-Za-z0-9._+-]*)
+      echo "✖ Line $lineno has an unsafe GitHub Release asset name: $ASSET_NAME" >&2
+      exit 1
+      ;;
+  esac
+
+  REPO_SLUG="$(github_repo_slug "$REPO_URL")" || {
+    echo "✖ Line $lineno is not a supported GitHub repository URL: $REPO_URL" >&2
+    exit 1
+  }
+  if [ "$REF" = "latest" ]; then
+    RESOLVED_RELEASE="$(gh release view \
+      --repo "$REPO_SLUG" \
+      --json tagName \
+      --jq '.tagName')"
   else
-    MODE="RAW"
-    RAW_URL="$URL"
-    # Extension from URL (best effort)
-    SRC_EXT="${URL##*.}"
-    echo "→ [$lineno] RAW: $RAW_URL  → ${LOCAL_NAME}.${SRC_EXT}"
+    RESOLVED_RELEASE="$(gh release view "$REF" \
+      --repo "$REPO_SLUG" \
+      --json tagName \
+      --jq '.tagName')"
   fi
+  [ -n "$RESOLVED_RELEASE" ] || {
+    echo "✖ Line $lineno could not resolve GitHub Release '$REF'" >&2
+    exit 1
+  }
+
+  SRC_EXT="${ASSET_NAME##*.}"
+  WORKDIR="$TEMP_ROOT/line-$lineno"
+  mkdir -p "$WORKDIR"
+
+  echo "→ [$lineno] GitHub Release $REPO_SLUG@$RESOLVED_RELEASE:$ASSET_NAME"
+  gh release download "$RESOLVED_RELEASE" \
+    --repo "$REPO_SLUG" \
+    --pattern "$ASSET_NAME" \
+    --dir "$WORKDIR"
+
+  SOURCE_FILE="$WORKDIR/$ASSET_NAME"
+  [ -f "$SOURCE_FILE" ] || {
+    echo "✖ Line $lineno: asset not found in GitHub Release: $ASSET_NAME" >&2
+    exit 1
+  }
+
+  case "$SRC_EXT" in
+    rdf|owl|ttl) ;;
+    *) echo "✖ Line $lineno has an unsupported ontology extension: $SRC_EXT" >&2; exit 1 ;;
+  esac
 
   DEST_FILE="$DEST_DIR/${LOCAL_NAME}.${SRC_EXT}"
-
-  if [ "$MODE" = "RAW" ]; then
-    # Download
-    curl -fsSL "$RAW_URL" -o "$DEST_FILE"
-    echo "  ✓ Fetched → ${DEST_FILE#$ROOT/}"
-
-  else
-    # GIT sparse checkout into a temp dir
-    WORKDIR="$(make_temp_dir)" || { echo "✖ Line $lineno: cannot create temp dir" >&2; exit 1; }
-    (
-      set -e
-      cd "$WORKDIR"
-      git init -q
-      git remote add origin "$REPO_URL"
-
-      git fetch --depth 1 origin "refs/heads/$REF:refs/remotes/origin/$REF" 2>/dev/null \
-      || git fetch --depth 1 origin "refs/tags/$REF:refs/tags/$REF" 2>/dev/null \
-      || git fetch --depth 1 origin "$REF"
-
-      git checkout -q --detach FETCH_HEAD
-
-      PATH_DIR="$(dirname "$FILE_PATH")"
-      git sparse-checkout init --cone >/dev/null 2>&1 || true
-      git sparse-checkout set "$PATH_DIR" >/dev/null 2>&1 || true
-      git sparse-checkout reapply >/dev/null 2>&1 || true
-
-      [ -f "$FILE_PATH" ] || { echo "✖ Line $lineno: file not found in repo: $FILE_PATH" >&2; exit 1; }
-
-      mkdir -p "$(dirname "$DEST_FILE")"
-      cp -f "$FILE_PATH" "$DEST_FILE"
-    )
-    rm -rf "$WORKDIR" || true
-    echo "  ✓ Pulled → ${DEST_FILE#$ROOT/}"
-  fi
+  install_import "$SOURCE_FILE" "$DEST_FILE" "$LOCAL_NAME"
+  echo "  ✓ ${DEST_FILE#$ROOT/}"
+  imported=$((imported + 1))
 done < "$CONF_FILE"
 
-echo "✓ All imports updated in ${DEST_DIR#$ROOT/}"
+[ "$imported" -gt 0 ] || { echo "✖ No imports declared in ${CONF_FILE#$ROOT/}" >&2; exit 1; }
+echo "✓ Imported $imported ontology artifact(s) into ${DEST_DIR#$ROOT/}"
