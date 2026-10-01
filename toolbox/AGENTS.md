@@ -27,7 +27,8 @@ scripts are maintained inside the managed toolbox directory.
 
 ## Local toolchain
 
-Java 17 or later and ROBOT are required. The recommended setup is:
+Java 17 or later and ROBOT are required. Initial ANTONIA installation invokes
+this setup automatically. It can be run again idempotently with:
 
 ```bash
 make install-robot

@@ -28,7 +28,7 @@ help:
 	@echo "  make release VERSION=v1.0.0"
 
 check:
-	@for script in install-antonia.sh update-antonia.sh package-antonia.sh release-antonia.sh toolbox/*.sh tests/robot/*.sh; do \
+	@for script in install-antonia.sh update-antonia.sh package-antonia.sh release-antonia.sh toolbox/*.sh tests/robot/*.sh tests/data/install-robot-stub.sh; do \
 		bash -n "$$script"; \
 	done
 	@test -f toolbox/Makefile
@@ -51,6 +51,7 @@ test-package:
 	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/AGENTS.md$$'
 	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/install-antonia.sh$$'
 	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/update-antonia.sh$$'
+	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/install_robot.sh$$'
 	@tar -xOf dist/antonia-toolbox.tar.gz toolbox/Makefile | grep -q '^update-antonia:'
 	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/update_config.sh$$'
 	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/templates/config/config.env$$'

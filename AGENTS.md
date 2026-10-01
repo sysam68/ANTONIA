@@ -68,8 +68,12 @@ Installation and update must:
 - avoid a nested `toolbox/toolbox/` layout;
 - replace only the managed toolbox directory;
 - copy the released Makefile and AGENTS.md to the ontology root;
+- add missing `tmp/` and `.tools/` exclusions without replacing the host
+  `.gitignore`;
 - package installation and update scripts inside `toolbox/`;
-- remove the root bootstrap installer only after successful initialization;
+- install the repository-local ROBOT toolchain during initial installation;
+- remove the root bootstrap installer only after successful initialization and
+  ROBOT installation;
 - preserve existing configuration values and obsolete variables;
 - append only configuration variables introduced by the new Release.
 

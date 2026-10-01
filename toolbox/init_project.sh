@@ -12,6 +12,7 @@
 # Creates:
 #   Makefile          copied from the released toolbox
 #   AGENTS.md         copied from the released toolbox
+#   .gitignore        extended with ANTONIA build/toolchain exclusions
 #   config/           with template config.env and import.env
 #   qc/               with example QC files
 #   src/edit/         with myOntology-tbox.rdf and mapping example
@@ -77,6 +78,23 @@ make_dir() {
   echo "  📁 ${dir#$HOST_ROOT/}/"
 }
 
+# Helper: append a root .gitignore rule without changing existing content.
+ensure_gitignore_entry() {
+  local path="$1"
+  local entry="$2"
+
+  if [ -f "$path" ] && grep -Fqx "$entry" "$path"; then
+    echo "  ⏭️  Skip: .gitignore already excludes $entry"
+    return 0
+  fi
+
+  if [ -s "$path" ] && [ -n "$(tail -c 1 "$path")" ]; then
+    printf '\n' >> "$path"
+  fi
+  printf '%s\n' "$entry" >> "$path"
+  echo "  ✅ .gitignore — exclude $entry"
+}
+
 # -----------------------------------------------------------------------------
 # 1. host Makefile
 # -----------------------------------------------------------------------------
@@ -84,6 +102,8 @@ cp "$TOOLBOX_DIR/Makefile" "$HOST_ROOT/Makefile"
 echo "  ✅ Makefile — ontology build entry point from toolbox/Makefile"
 cp "$TOOLBOX_DIR/AGENTS.md" "$HOST_ROOT/AGENTS.md"
 echo "  ✅ AGENTS.md — ontology guidance from toolbox/AGENTS.md"
+ensure_gitignore_entry "$HOST_ROOT/.gitignore" "tmp/"
+ensure_gitignore_entry "$HOST_ROOT/.gitignore" ".tools/"
 
 # -----------------------------------------------------------------------------
 # 2. config/

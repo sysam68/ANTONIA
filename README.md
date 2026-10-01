@@ -30,9 +30,6 @@ initialize the project structure:
 # Download the latest released toolbox and initialize the host project
 ./install-antonia.sh
 
-# Install the repository-local toolchain
-make install-robot
-
 # Configure your ontology
 # Edit config/config.env and src/edit/myOntology-tbox.rdf
 
@@ -47,10 +44,13 @@ make test-equivalences
 Installation copies the released `toolbox/Makefile` to the ontology repository
 root. It also copies `toolbox/AGENTS.md` to the ontology root. This keeps the
 usual `make <target>` commands and ontology-agent instructions while their
-authoritative versions remain part of the versioned toolbox. The bootstrap
-`install-antonia.sh` at the ontology root is deleted after successful
-initialization; maintained installation and update scripts remain under
-`toolbox/`.
+authoritative versions remain part of the versioned toolbox. Existing
+`.gitignore` content is preserved, while missing `tmp/` and `.tools/` rules are
+appended. The bootstrap
+`install-antonia.sh` at the ontology root installs the repository-local ROBOT
+toolchain through `toolbox/install_robot.sh`, then deletes itself only after
+the project initialization and toolchain installation both succeed. Maintained
+installation and update scripts remain under `toolbox/`.
 
 To update only the managed toolbox files to the latest release:
 
@@ -71,8 +71,10 @@ release. Each downloaded archive is checked against its published SHA-256
 checksum. Updates refuse to replace a `toolbox/` directory that does not carry
 the ANTONIA management marker.
 
-`make install-robot` installs ROBOT and, when needed, Java 17 under the
-Git-ignored `.tools/` directory. See the
+The initial installation automatically installs ROBOT and, when needed, Java
+17 under the Git-ignored `.tools/` directory. The idempotent
+`make install-robot` target remains available to verify or repair this local
+toolchain. See the
 [local installation procedure](toolbox/docs/robot-installation.md).
 GitHub Release imports also require an authenticated GitHub CLI (`gh`) with
 read access to each configured repository.

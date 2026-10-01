@@ -121,6 +121,12 @@ SWAP_COMPLETED=0
 cleanup() {
   local status=$?
 
+  if [ "$status" -ne 0 ] && [ "$MODE" = "install" ] \
+      && [ "$SWAP_COMPLETED" -eq 1 ] \
+      && [ -f "$DESTINATION/.antonia-managed" ]; then
+    rm -rf -- "$DESTINATION"
+  fi
+
   if [ "$status" -ne 0 ] && [ "$SWAP_COMPLETED" -eq 0 ] \
       && [ -n "$PREVIOUS_TOOLBOX" ] && [ -d "$PREVIOUS_TOOLBOX" ] \
       && [ ! -e "$DESTINATION" ]; then
@@ -184,6 +190,7 @@ if [ ! -f "$CANDIDATE/.antonia-managed" ] \
     || [ ! -f "$CANDIDATE/install-antonia.sh" ] \
     || [ ! -f "$CANDIDATE/update-antonia.sh" ] \
     || [ ! -f "$CANDIDATE/init_project.sh" ] \
+    || [ ! -f "$CANDIDATE/install_robot.sh" ] \
     || [ ! -f "$CANDIDATE/common.sh" ] \
     || [ ! -f "$CANDIDATE/update_config.sh" ] \
     || [ ! -f "$CANDIDATE/templates/config/config.env" ]; then
@@ -221,6 +228,8 @@ if [ "$MODE" = "install" ]; then
   else
     bash "$DESTINATION/init_project.sh" "${INIT_ARGS[@]}"
   fi
+  echo "Installing the repository-local ROBOT toolchain"
+  "$DESTINATION/install_robot.sh"
   echo "ANTONIA $INSTALLED_VERSION installed successfully."
   if [ -n "$BOOTSTRAP_INSTALLER" ] && [ -f "$BOOTSTRAP_INSTALLER" ]; then
     rm -- "$BOOTSTRAP_INSTALLER"
