@@ -96,4 +96,7 @@ for skill_directory in "$AGENT_ROOT"/skills/*; do
   grep -Fqx "skill=skills/$skill_name" "$MANIFEST"
 done
 
+INIT_X_DRY_RUN="$(make -f "$MAKEFILE" -n init-x)"
+printf '%s\n' "$INIT_X_DRY_RUN" | grep -Fq 'chmod +x toolbox/*.sh'
+
 echo "agent skills test: passed"

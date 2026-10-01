@@ -12,7 +12,7 @@ ANTONIA uses the supported skill invocation syntax instead.
 | --- | --- | --- |
 | `$antonia-help` | `make help` | None |
 | `$antonia-init-project` | `make init-project` | Preserves existing files |
-| `$antonia-init-x` | `make init-x` | None |
+| `$antonia-init-x` | `make init-x` | Inline Make recipe; no dedicated script |
 | `$antonia-install-robot` | `make install-robot` | Local `.tools/` only |
 | `$antonia-update` | `make update-antonia` | Optional `ANTONIA_VERSION` |
 | `$antonia-java-conf` | `make java-conf` | Generates ignored local config |
