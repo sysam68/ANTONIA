@@ -1,82 +1,137 @@
 # -----------------------------------------------------------------------------
-# Makefile — Ontology Build Pipeline (uses scripts/*)
+# Makefile — Ontology Build Pipeline (uses toolbox/*)
 # -----------------------------------------------------------------------------
 # Usage:
 #   make                # = help
-#   make all            # generate → reason → report → validate
+#   make all            # generate → reason → project-ql → report → validate
+#   make install-robot  # install ROBOT and Java 17 locally under .tools/
+#   make java-conf      # generate an ignored, machine-specific JVM profile
+#   make init-project   # initialize host repo structure (submodule mode)
+#   make progress       # run the complete pipeline with progress indicators
 #   make generate
 #   make reason         # REASONER=hermit make reason
 #   make report         # FAIL_ON=WARN make report
-#   make validate       # OWL_PROFILE=DL make validate
+#   make project-ql     # generate the Ontop OWL 2 QL projection
+#   make validate       # validate both OWL 2 DL and OWL 2 QL artifacts
+#   make test-imports   # verify Release download and merged import closure
+#   make test-qc        # verify ontology-scoped QC rules
+#   make test-profiles  # execute both profile tests
+#   make test-equivalences # exercise the BIAN/IMD equivalences with HermiT
+#   make test-release     # exercise resumable release publication locally
 #   make release        # VERSION_TAG=2025-08-15 make release
-#   make diff OLD=path/to/old.ttl NEW=path/to/new.ttl
+#   make diff OLD=path/to/old.rdf NEW=path/to/new.rdf
 #   make clean
 # -----------------------------------------------------------------------------
 
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
-.PHONY: help all generate reason report validate release diff clean init-x
+.PHONY: help all import install-robot generate reason project-ql report validate test-imports test-qc test-profiles test-equivalences test-release release diff clean init-x progress java-conf init-project
 
 help:
 	@echo "Ontology Build Pipeline"
 	@echo
 	@echo "Helper:"
-	@echo "  import 	 : import external ontologies (see scripts/import.sh)"
+	@echo "  install-robot: install ROBOT and Java 17 locally under .tools/"
+	@echo "  java-conf   : generate the ignored conf/java.conf JVM profile"
+	@echo "  init-project: initialize host repo structure (submodule mode)"
+	@echo "  progress    : run the complete pipeline with progress indicators"
+	@echo "  import 	 : import external ontologies (see toolbox/import.sh)"
 	@echo
 	@echo "Usage: [VARIABLE=value] make [target] "
 	@echo "Targets:"
-	@echo "  all         : generate → reason → report → validate"
-	@echo "  generate    : expand TSV templates to TTL modules"
+	@echo "  all         : generate → reason → project-ql → report → validate"
+	@echo "  generate    : expand TSV templates to RDF/XML modules"
 	@echo "  reason      : merge and classify ontology (use REASONER=hermit|ELK|jfact)"
+	@echo "  project-ql  : derive the OWL 2 QL projection used by Ontop"
+	@echo "  test-imports: verify Release download and the merged import closure"
+	@echo "  test-qc     : verify ontology-scoped quality-control rules"
 	@echo "  report      : run QC (use FAIL_ON=ERROR|WARN|NONE)"
-	@echo "  validate    : validate OWL profile & verify (use OWL_PROFILE=EL|RL|QL|DL)"
+	@echo "  validate    : validate the OWL 2 DL reference and OWL 2 QL projection"
+	@echo "  test-profiles: execute the DL and QL profile tests"
+	@echo "  test-equivalences: infer the BIAN/IMD equivalence contracts"
+	@echo "  test-release: verify resumable tag and GitHub Release publication"
 	@echo "  release     : package versioned release (use VERSION_TAG=YYYY-MM-DD)"
 	@echo "  diff        : ROBOT diff (requires OLD=... and NEW=...)"
-	@echo "  clean       : remove build outputs (target/)"
+	@echo "  clean       : remove build outputs (tmp/)"
 	@echo
 	@echo "Examples:"
 	@echo "  REASONER=hermit make reason"
 	@echo "  FAIL_ON=WARN make report"
 	@echo "  VERSION_TAG=2025-08-15 make release"
-	@echo "  make diff OLD=releases/2025-08-10/ontology.ttl NEW=target/merged.ttl"
+	@echo "  make diff OLD=releases/2025-08-10/ontology.rdf NEW=tmp/merged.rdf"
 
 # Optional: make scripts executable once
 init-x:
-	@chmod +x scripts/*.sh || true
-	@echo "✓ scripts are executable"
+	@chmod +x toolbox/*.sh || true
+	@echo "✓ toolbox scripts are executable"
 
-all: generate reason report validate
+init-project:
+	@bash toolbox/init_project.sh
+
+all: generate reason project-ql report validate
+
+progress:
+	@bash -euo pipefail -c 'source ./toolbox/progress.sh; total=5; progress_step 1 $$total "generate"; progress_bar 1 $$total "generate"; make generate; printf "\n"; progress_step 2 $$total "reason"; progress_bar 2 $$total "reason"; make reason; printf "\n"; progress_step 3 $$total "project-ql"; progress_bar 3 $$total "project-ql"; make project-ql; printf "\n"; progress_step 4 $$total "report"; progress_bar 4 $$total "report"; make report; printf "\n"; progress_step 5 $$total "validate"; progress_bar 5 $$total "validate"; make validate; printf "\n"; echo "✓ Full pipeline complete"'
+
+java-conf:
+	@./toolbox/java_conf.sh
 
 generate:
-	@./scripts/generate_from_templates.sh
+	@./toolbox/generate_from_templates.sh
 
 import:
-	@./scripts/import.sh
+	@./toolbox/import.sh
+
+install-robot:
+	@./toolbox/install_robot.sh
+
 reason:
-	@./scripts/reason.sh
+	@./toolbox/reason.sh
+
+project-ql:
+	@./toolbox/project_ql.sh
 
 report:
-	@./scripts/report.sh
+	@./toolbox/report.sh
 
 validate:
-	@./scripts/validate.sh
+	@./toolbox/validate.sh
+
+test-profiles:
+	@./tests/robot/owl2_dl_profile.test.sh
+	@./tests/robot/owl2_ql_profile.test.sh
+
+test-equivalences:
+	@./tests/robot/business_area_domain_equivalence.test.sh
+	@./tests/robot/service_domain_equivalence.test.sh
+
+test-imports:
+	@./tests/robot/import_release.test.sh
+	@./tests/robot/import_closure.test.sh
+
+test-qc:
+	@./tests/robot/duplicate_label_scope.test.sh
+
+test-release:
+	@./tests/robot/release_idempotency.test.sh
+	@./tests/robot/mapping_ontology.test.sh
 
 # VERSION_TAG can be overridden: VERSION_TAG=2025-08-15 make release
 release:
-	@./scripts/release.sh
+	@./toolbox/release.sh
 
 # Requires OLD and NEW variables pointing to ontology files
 diff:
 ifeq ($(strip $(OLD)),)
-	$(error Please provide OLD=path/to/old.ttl)
+	$(error Please provide OLD=path/to/old.rdf)
 endif
 ifeq ($(strip $(NEW)),)
-	$(error Please provide NEW=path/to/new.ttl)
+	$(error Please provide NEW=path/to/new.rdf)
 endif
-	@./scripts/diff.sh "$(OLD)" "$(NEW)"
+	@./toolbox/diff.sh "$(OLD)" "$(NEW)"
 
 clean:
-	@rm -rf target
-	@echo "✓ cleaned target/"
+	@rm -rf tmp
+	@echo "✓ cleaned tmp/"
 

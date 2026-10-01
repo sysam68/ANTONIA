@@ -1,0 +1,15 @@
+# Build artifacts
+tmp/
+.tools/
+
+# Local configuration
+conf/java.conf
+config/java.conf
+
+# Editor / OS noise
+.DS_Store
+*.swp
+*~
+
+# Submodule marker (host repo ignores toolbox/)
+.toolbox-dir

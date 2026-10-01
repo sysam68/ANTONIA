@@ -13,19 +13,19 @@ The release process creates a **versioned package** of the ontology, including:
 
 1. **Generate from templates**  
    ```bash
-   ./scripts/generate_from_templates.sh
+   ./toolbox/generate_from_templates.sh
 2. **Run reasoning**
    ```bash
-   ./scripts/reason.sh
+   ./toolbox/reason.sh
 3. **Run QC reports**
    ```bash
-   ./scripts/report.sh
+   ./toolbox/report.sh
 4. **Validate ontology**
    ```bash
-   ./scripts/validate.sh
+   ./toolbox/validate.sh
 5. **Create release package**
    ```bash
-   ./scripts/release.sh
+   ./toolbox/release.sh
 
 ## 3. Versioning
 Releases are stored under releases/YYYY-MM-DD/

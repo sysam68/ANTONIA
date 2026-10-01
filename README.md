@@ -1,68 +1,68 @@
-é# Ontology Development Template
+# Ontology Toolbox
 
-This repository provides a **ready-to-use ontology engineering workflow** using [ROBOT](http://robot.obolibrary.org/) and Git for version control.
+This repository provides a ROBOT-based toolchain for maintaining expressive
+OWL 2 DL reference ontologies and operational Ontop projections.
 
-It is designed for projects where:
-- The **TBox** (ontology schema) and **ABox** (instances) are managed separately
-- Ontology modules are generated from **TSV templates**
-- Quality control, reasoning, validation, and release packaging are automated
+It is designed to be used as a **Git submodule** named `toolbox/` inside a
+host repository that contains the actual ontology content.
 
----
+## Architecture
 
-## 📂 Repository Structure
+- The authoritative ontology is maintained in RDF/XML under `src/edit/`.
+- `tmp/classified.rdf` is the reasoned OWL 2 DL reference ontology.
+- `tmp/merged.rdf` is the assembled graph before reasoning.
+- `tmp/ontop-ql.rdf` is the OWL 2 QL projection for Ontop.
+- Releases keep both `<name>.rdf` and its `<name>.owl` compatibility copy.
+- An OBDA mapping is released when present; datasource `.properties` files are
+  never packaged.
 
- ontology-project/
- ├── src/
- │ ├── tbox/ # TBox ontology files (schema)
- │ ├── abox/ # ABox ontology files (instances)
- │ ├── templates/ # TSV templates for generating ontology content
- │ ├── annotations/ # Annotation ontologies (metadata, labels, etc.)
- │ └── sparql/ # SPARQL queries for QC, checks, verification
- ├── scripts/ # Automation scripts (ROBOT pipeline)
- ├── target/ # Build output (merged, classified, reports)
- ├── releases/ # Versioned release packages
- ├── docs/ # Documentation
- └── Makefile # Task shortcuts
+See [the architecture](docs/architecture.md) and
+[the release process](docs/release-process.md) for the content boundaries.
 
+## Quick start (host repository)
 
----
+Add this repository as a submodule and initialize the project structure:
 
-## 🚀 Quick Start
+```bash
+# Add as submodule named 'toolbox'
+git submodule add <this-repo-url> toolbox
+git submodule update --init --recursive
 
-1. **Install prerequisites**
-   - Java 17+
-   - [ROBOT CLI](http://robot.obolibrary.org/)
-   - (Optional) Git
+# Initialize the host repository structure
+make init-project
 
-2. **Generate ontology from templates**
-   ```bash
-   ./scripts/generate_from_templates.sh
+# Install the repository-local toolchain
+make install-robot
 
-3. **Run reasoning**
-   ```bash
-   ./scripts/reason.sh
+# Configure your ontology
+# Edit config/config.env and src/edit/myOntology-tbox.rdf
 
-4. **Run quality control**
-   ```bash
-   ./scripts/report.sh
+# Run the pipeline
+make import
+make test-imports
+make all
+make test-profiles
+make test-equivalences
+```
 
-5. **Validate ontology**
-   ```bash
-   ./scripts/validate.sh
+`make install-robot` installs ROBOT and, when needed, Java 17 under the
+Git-ignored `.tools/` directory. See
+[the local installation procedure](docs/robot-installation.md).
+GitHub Release imports also require an authenticated GitHub CLI (`gh`) with
+read access to each configured repository.
 
-6. **Create a release**
-   ```bash
-   ./scripts/release.sh
+The import manifest selects a GitHub Release asset by an explicit release tag
+or by `latest`. The import contract checks that the downloaded artifact
+contains the expected ontology content and has no residual `owl:imports`.
+The complete build then generates RDF/XML modules, merges and classifies the DL
+ontology, derives the QL projection, runs quality checks, and validates both
+OWL profiles.
 
-##📜 Key Concepts
+To create a release from fresh, committed build artifacts:
 
-- TBox → Terminological component: classes, properties, axioms
-- ABox → Assertional component: individuals and their relationships
-- TSV templates → Tabular definitions for classes, properties, individuals
-- Annotations → Separated metadata ontologies
-- SPARQL checks/reports → Custom queries to enforce modeling rules
+```bash
+make release
+```
 
-##📚 Documentation
-Architecture Overview
-Modeling Guidelines
-Release Process
+The release command performs Git branch, tag, and optional GitHub release
+operations; review [the release process](docs/release-process.md) first.

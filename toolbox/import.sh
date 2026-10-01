@@ -34,9 +34,11 @@ make_temp_dir() {
 # --------------------------------------------
 
 # Paths
-ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+# Resolve ROOT using common.sh logic (supports submodule mode)
+source "$(dirname "$0")/common.sh"
+
 CONF_FILE="$ROOT/config/import.env"
-DEST_DIR="$ROOT/src/import"
+DEST_DIR="$IMPORTS_DIR"
 
 # Tools required
 command -v git  >/dev/null 2>&1 || { echo "✖ 'git' not found in PATH" >&2; exit 1; }

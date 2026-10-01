@@ -29,8 +29,8 @@ templates/ # TSV templates (classes, properties, individuals)
 sparql/
 checks/ # Blocking checks (must return empty)
 reports/ # Non-blocking reports
-scripts/ # Automation scripts for ROBOT
-target/ # Build outputs
+toolbox/ # Automation scripts for ROBOT
+tmp/ # Build outputs
 releases/ # Versioned release packages
 
 

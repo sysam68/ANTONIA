@@ -11,7 +11,7 @@
 # -----------------------------------------------------------------------------
 set -euo pipefail
 
-ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+# Resolve ROOT using common.sh logic (supports submodule mode)
 source "$(dirname "$0")/common.sh"   # loads config/config.env
 
 # --- High-resolution timestamp (YYYYMMDD-HHMMSS-mmm) ---
