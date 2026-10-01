@@ -20,10 +20,19 @@ constraints under `src/shapes/`, and SPARQL checks, reports, and updates under
 current and dated packages belong in `releases/`.
 
 The root `Makefile` and `AGENTS.md` are managed copies of `toolbox/Makefile` and
-`toolbox/AGENTS.md`. ANTONIA updates replace both root copies. Put reusable
-pipeline changes in `toolbox/`; do not customize only the generated root copies.
-Update ANTONIA with `./toolbox/update-antonia.sh`; installation and update
-scripts are maintained inside the managed toolbox directory.
+`toolbox/AGENTS.md`. Repository skills declared by
+`toolbox/.agents/.antonia-managed` are managed copies under the root
+`.agents/skills/`. ANTONIA updates replace those managed copies while preserving
+unrelated project skills. Put reusable pipeline or skill changes in `toolbox/`;
+do not customize only the generated root copies. Update ANTONIA with
+`./toolbox/update-antonia.sh`; installation and update scripts are maintained
+inside the managed toolbox directory.
+
+Use `/skills` in Codex to browse the installed ANTONIA workflows, or invoke a
+Make target skill directly with `$antonia-<command>`. For example,
+`$antonia-init-project` runs the managed `make init-project` workflow and
+`$antonia-release VERSION_TAG=<version>` runs the guarded release workflow.
+See `toolbox/docs/agent-skills.md` for the complete mapping.
 
 ## Local toolchain
 

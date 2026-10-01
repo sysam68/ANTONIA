@@ -12,6 +12,7 @@
 # Creates:
 #   Makefile          copied from the released toolbox
 #   AGENTS.md         copied from the released toolbox
+#   .agents/          ANTONIA-managed repository skills
 #   .gitignore        extended with ANTONIA build/toolchain exclusions
 #   config/           with template config.env and import.env
 #   qc/               with example QC files
@@ -102,6 +103,7 @@ cp "$TOOLBOX_DIR/Makefile" "$HOST_ROOT/Makefile"
 echo "  ✅ Makefile — ontology build entry point from toolbox/Makefile"
 cp "$TOOLBOX_DIR/AGENTS.md" "$HOST_ROOT/AGENTS.md"
 echo "  ✅ AGENTS.md — ontology guidance from toolbox/AGENTS.md"
+bash "$TOOLBOX_DIR/sync_agents.sh"
 ensure_gitignore_entry "$HOST_ROOT/.gitignore" "tmp/"
 ensure_gitignore_entry "$HOST_ROOT/.gitignore" ".tools/"
 

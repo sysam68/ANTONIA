@@ -33,6 +33,9 @@ ANTONIA-maintenance targets or instructions in those distributed files.
 - `toolbox/*.sh` contains the runtime scripts distributed to ontology projects.
 - `toolbox/Makefile` is the authoritative ontology-project Makefile.
 - `toolbox/AGENTS.md` is the authoritative ontology-project agent guidance.
+- `toolbox/.agents/` contains the repository skills installed into ontology
+  projects, including one guarded skill for every target defined by the
+  ontology-project Makefile.
 - `toolbox/templates/config/` contains the expected project configuration.
 - `toolbox/docs/` contains documentation shipped with the toolbox.
 - `install-antonia.sh` installs a released toolbox and initializes a project.
@@ -54,6 +57,7 @@ must include at least:
 - every runtime shell script required by the ontology pipeline;
 - `toolbox/templates/config/config.env`;
 - toolbox documentation;
+- `toolbox/.agents/.antonia-managed` and every declared repository skill;
 - `.antonia-managed`, recording the concrete Release version.
 
 Never package datasource `.properties` files, local Java installations,
@@ -68,6 +72,10 @@ Installation and update must:
 - avoid a nested `toolbox/toolbox/` layout;
 - replace only the managed toolbox directory;
 - copy the released Makefile and AGENTS.md to the ontology root;
+- synchronize ANTONIA-managed skills into the ontology root `.agents/skills/`
+  while preserving unrelated project skills;
+- refuse to overwrite a homonymous root skill unless the installed ANTONIA
+  manifest already declares it as managed;
 - add missing `tmp/` and `.tools/` exclusions without replacing the host
   `.gitignore`;
 - package installation and update scripts inside `toolbox/`;

@@ -59,6 +59,7 @@ TOOLBOX_FILES=(
   reason.sh
   release.sh
   report.sh
+  sync_agents.sh
   update_config.sh
   validate.sh
   validate_dl.sh
@@ -72,6 +73,51 @@ for file in "${TOOLBOX_FILES[@]}"; do
   fi
   cp "$ROOT/toolbox/$file" "$TEMP_ROOT/toolbox/$file"
 done
+
+AGENT_SOURCE="$ROOT/toolbox/.agents"
+AGENT_MANIFEST="$AGENT_SOURCE/.antonia-managed"
+if [ ! -f "$AGENT_MANIFEST" ]; then
+  echo "Error: missing managed agent manifest: toolbox/.agents/.antonia-managed" >&2
+  exit 1
+fi
+if [ ! -d "$AGENT_SOURCE/skills" ]; then
+  echo "Error: missing managed skills directory: toolbox/.agents/skills" >&2
+  exit 1
+fi
+if ! grep -Fqx 'format=1' "$AGENT_MANIFEST"; then
+  echo "Error: invalid ANTONIA agent manifest format." >&2
+  exit 1
+fi
+if ! grep -q '^skill=skills/' "$AGENT_MANIFEST"; then
+  echo "Error: the ANTONIA agent manifest declares no skills." >&2
+  exit 1
+fi
+mkdir -p "$TEMP_ROOT/toolbox/.agents/skills"
+cp "$AGENT_MANIFEST" "$TEMP_ROOT/toolbox/.agents/.antonia-managed"
+while IFS= read -r line || [ -n "$line" ]; do
+  case "$line" in
+    format=1|'') ;;
+    skill=skills/*)
+      relative_path="${line#skill=}"
+      case "${relative_path#skills/}" in
+        ''|*/*|.*|*..*|*[!A-Za-z0-9._-]*)
+          echo "Error: invalid managed skill path: $relative_path" >&2
+          exit 1
+          ;;
+      esac
+      if [ ! -f "$AGENT_SOURCE/$relative_path/SKILL.md" ]; then
+        echo "Error: incomplete managed skill: $relative_path" >&2
+        exit 1
+      fi
+      cp -R "$AGENT_SOURCE/$relative_path" \
+        "$TEMP_ROOT/toolbox/.agents/$relative_path"
+      ;;
+    *)
+      echo "Error: invalid ANTONIA agent manifest entry: $line" >&2
+      exit 1
+      ;;
+  esac
+done < "$AGENT_MANIFEST"
 
 if [ ! -d "$ROOT/toolbox/docs" ]; then
   echo "Error: missing toolbox documentation: toolbox/docs" >&2

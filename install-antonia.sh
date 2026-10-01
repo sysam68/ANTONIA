@@ -192,7 +192,9 @@ if [ ! -f "$CANDIDATE/.antonia-managed" ] \
     || [ ! -f "$CANDIDATE/init_project.sh" ] \
     || [ ! -f "$CANDIDATE/install_robot.sh" ] \
     || [ ! -f "$CANDIDATE/common.sh" ] \
+    || [ ! -f "$CANDIDATE/sync_agents.sh" ] \
     || [ ! -f "$CANDIDATE/update_config.sh" ] \
+    || [ ! -f "$CANDIDATE/.agents/.antonia-managed" ] \
     || [ ! -f "$CANDIDATE/templates/config/config.env" ]; then
   echo "Error: incomplete or invalid ANTONIA toolbox release." >&2
   exit 1
@@ -202,6 +204,69 @@ if find "$CANDIDATE" -type l -print -quit | grep -q .; then
   echo "Error: symbolic links are not allowed in the ANTONIA toolbox archive." >&2
   exit 1
 fi
+
+AGENT_MANIFEST="$CANDIDATE/.agents/.antonia-managed"
+HOST_AGENT_MANIFEST="$HOST_ROOT/.agents/.antonia-managed"
+if ! grep -Fqx 'format=1' "$AGENT_MANIFEST"; then
+  echo "Error: invalid ANTONIA agent manifest format." >&2
+  exit 1
+fi
+if ! grep -q '^skill=skills/' "$AGENT_MANIFEST"; then
+  echo "Error: the ANTONIA agent manifest declares no skills." >&2
+  exit 1
+fi
+if [ -f "$HOST_AGENT_MANIFEST" ]; then
+  if ! grep -Fqx 'format=1' "$HOST_AGENT_MANIFEST"; then
+    echo "Error: invalid installed ANTONIA agent manifest format." >&2
+    exit 1
+  fi
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in
+      format=1|'') ;;
+      skill=skills/*)
+        relative_path="${line#skill=}"
+        case "${relative_path#skills/}" in
+          ''|*/*|.*|*..*|*[!A-Za-z0-9._-]*)
+            echo "Error: invalid installed managed skill path: $relative_path" >&2
+            exit 1
+            ;;
+        esac
+        ;;
+      *)
+        echo "Error: invalid installed ANTONIA agent manifest entry: $line" >&2
+        exit 1
+        ;;
+    esac
+  done < "$HOST_AGENT_MANIFEST"
+fi
+while IFS= read -r line || [ -n "$line" ]; do
+  case "$line" in
+    format=1|'') ;;
+    skill=skills/*)
+      relative_path="${line#skill=}"
+      case "${relative_path#skills/}" in
+        ''|*/*|.*|*..*|*[!A-Za-z0-9._-]*)
+          echo "Error: invalid managed skill path: $relative_path" >&2
+          exit 1
+          ;;
+      esac
+      if [ ! -f "$CANDIDATE/.agents/$relative_path/SKILL.md" ]; then
+        echo "Error: incomplete managed skill: $relative_path" >&2
+        exit 1
+      fi
+      if [ -e "$HOST_ROOT/.agents/$relative_path" ] \
+          && { [ ! -f "$HOST_AGENT_MANIFEST" ] \
+            || ! grep -Fqx "skill=$relative_path" "$HOST_AGENT_MANIFEST"; }; then
+        echo "Error: refusing to replace unmanaged skill: .agents/$relative_path" >&2
+        exit 1
+      fi
+      ;;
+    *)
+      echo "Error: invalid ANTONIA agent manifest entry: $line" >&2
+      exit 1
+      ;;
+  esac
+done < "$AGENT_MANIFEST"
 
 INSTALLED_VERSION="$(awk -F= '$1 == "version" { print $2; exit }' "$CANDIDATE/.antonia-managed")"
 if [ -z "$INSTALLED_VERSION" ]; then
@@ -240,6 +305,7 @@ else
   echo "Ontology Makefile updated from toolbox/Makefile"
   cp "$DESTINATION/AGENTS.md" "$HOST_ROOT/AGENTS.md"
   echo "Ontology AGENTS.md updated from toolbox/AGENTS.md"
+  bash "$DESTINATION/sync_agents.sh"
   bash "$DESTINATION/update_config.sh"
   echo "ANTONIA toolbox updated: $CURRENT_VERSION -> $INSTALLED_VERSION"
 fi

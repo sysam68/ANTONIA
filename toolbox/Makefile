@@ -36,11 +36,16 @@ help:
 	@echo "  diff        : ROBOT diff (requires OLD=... and NEW=...)"
 	@echo "  clean       : remove ontology build outputs under tmp/"
 	@echo
+	@echo "Codex skills:"
+	@echo "  /skills     : browse installed ANTONIA skills"
+	@echo '  $$antonia-<command>: invoke the corresponding guarded Make workflow'
+	@echo
 	@echo "Examples:"
 	@echo "  REASONER=hermit make reason"
 	@echo "  FAIL_ON=WARN make report"
 	@echo "  VERSION_TAG=2025-08-15 make release"
 	@echo "  make diff OLD=releases/old.rdf NEW=tmp/classified.rdf"
+	@echo '  $$antonia-release VERSION_TAG=2025-08-15'
 
 init-x:
 	@chmod +x toolbox/*.sh || true

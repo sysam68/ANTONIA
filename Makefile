@@ -7,7 +7,7 @@ SHELL := /bin/bash
 
 VERSION ?=
 
-.PHONY: help check test test-config-update test-package test-lifecycle package release clean
+.PHONY: help check test test-agent-skills test-config-update test-package test-lifecycle package release clean
 
 help:
 	@echo "ANTONIA Toolbox"
@@ -15,6 +15,7 @@ help:
 	@echo "Targets:"
 	@echo "  check              validate shell syntax and repository structure"
 	@echo "  test               run all ANTONIA tests"
+	@echo "  test-agent-skills  verify Make target coverage by distributed skills"
 	@echo "  test-config-update verify additive configuration migration"
 	@echo "  test-package       verify the distributable toolbox archive"
 	@echo "  test-lifecycle     verify bootstrap cleanup and in-toolbox updates"
@@ -33,6 +34,14 @@ check:
 	done
 	@test -f toolbox/Makefile
 	@test -f toolbox/AGENTS.md
+	@test -f toolbox/.agents/.antonia-managed
+	@test -x toolbox/sync_agents.sh
+	@while IFS= read -r line || [ -n "$$line" ]; do \
+		case "$$line" in \
+			skill=*) skill_path="$${line#skill=}"; \
+				test -f "toolbox/.agents/$$skill_path/SKILL.md" ;; \
+		esac; \
+	done < toolbox/.agents/.antonia-managed
 	@test -f toolbox/templates/config/config.env
 	@if grep -Eq '^[[:space:]]*source .*common\.sh' toolbox/install_robot.sh; then \
 		echo "Error: install_robot.sh must not require common.sh before bootstrap" >&2; \
@@ -40,7 +49,10 @@ check:
 	fi
 	@echo "ANTONIA checks: passed"
 
-test: check test-config-update test-lifecycle
+test: check test-agent-skills test-config-update test-lifecycle
+
+test-agent-skills:
+	@./tests/robot/agent-skills.test.sh
 
 test-config-update:
 	@./tests/robot/config-update.test.sh
@@ -49,9 +61,18 @@ test-package:
 	@./package-antonia.sh test-local
 	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/Makefile$$'
 	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/AGENTS.md$$'
+	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/.agents/.antonia-managed$$'
+	@while IFS= read -r line || [ -n "$$line" ]; do \
+		case "$$line" in \
+			skill=*) skill_path="$${line#skill=}"; \
+				tar -tzf dist/antonia-toolbox.tar.gz \
+					| grep -q "^toolbox/.agents/$$skill_path/SKILL.md$$" ;; \
+		esac; \
+	done < toolbox/.agents/.antonia-managed
 	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/install-antonia.sh$$'
 	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/update-antonia.sh$$'
 	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/install_robot.sh$$'
+	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/sync_agents.sh$$'
 	@tar -xOf dist/antonia-toolbox.tar.gz toolbox/Makefile | grep -q '^update-antonia:'
 	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/update_config.sh$$'
 	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/templates/config/config.env$$'

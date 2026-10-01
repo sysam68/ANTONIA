@@ -7,6 +7,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd -P)"
 RELEASE_ROOT="$(mktemp -d /tmp/antonia-lifecycle-release.XXXXXX)"
 SUCCESS_ROOT="$(mktemp -d /tmp/antonia-lifecycle-success.XXXXXX)"
 FAILURE_ROOT="$(mktemp -d /tmp/antonia-lifecycle-failure.XXXXXX)"
+COLLISION_ROOT="$(mktemp -d /tmp/antonia-lifecycle-collision.XXXXXX)"
 
 cleanup() {
   case "$RELEASE_ROOT" in
@@ -18,8 +19,28 @@ cleanup() {
   case "$FAILURE_ROOT" in
     /tmp/antonia-lifecycle-failure.*) rm -rf -- "$FAILURE_ROOT" ;;
   esac
+  case "$COLLISION_ROOT" in
+    /tmp/antonia-lifecycle-collision.*) rm -rf -- "$COLLISION_ROOT" ;;
+  esac
 }
 trap cleanup EXIT
+
+assert_managed_skills_installed() {
+  local host_root="$1"
+  local manifest="$host_root/.agents/.antonia-managed"
+  local line=""
+  local skill_path=""
+
+  test -f "$manifest"
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in
+      skill=*)
+        skill_path="${line#skill=}"
+        test -f "$host_root/.agents/$skill_path/SKILL.md"
+        ;;
+    esac
+  done < "$manifest"
+}
 
 mkdir -p "$RELEASE_ROOT/stage"
 tar -xzf "$ROOT/dist/antonia-toolbox.tar.gz" -C "$RELEASE_ROOT/stage"
@@ -45,6 +66,7 @@ ANTONIA_RELEASE_BASE_URL="file://$RELEASE_ROOT" \
 test ! -e "$SUCCESS_ROOT/install-antonia.sh"
 test -x "$SUCCESS_ROOT/toolbox/install-antonia.sh"
 test -x "$SUCCESS_ROOT/toolbox/update-antonia.sh"
+assert_managed_skills_installed "$SUCCESS_ROOT"
 test -f "$SUCCESS_ROOT/.tools/install-robot-invoked"
 grep -Fqx 'project-specific-rule' "$SUCCESS_ROOT/.gitignore"
 test "$(grep -Fxc 'tmp/' "$SUCCESS_ROOT/.gitignore")" -eq 1
@@ -56,6 +78,12 @@ bash "$SUCCESS_ROOT/toolbox/init_project.sh" > "$SUCCESS_ROOT/reinit.log"
 test "$(grep -Fxc 'tmp/' "$SUCCESS_ROOT/.gitignore")" -eq 1
 test "$(grep -Fxc '.tools/' "$SUCCESS_ROOT/.gitignore")" -eq 1
 
+mkdir -p "$SUCCESS_ROOT/.agents/skills/project-specific-skill"
+printf '%s\n' 'project-owned skill' \
+  > "$SUCCESS_ROOT/.agents/skills/project-specific-skill/SKILL.md"
+printf '%s\n' 'locally modified managed skill' \
+  > "$SUCCESS_ROOT/.agents/skills/antonia-ontology-workflow/SKILL.md"
+
 touch "$SUCCESS_ROOT/toolbox/stale-before-update"
 ANTONIA_RELEASE_BASE_URL="file://$RELEASE_ROOT" \
   "$SUCCESS_ROOT/toolbox/update-antonia.sh" > "$SUCCESS_ROOT/update.log"
@@ -63,7 +91,18 @@ ANTONIA_RELEASE_BASE_URL="file://$RELEASE_ROOT" \
 test ! -e "$SUCCESS_ROOT/toolbox/stale-before-update"
 test -x "$SUCCESS_ROOT/toolbox/install-antonia.sh"
 test -x "$SUCCESS_ROOT/toolbox/update-antonia.sh"
+test -f "$SUCCESS_ROOT/.agents/skills/project-specific-skill/SKILL.md"
+grep -q '^name: antonia-ontology-workflow$' \
+  "$SUCCESS_ROOT/.agents/skills/antonia-ontology-workflow/SKILL.md"
+assert_managed_skills_installed "$SUCCESS_ROOT"
 grep -q 'ANTONIA toolbox updated:' "$SUCCESS_ROOT/update.log"
+
+ANTONIA_RELEASE_BASE_URL="file://$RELEASE_ROOT" \
+  "$SUCCESS_ROOT/toolbox/update-antonia.sh" > "$SUCCESS_ROOT/update-second.log"
+test -f "$SUCCESS_ROOT/.agents/skills/project-specific-skill/SKILL.md"
+grep -q '^name: antonia-ontology-workflow$' \
+  "$SUCCESS_ROOT/.agents/skills/antonia-ontology-workflow/SKILL.md"
+assert_managed_skills_installed "$SUCCESS_ROOT"
 
 git -C "$FAILURE_ROOT" init -q
 cp "$ROOT/install-antonia.sh" "$FAILURE_ROOT/install-antonia.sh"
@@ -76,5 +115,22 @@ fi
 test -f "$FAILURE_ROOT/install-antonia.sh"
 test ! -e "$FAILURE_ROOT/toolbox"
 grep -q 'simulated ROBOT installation failure' "$FAILURE_ROOT/install.log"
+
+git -C "$COLLISION_ROOT" init -q
+mkdir -p "$COLLISION_ROOT/.agents/skills/antonia-ontology-workflow"
+printf '%s\n' 'project-owned colliding skill' \
+  > "$COLLISION_ROOT/.agents/skills/antonia-ontology-workflow/SKILL.md"
+cp "$ROOT/install-antonia.sh" "$COLLISION_ROOT/install-antonia.sh"
+if ANTONIA_RELEASE_BASE_URL="file://$RELEASE_ROOT" \
+    "$COLLISION_ROOT/install-antonia.sh" \
+    > "$COLLISION_ROOT/install.log" 2>&1; then
+  echo "Error: installation unexpectedly replaced an unmanaged skill" >&2
+  exit 1
+fi
+test -f "$COLLISION_ROOT/install-antonia.sh"
+test ! -e "$COLLISION_ROOT/toolbox"
+grep -Fqx 'project-owned colliding skill' \
+  "$COLLISION_ROOT/.agents/skills/antonia-ontology-workflow/SKILL.md"
+grep -q 'refusing to replace unmanaged skill' "$COLLISION_ROOT/install.log"
 
 echo "lifecycle scripts test: passed"

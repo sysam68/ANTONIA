@@ -42,15 +42,27 @@ make test-equivalences
 ```
 
 Installation copies the released `toolbox/Makefile` to the ontology repository
-root. It also copies `toolbox/AGENTS.md` to the ontology root. This keeps the
-usual `make <target>` commands and ontology-agent instructions while their
-authoritative versions remain part of the versioned toolbox. Existing
+root. It also copies `toolbox/AGENTS.md` to the ontology root and synchronizes
+the skills declared by `toolbox/.agents/.antonia-managed` into the root
+`.agents/skills/` directory. ANTONIA replaces only its declared skills during
+updates and preserves unrelated project skills. Installation refuses to
+overwrite an existing homonymous skill that is not already marked as managed
+by ANTONIA. This keeps the usual
+`make <target>` commands, ontology-agent instructions, and Codex workflows while
+their authoritative versions remain part of the versioned toolbox. Existing
 `.gitignore` content is preserved, while missing `tmp/` and `.tools/` rules are
 appended. The bootstrap
 `install-antonia.sh` at the ontology root installs the repository-local ROBOT
 toolchain through `toolbox/install_robot.sh`, then deletes itself only after
 the project initialization and toolchain installation both succeed. Maintained
 installation and update scripts remain under `toolbox/`.
+
+In Codex CLI or the IDE, use `/skills` to browse the installed ANTONIA commands
+or invoke one directly, for example `$antonia-init-project`,
+`$antonia-reason REASONER=hermit`, or
+`$antonia-release VERSION_TAG=2026-10-01`. Repository skills cannot define new
+top-level `/antonia-*` slash commands; the supported distributed form is
+`$antonia-*`. See [the complete skill mapping](toolbox/docs/agent-skills.md).
 
 To update only the managed toolbox files to the latest release:
 
@@ -62,9 +74,9 @@ During an update, ANTONIA compares each project `.env` file with the template
 shipped in the new Release. It reports variables that already exist, variables
 introduced by the Release, and variables that are no longer expected. Only new
 assignments are appended with their default value; existing and obsolete
-assignments are preserved unchanged. The root ontology `Makefile` and
-`AGENTS.md` are replaced by the corresponding files supplied by the new
-Release.
+assignments are preserved unchanged. The root ontology `Makefile`, `AGENTS.md`,
+and ANTONIA-managed skills are replaced by the corresponding files supplied by
+the new Release.
 
 Set `ANTONIA_VERSION=<tag>` on either command to install a specific immutable
 release. Each downloaded archive is checked against its published SHA-256
