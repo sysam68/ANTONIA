@@ -7,13 +7,14 @@
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
-.PHONY: help all import install-robot generate reason project-ql report validate test-imports test-qc test-profiles test-equivalences test-release release diff clean init-x progress java-conf init-project
+.PHONY: help all import install-robot update-antonia generate reason project-ql report validate test-imports test-qc test-profiles test-equivalences test-release release diff clean init-x progress java-conf init-project
 
 help:
 	@echo "Ontology Build Pipeline"
 	@echo
 	@echo "Helpers:"
 	@echo "  install-robot: install ROBOT and Java 17 locally under .tools/"
+	@echo "  update-antonia: update the toolbox from the latest ANTONIA release"
 	@echo "  java-conf   : generate the ignored config/java.conf JVM profile"
 	@echo "  init-project: initialize missing host project files"
 	@echo "  progress    : run the complete pipeline with progress indicators"
@@ -64,6 +65,9 @@ import:
 
 install-robot:
 	@./toolbox/install_robot.sh
+
+update-antonia:
+	@./toolbox/update-antonia.sh
 
 reason:
 	@./toolbox/reason.sh

@@ -51,6 +51,7 @@ test-package:
 	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/AGENTS.md$$'
 	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/install-antonia.sh$$'
 	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/update-antonia.sh$$'
+	@tar -xOf dist/antonia-toolbox.tar.gz toolbox/Makefile | grep -q '^update-antonia:'
 	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/update_config.sh$$'
 	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/templates/config/config.env$$'
 	@if tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/toolbox/'; then \
