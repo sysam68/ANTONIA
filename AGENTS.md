@@ -42,7 +42,8 @@ ANTONIA-maintenance targets or instructions in those distributed files.
 - `install-antonia.sh` installs a released toolbox and initializes a project.
 - `update-antonia.sh` is the source of the updater packaged under `toolbox/`.
 - `package-antonia.sh` builds the Release archive and checksum.
-- `release-antonia.sh` tags and publishes a GitHub Release.
+- `release-antonia.sh` tags and publishes a stable GitHub Release from `main`
+  or a development pre-Release from `dev`.
 - `tests/` contains ANTONIA-specific fixtures and regression tests.
 - `dist/` contains ignored local packaging outputs.
 
@@ -100,6 +101,7 @@ make check
 make test
 make package VERSION=v1.0.0
 make release VERSION=v1.0.0
+make prerelease VERSION=v1.1.0-dev.1
 ```
 
 `make check` validates shell syntax and required distribution files.
@@ -108,10 +110,13 @@ make release VERSION=v1.0.0
 `make release` is an external publication operation: it requires a clean
 `main` branch exactly synchronized with `origin/main`, creates the tag, pushes
 it, and creates the GitHub Release.
+`make prerelease` requires a clean `dev` branch exactly synchronized with
+`origin/dev`, creates and pushes the tag, and publishes a GitHub pre-Release
+that is not marked as the latest stable version.
 
-Do not invoke `make release` merely to test packaging. Never bypass the clean
-worktree or synchronized-main guards: the published archive must correspond
-exactly to the tagged commit.
+Do not invoke `make release` or `make prerelease` merely to test packaging.
+Never bypass the clean-worktree or synchronized-branch guards: the published
+archive must correspond exactly to the tagged commit.
 
 ## Compatibility and testing
 

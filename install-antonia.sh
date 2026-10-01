@@ -4,22 +4,26 @@
 set -euo pipefail
 
 readonly REPOSITORY="${ANTONIA_REPOSITORY:-sysam68/ANTONIA}"
-readonly VERSION="${ANTONIA_VERSION:-latest}"
 readonly ASSET_NAME="antonia-toolbox.tar.gz"
 readonly TOOLBOX_PATH="toolbox"
 
 MODE="install"
+CHANNEL="stable"
+VERSION="${ANTONIA_VERSION:-latest}"
+VERSION_ARGUMENT_SET=0
 INIT_ARGS=()
 
 usage() {
   cat <<'EOF'
-Usage: ./install-antonia.sh [--force]
+Usage: ./install-antonia.sh [--force] [-dev] [-version=<tag>]
 
 Install the ANTONIA toolbox from the latest public GitHub Release.
 
 Options:
-  --force  Ask init_project.sh to overwrite existing project template files.
-  --help   Show this help message.
+  --force          Ask init_project.sh to overwrite project template files.
+  -dev, --dev      Use the development pre-Release channel.
+  -version=<tag>   Install an explicit stable or development Release tag.
+  --help           Show this help message.
 
 Environment variables:
   ANTONIA_VERSION           Release tag to install instead of "latest".
@@ -28,14 +32,31 @@ Environment variables:
 EOF
 }
 
-for argument in "$@"; do
+while [ "$#" -gt 0 ]; do
+  argument="$1"
   case "$argument" in
     --update) MODE="update" ;;
     --force) INIT_ARGS+=("--force") ;;
+    -dev|--dev) CHANNEL="dev" ;;
+    -version=*|--version=*) VERSION="${argument#*=}"; VERSION_ARGUMENT_SET=1 ;;
+    -version|--version)
+      shift
+      [ "$#" -gt 0 ] || { echo "Error: $argument requires a tag." >&2; usage >&2; exit 2; }
+      VERSION="$1"
+      VERSION_ARGUMENT_SET=1
+      ;;
     --help|-h) usage; exit 0 ;;
     *) echo "Error: unsupported argument: $argument" >&2; usage >&2; exit 2 ;;
   esac
+  shift
 done
+
+# The explicit development channel always means "latest dev" unless its tag
+# is supplied on the command line. ANTONIA_VERSION remains the stable-channel
+# compatibility mechanism.
+if [ "$CHANNEL" = "dev" ] && [ "$VERSION_ARGUMENT_SET" -eq 0 ]; then
+  VERSION="latest"
+fi
 
 if [ "$MODE" = "update" ] && [ "${#INIT_ARGS[@]}" -ne 0 ]; then
   echo "Error: --force is only valid during initial installation." >&2
@@ -81,10 +102,34 @@ else
   BOOTSTRAP_INSTALLER="$HOST_ROOT/install-antonia.sh"
 fi
 
+if [ "$CHANNEL" = "dev" ] && [ "$VERSION" = "latest" ]; then
+  if ! command -v gh >/dev/null 2>&1; then
+    echo "Error: GitHub CLI (gh) is required to resolve the latest dev pre-Release." >&2
+    echo "Use -dev -version=<tag> to select a known tag without discovery." >&2
+    exit 1
+  fi
+  # release-antonia.sh permits GitHub pre-Releases only from the synchronized
+  # dev branch, so the newest non-draft pre-Release is the dev-channel head.
+  VERSION="$(gh release list --repo "$REPOSITORY" --exclude-drafts --limit 100 \
+    --json tagName,isPrerelease,publishedAt --jq \
+    '[.[] | select(.isPrerelease == true)] | sort_by(.publishedAt) | last | .tagName // empty')"
+  if [ -z "$VERSION" ]; then
+    echo "Error: no ANTONIA development pre-Release was found for branch dev." >&2
+    exit 1
+  fi
+  echo "Resolved latest ANTONIA dev pre-Release: $VERSION"
+fi
+
 case "$VERSION" in
-  latest) RELEASE_PATH="latest/download" ;;
+  latest)
+    if [ "$CHANNEL" != "stable" ]; then
+      echo "Error: unresolved development pre-Release." >&2
+      exit 1
+    fi
+    RELEASE_PATH="latest/download"
+    ;;
   *[!A-Za-z0-9._-]*|'')
-    echo "Error: invalid ANTONIA_VERSION: $VERSION" >&2
+    echo "Error: invalid ANTONIA release tag: $VERSION" >&2
     exit 2
     ;;
   *) RELEASE_PATH="download/$VERSION" ;;
@@ -143,7 +188,7 @@ ARCHIVE="$TEMP_ROOT/$ASSET_NAME"
 CHECKSUM="$ARCHIVE.sha256"
 EXTRACTED="$TEMP_ROOT/extracted"
 
-echo "Downloading ANTONIA toolbox ($VERSION)"
+echo "Downloading ANTONIA toolbox ($VERSION, channel: $CHANNEL)"
 curl --fail --location --silent --show-error --retry 3 \
   --output "$ARCHIVE" "$ARCHIVE_URL"
 curl --fail --location --silent --show-error --retry 3 \

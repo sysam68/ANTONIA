@@ -15,7 +15,7 @@ help:
 	@echo "Helpers:"
 	@echo "  install-robot: install ROBOT and Java 17 locally under .tools/"
 	@echo "  install-semantic-tools: install OntoGPT, Ontop, JDBC, and pySHACL locally"
-	@echo "  update-antonia: update the toolbox from the latest ANTONIA release"
+	@echo "  update-antonia: update from stable (script supports -dev and -version=<tag>)"
 	@echo "  java-conf   : generate the ignored config/java.conf JVM profile"
 	@echo "  init-project: initialize missing host project files"
 	@echo "  progress    : run the complete pipeline with progress indicators"

@@ -15,7 +15,7 @@ ANTONIA uses the supported skill invocation syntax instead.
 | `$antonia-init-x` | `make init-x` | Inline Make recipe; no dedicated script |
 | `$antonia-install-robot` | `make install-robot` | Local `.tools/` only |
 | `$antonia-install-semantic-tools` | `make install-semantic-tools` | Local `.tools/` only |
-| `$antonia-update` | `make update-antonia` | Optional `ANTONIA_VERSION` |
+| `$antonia-update` | `make update-antonia` | Stable by default; script supports `-dev` and `-version=<tag>` |
 | `$antonia-java-conf` | `make java-conf` | Generates ignored local config |
 | `$antonia-import` | `make import` | Uses `config/import.env` |
 | `$antonia-generate` | `make generate` | Uses configured TSV templates |

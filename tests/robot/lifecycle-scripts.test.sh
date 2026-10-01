@@ -109,6 +109,37 @@ grep -q '^name: antonia-ontology-workflow$' \
   "$SUCCESS_ROOT/.agents/skills/antonia-ontology-workflow/SKILL.md"
 assert_managed_skills_installed "$SUCCESS_ROOT"
 
+ANTONIA_RELEASE_BASE_URL="file://$RELEASE_ROOT" \
+  "$SUCCESS_ROOT/toolbox/update-antonia.sh" -dev -version=test-dev.1 \
+  > "$SUCCESS_ROOT/update-dev-version.log"
+grep -Fq 'Downloading ANTONIA toolbox (test-dev.1, channel: dev)' \
+  "$SUCCESS_ROOT/update-dev-version.log"
+
+mkdir -p "$RELEASE_ROOT/bin"
+cat > "$RELEASE_ROOT/bin/gh" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+printf '%s\n' "$*" >> "$GH_LOG"
+if [ "${1:-} ${2:-}" = "release list" ]; then
+  printf '%s\n' 'test-dev.2'
+  exit 0
+fi
+echo "unexpected gh invocation: $*" >&2
+exit 2
+EOF
+chmod +x "$RELEASE_ROOT/bin/gh"
+: > "$RELEASE_ROOT/gh.log"
+PATH="$RELEASE_ROOT/bin:$PATH" GH_LOG="$RELEASE_ROOT/gh.log" \
+  ANTONIA_VERSION="ignored-stable-pin" \
+  ANTONIA_RELEASE_BASE_URL="file://$RELEASE_ROOT" \
+  "$SUCCESS_ROOT/toolbox/update-antonia.sh" -dev \
+  > "$SUCCESS_ROOT/update-dev-latest.log"
+grep -Fq 'Resolved latest ANTONIA dev pre-Release: test-dev.2' \
+  "$SUCCESS_ROOT/update-dev-latest.log"
+grep -Fq 'Downloading ANTONIA toolbox (test-dev.2, channel: dev)' \
+  "$SUCCESS_ROOT/update-dev-latest.log"
+grep -Fq 'release list --repo sysam68/ANTONIA' "$RELEASE_ROOT/gh.log"
+
 git -C "$FAILURE_ROOT" init -q
 cp "$ROOT/install-antonia.sh" "$FAILURE_ROOT/install-antonia.sh"
 if ANTONIA_TEST_ROBOT_FAILURE=1 \

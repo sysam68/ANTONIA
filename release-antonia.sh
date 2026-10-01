@@ -1,15 +1,52 @@
 #!/usr/bin/env bash
-# Package and publish an ANTONIA toolbox GitHub Release.
+# Package and publish an ANTONIA stable Release or development pre-Release.
 
 set -euo pipefail
 
-VERSION="${1:-}"
+CHANNEL="stable"
+VERSION=""
+
+usage() {
+  cat >&2 <<'EOF'
+Usage:
+  ./release-antonia.sh <release-tag>
+  ./release-antonia.sh --prerelease <release-tag>
+
+Stable Releases must be published from main. Development pre-Releases must be
+published from dev. In both cases, the branch must be clean and synchronized
+exactly with its origin counterpart.
+EOF
+}
+
+for argument in "$@"; do
+  case "$argument" in
+    --prerelease|-dev) CHANNEL="dev" ;;
+    --help|-h) usage; exit 0 ;;
+    *)
+      if [ -n "$VERSION" ]; then
+        echo "Error: multiple release tags supplied." >&2
+        usage
+        exit 2
+      fi
+      VERSION="$argument"
+      ;;
+  esac
+done
+
 case "$VERSION" in
   *[!A-Za-z0-9._-]*|'')
-    echo "Usage: ./release-antonia.sh <release-tag>" >&2
+    usage
     exit 2
     ;;
 esac
+
+if [ "$CHANNEL" = "dev" ]; then
+  RELEASE_BRANCH="dev"
+  RELEASE_KIND="pre-Release"
+else
+  RELEASE_BRANCH="main"
+  RELEASE_KIND="Release"
+fi
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 cd "$ROOT"
@@ -22,14 +59,14 @@ if [ -n "$(git status --porcelain --untracked-files=normal)" ]; then
   exit 1
 fi
 
-if [ "$(git branch --show-current)" != "main" ]; then
-  echo "Error: ANTONIA releases must be published from the main branch." >&2
+if [ "$(git branch --show-current)" != "$RELEASE_BRANCH" ]; then
+  echo "Error: ANTONIA $RELEASE_KIND publications must use the $RELEASE_BRANCH branch." >&2
   exit 1
 fi
 
-git fetch --quiet origin main --tags
-if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]; then
-  echo "Error: local main must exactly match origin/main." >&2
+git fetch --quiet origin "$RELEASE_BRANCH" --tags
+if [ "$(git rev-parse HEAD)" != "$(git rev-parse "origin/$RELEASE_BRANCH")" ]; then
+  echo "Error: local $RELEASE_BRANCH must exactly match origin/$RELEASE_BRANCH." >&2
   exit 1
 fi
 
@@ -59,16 +96,37 @@ if [ "$REMOTE_TAG_EXISTS" -eq 0 ]; then
 fi
 
 if gh release view "$VERSION" --repo sysam68/ANTONIA >/dev/null 2>&1; then
-  echo "ANTONIA release already exists: $VERSION"
+  EXISTING_PRERELEASE="$(gh release view "$VERSION" --repo sysam68/ANTONIA \
+    --json isPrerelease --jq '.isPrerelease')"
+  if { [ "$CHANNEL" = "dev" ] && [ "$EXISTING_PRERELEASE" != "true" ]; } \
+      || { [ "$CHANNEL" = "stable" ] && [ "$EXISTING_PRERELEASE" != "false" ]; }; then
+    echo "Error: existing GitHub Release channel does not match $CHANNEL: $VERSION" >&2
+    exit 1
+  fi
+  echo "ANTONIA $RELEASE_KIND already exists: $VERSION"
   exit 0
 fi
 
-gh release create "$VERSION" \
-  "$ROOT/dist/antonia-toolbox.tar.gz" \
-  "$ROOT/dist/antonia-toolbox.tar.gz.sha256" \
-  --repo sysam68/ANTONIA \
-  --verify-tag \
-  --title "ANTONIA toolbox $VERSION" \
-  --generate-notes
+if [ "$CHANNEL" = "dev" ]; then
+  gh release create "$VERSION" \
+    "$ROOT/dist/antonia-toolbox.tar.gz" \
+    "$ROOT/dist/antonia-toolbox.tar.gz.sha256" \
+    --repo sysam68/ANTONIA \
+    --verify-tag \
+    --target dev \
+    --prerelease \
+    --latest=false \
+    --title "ANTONIA toolbox $VERSION (development)" \
+    --generate-notes
+else
+  gh release create "$VERSION" \
+    "$ROOT/dist/antonia-toolbox.tar.gz" \
+    "$ROOT/dist/antonia-toolbox.tar.gz.sha256" \
+    --repo sysam68/ANTONIA \
+    --verify-tag \
+    --target main \
+    --title "ANTONIA toolbox $VERSION" \
+    --generate-notes
+fi
 
-echo "ANTONIA release published: $VERSION"
+echo "ANTONIA $RELEASE_KIND published: $VERSION"

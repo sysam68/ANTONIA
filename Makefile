@@ -7,7 +7,7 @@ SHELL := /bin/bash
 
 VERSION ?=
 
-.PHONY: help check test test-agent-skills test-config-update test-semantic-authoring test-database-integration test-package test-lifecycle package release clean
+.PHONY: help check test test-agent-skills test-config-update test-semantic-authoring test-database-integration test-release-channels test-package test-lifecycle package release prerelease clean
 
 help:
 	@echo "ANTONIA Toolbox"
@@ -19,16 +19,19 @@ help:
 	@echo "  test-config-update verify additive configuration migration"
 	@echo "  test-semantic-authoring verify semantic skills and helper safety"
 	@echo "  test-database-integration verify PostgreSQL/MySQL sampling and Ontop bootstrap"
+	@echo "  test-release-channels verify stable and development publication guards"
 	@echo "  test-package       verify the distributable toolbox archive"
 	@echo "  test-lifecycle     verify bootstrap cleanup and in-toolbox updates"
 	@echo "  package            build Release assets (VERSION=<tag>)"
 	@echo "  release            tag and publish ANTONIA (VERSION=<tag>)"
+	@echo "  prerelease         tag and publish ANTONIA from dev (VERSION=<tag>)"
 	@echo "  clean              remove locally generated Release assets"
 	@echo
 	@echo "Examples:"
 	@echo "  make test"
 	@echo "  make package VERSION=v1.0.0"
 	@echo "  make release VERSION=v1.0.0"
+	@echo "  make prerelease VERSION=v1.1.0-dev.1"
 
 check:
 	@for script in install-antonia.sh update-antonia.sh package-antonia.sh release-antonia.sh toolbox/*.sh tests/robot/*.sh tests/data/install-robot-stub.sh; do \
@@ -52,7 +55,7 @@ check:
 	@python3 -c 'import pathlib; [compile(p.read_text(), str(p), "exec") for p in pathlib.Path("toolbox").rglob("*.py")]'
 	@echo "ANTONIA checks: passed"
 
-test: check test-agent-skills test-config-update test-semantic-authoring test-lifecycle
+test: check test-agent-skills test-config-update test-semantic-authoring test-release-channels test-lifecycle
 
 test-agent-skills:
 	@./tests/robot/agent-skills.test.sh
@@ -65,6 +68,9 @@ test-semantic-authoring:
 
 test-database-integration:
 	@./tests/robot/database-sampling.integration.sh
+
+test-release-channels:
+	@./tests/robot/release-channels.test.sh
 
 test-package:
 	@./package-antonia.sh test-local
@@ -118,6 +124,13 @@ release:
 		exit 2; \
 	fi
 	@./release-antonia.sh "$(VERSION)"
+
+prerelease:
+	@if [ -z "$(VERSION)" ]; then \
+		echo "Error: VERSION=<prerelease-tag> is required." >&2; \
+		exit 2; \
+	fi
+	@./release-antonia.sh --prerelease "$(VERSION)"
 
 clean:
 	@rm -f dist/antonia-toolbox.tar.gz dist/antonia-toolbox.tar.gz.sha256

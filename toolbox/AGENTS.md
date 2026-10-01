@@ -28,6 +28,11 @@ do not customize only the generated root copies. Update ANTONIA with
 `./toolbox/update-antonia.sh`; installation and update scripts are maintained
 inside the managed toolbox directory.
 
+The default updater follows stable Releases. Use
+`./toolbox/update-antonia.sh -dev` to follow the latest development pre-Release
+published from ANTONIA's `dev` branch, or add `-version=<tag>` to select an
+explicit immutable development version.
+
 Use `/skills` in Codex to browse the installed ANTONIA workflows, or invoke a
 Make target skill directly with `$antonia-<command>`. For example,
 `$antonia-init-project` runs the managed `make init-project` workflow and

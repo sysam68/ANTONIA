@@ -80,6 +80,21 @@ To update only the managed toolbox files to the latest release:
 ./toolbox/update-antonia.sh
 ```
 
+The stable channel follows the latest non-prerelease published from `main`.
+Development builds are explicit:
+
+```bash
+# Latest pre-Release published from dev
+./toolbox/update-antonia.sh -dev
+
+# A specific pre-Release tag
+./toolbox/update-antonia.sh -dev -version=v1.5.0-dev.1
+```
+
+Resolving the latest development pre-Release requires an authenticated GitHub
+CLI (`gh`). Selecting a known tag with `-version=<tag>` downloads that immutable
+Release directly and does not require discovery.
+
 During an update, ANTONIA compares each project `.env` file with the template
 shipped in the new Release. It reports variables that already exist, variables
 introduced by the Release, and variables that are no longer expected. Only new
@@ -88,10 +103,11 @@ assignments are preserved unchanged. The root ontology `Makefile`, `AGENTS.md`,
 and ANTONIA-managed skills are replaced by the corresponding files supplied by
 the new Release.
 
-Set `ANTONIA_VERSION=<tag>` on either command to install a specific immutable
-release. Each downloaded archive is checked against its published SHA-256
-checksum. Updates refuse to replace a `toolbox/` directory that does not carry
-the ANTONIA management marker.
+For stable-channel installation or update, set `ANTONIA_VERSION=<tag>` to use a
+specific immutable Release. For the development channel, prefer the explicit
+`-dev -version=<tag>` syntax. Each downloaded archive is checked against its
+published SHA-256 checksum. Updates refuse to replace a `toolbox/` directory
+that does not carry the ANTONIA management marker.
 
 The initial installation automatically installs ROBOT and, when needed, Java
 17 under the Git-ignored `.tools/` directory. The idempotent
@@ -215,7 +231,8 @@ operations; review the
 
 ## Publishing ANTONIA
 
-ANTONIA maintainers publish the toolbox with:
+ANTONIA maintainers publish stable Releases from a clean `main` synchronized
+with `origin/main`:
 
 ```bash
 make test
@@ -223,7 +240,15 @@ make package VERSION=v1.0.0
 make release VERSION=v1.0.0
 ```
 
-The command requires a clean `main` synchronized with `origin/main`. It builds
-and uploads the stable assets `antonia-toolbox.tar.gz` and
+Development pre-Releases use a clean `dev` synchronized with `origin/dev`:
+
+```bash
+make test
+make prerelease VERSION=v1.1.0-dev.1
+```
+
+Both commands build and upload the assets `antonia-toolbox.tar.gz` and
 `antonia-toolbox.tar.gz.sha256`; installers resolve these assets through the
-latest GitHub Release or through the tag selected by `ANTONIA_VERSION`.
+stable channel, the development pre-Release channel, or an explicitly selected
+tag. A pre-Release is marked as such on GitHub and is never promoted to
+`latest`.
