@@ -1,8 +1,0 @@
-prefix: bian: http://example.org/bian/
-prefix: biani: http://example.org/bian/instances/
-prefix: bianv: http://example.org/bian/vocab/
-ID	LABEL@en	TYPE	bianv:code
-biani:AT_Initiate	Initiate	bian:ActionTerm	AT-INI
-biani:AT_Update	Update	bian:ActionTerm	AT-UPD
-biani:AT_Retrieve	Retrieve	bian:ActionTerm	AT-RET
-

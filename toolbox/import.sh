@@ -34,7 +34,7 @@ make_temp_dir() {
 # --------------------------------------------
 
 # Paths
-# Resolve ROOT using common.sh logic (supports submodule mode)
+# Resolve ROOT using common.sh logic (supports released toolbox mode)
 source "$(dirname "$0")/common.sh"
 
 CONF_FILE="$ROOT/config/import.env"

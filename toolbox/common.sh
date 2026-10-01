@@ -5,18 +5,18 @@
 # shared paths/helpers for the ROBOT toolchain.
 # Keep this file free of business actions (no generation, no reasoning).
 #
-# Supports both standalone mode (repo root) and submodule mode (host root).
+# Supports both standalone development and released toolbox installation.
 # -----------------------------------------------------------------------------
 set -euo pipefail
 
 # -----------------------------------------------------------------------------
-# Resolve project root - supports submodule mode
+# Resolve project root.
 # -----------------------------------------------------------------------------
-# If we're in a submodule named "toolbox", the host repo root is one level up.
+# If installed as "toolbox", the host repository root is one level up.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 if [ -d "$(dirname "$SCRIPT_DIR")/config" ]; then
-  # Submodule mode: toolbox/ is inside host repo, host has config/
+  # Released toolbox mode: toolbox/ is inside the configured host repository.
   ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
   TOOLBOX_MODE=1
 elif [ -d "$SCRIPT_DIR/config" ]; then
@@ -41,7 +41,7 @@ fi
 ENV_FILE="$ROOT/config/config.env"
 if [ ! -f "$ENV_FILE" ]; then
   echo "✖ config.env not found at: $ENV_FILE"
-  echo "  Run 'bash toolbox/toolbox/init_project.sh' to initialize the project"
+  echo "  Run 'bash toolbox/init_project.sh' to initialize the project"
   exit 1
 fi
 
@@ -180,4 +180,3 @@ build_merge_inputs() {
 
 # Export TOOLBOX_MODE for scripts that need to know
 export TOOLBOX_MODE
-

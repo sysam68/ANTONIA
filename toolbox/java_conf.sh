@@ -3,7 +3,7 @@
 # The output is written to conf/java.conf and then consumed by JAVA_TOOL_OPTIONS.
 set -euo pipefail
 
-# Resolve ROOT using common.sh logic (supports submodule mode)
+# Resolve ROOT using common.sh logic (supports released toolbox mode)
 source "$(dirname "$0")/common.sh"
 
 CONF_DIR="${CONF_DIR:-$ROOT/config}"

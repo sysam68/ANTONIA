@@ -3,7 +3,7 @@
 # Generated tools live under .tools/, which is intentionally ignored by Git.
 set -euo pipefail
 
-# Resolve ROOT using common.sh logic (supports submodule mode)
+# Resolve ROOT using common.sh logic (supports released toolbox mode)
 source "$(dirname "$0")/common.sh"
 TOOLS_DIR="$ROOT/.tools"
 BIN_DIR="$TOOLS_DIR/bin"

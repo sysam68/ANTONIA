@@ -1,7 +1,0 @@
-prefix: bian: http://example.org/bian/
-prefix: biani: http://example.org/bian/instances/
-prefix: bianv: http://example.org/bian/vocab/
-ID	LABEL@en	LABEL@fr	TYPE	bianv:code
-biani:BA_BankingOperations	Banking Operations	Opérations bancaires	bian:BusinessArea	BA-OPS
-biani:BA_CorporateServices	Corporate Services	Services corporate	bian:BusinessArea	BA-CORP
-

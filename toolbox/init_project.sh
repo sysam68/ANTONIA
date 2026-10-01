@@ -2,14 +2,15 @@
 # -----------------------------------------------------------------------------
 # init_project.sh
 # Initialize the host repository with the required directory structure and
-# template files. Designed to be run from the host repo root when this repo
-# is used as a submodule (toolbox/).
+# template files. Designed to be run after the released toolbox has been
+# installed directly under the host repository's toolbox/ directory.
 #
 # Usage:
-#   bash toolbox/toolbox/init_project.sh          # from host root
+#   bash toolbox/init_project.sh                  # from host root
 #   bash toolbox/init_project.sh --force          # overwrite existing files
 #
 # Creates:
+#   Makefile          copied from the released toolbox
 #   config/           with template config.env and import.env
 #   qc/               with example QC files
 #   src/edit/         with myOntology-tbox.rdf and mapping example
@@ -22,14 +23,14 @@ set -euo pipefail
 FORCE=0
 [ "${1:-}" = "--force" ] && FORCE=1
 
-# Resolve host root (assumes we are in host_root/toolbox/toolbox/)
+# Resolve host root (the toolbox is installed in host_root/toolbox/)
 TOOLBOX_DIR="$(cd "$(dirname "$0")" && pwd)"
-HOST_ROOT="$(cd "$TOOLBOX_DIR/../.." && pwd)"
+HOST_ROOT="$(cd "$TOOLBOX_DIR/.." && pwd)"
 
-# Verify we are in a submodule layout
+# Verify that this is a complete released toolbox.
 if [ ! -f "$TOOLBOX_DIR/common.sh" ]; then
-  echo "✖ init_project.sh must be run from within the toolbox submodule"
-  echo "  Expected: host_root/toolbox/toolbox/init_project.sh"
+  echo "✖ init_project.sh must be run from within the ANTONIA toolbox"
+  echo "  Expected: host_root/toolbox/init_project.sh"
   echo "  Current:  $TOOLBOX_DIR"
   exit 1
 fi
@@ -50,6 +51,24 @@ create_file() {
   echo "  ✅ ${path#$HOST_ROOT/}${desc:+ — $desc}"
 }
 
+# Helper: copy a released template if missing or --force
+create_from_template() {
+  local path="$1"
+  local template="$2"
+  local desc="${3:-}"
+  if [ -f "$path" ] && [ "$FORCE" -eq 0 ]; then
+    echo "  ⏭️  Skip: ${path#$HOST_ROOT/} (already exists)"
+    return 0
+  fi
+  if [ ! -f "$template" ]; then
+    echo "✖ Missing ANTONIA template: $template" >&2
+    exit 1
+  fi
+  mkdir -p "$(dirname "$path")"
+  cp "$template" "$path"
+  echo "  ✅ ${path#$HOST_ROOT/}${desc:+ — $desc}"
+}
+
 # Helper: create directory
 make_dir() {
   local dir="$1"
@@ -58,69 +77,28 @@ make_dir() {
 }
 
 # -----------------------------------------------------------------------------
-# 1. config/
+# 1. host Makefile
+# -----------------------------------------------------------------------------
+cp "$TOOLBOX_DIR/Makefile" "$HOST_ROOT/Makefile"
+echo "  ✅ Makefile — ontology build entry point from toolbox/Makefile"
+
+# -----------------------------------------------------------------------------
+# 2. config/
 # -----------------------------------------------------------------------------
 make_dir "$HOST_ROOT/config"
 
-create_file "$HOST_ROOT/config/config.env" '\
-# Ontology files
-TBOX=src/edit/myOntology-tbox.rdf
-ABOX=src/edit/myOntology-abox.rdf
-MAPPINGS=
-OBDA=src/edit/myOntology-tbox.obda
-CATALOG=src/edit/catalog-v001.xml
-QL_PROJECTION_UPDATE=src/sparql/updates/project-ql.ru
+create_from_template \
+  "$HOST_ROOT/config/config.env" \
+  "$TOOLBOX_DIR/templates/config/config.env" \
+  "main configuration"
 
-# Quality Check Files
-PROFILE=qc/profile.txt
-ALLOWLIST=qc/allowlist.tsv
-EXPECTED=qc/obo-expected.tsv
-FAIL_ON=ERROR     # seuil de sévérité (NONE|INFO|WARN|ERROR)
-QC_STRICT=1       # 1 = bloque, 0 = n’arrête pas le build
-
-# Base IRIs
-BASE_IRI=https://example.org/ontology/myOntology/
-INSTANCE_BASE_IRI=https://example.org/id/myOntology/
-
-# Paths
-IMPORTS_DIR=src/edit/imports
-MODULES_DIR=src/edit/modules
-ANNOTATIONS_DIR=src/edit/annotations
-TEMPLATE_DIRS=src/edit/templates,src/edit/templates/instances,src/edit/annotations
-SHAPES_DIR=src/shapes
-SPARQL_CHECKS=src/sparql/checks
-SPARQL_REPORTS=src/sparql/reports
-TARGET=tmp
-RELEASES=releases
-
-# Build settings
-REASONER=HERMIT
-REFERENCE_PROFILE=DL
-ONTOP_PROFILE=QL
-ONTOLOGY_NAME=my-ontology
-JAVA_CONF=config/java.conf
-
-# Git settings
-GIT_MAIN_BRANCH=main
-GIT_DEV_BRANCH=dev
-RELEASE_TAG_PREFIX=my-v
-USE_GH=1
-' "main configuration"
-
-create_file "$HOST_ROOT/config/import.env" '\
-# GitHub repository URL#release asset<TAB>release tag or latest<TAB>local basename
-# Example:
-# https://github.com/example/external-ontology.git#ontology.rdf<TAB>v1.0<TAB>external
-' "import manifest (TSV format)"
-
-# Copy java.conf if present in toolbox
-if [ -f "$TOOLBOX_DIR/../config/java.conf" ]; then
-  cp "$TOOLBOX_DIR/../config/java.conf" "$HOST_ROOT/config/java.conf.template"
-  echo "  📋 config/java.conf.template (from toolbox)"
-fi
+create_from_template \
+  "$HOST_ROOT/config/import.env" \
+  "$TOOLBOX_DIR/templates/config/import.env" \
+  "import manifest (TSV format)"
 
 # -----------------------------------------------------------------------------
-# 2. qc/
+# 3. qc/
 # -----------------------------------------------------------------------------
 make_dir "$HOST_ROOT/qc"
 
@@ -136,7 +114,7 @@ create_file "$HOST_ROOT/qc/allowlist.tsv" '' "QC allowlist (empty by default)"
 create_file "$HOST_ROOT/qc/obo-expected.tsv" '' "OBO expected terms (empty by default)"
 
 # -----------------------------------------------------------------------------
-# 3. src/edit/
+# 4. src/edit/
 # -----------------------------------------------------------------------------
 make_dir "$HOST_ROOT/src/edit/templates/instances"
 make_dir "$HOST_ROOT/src/edit/imports"
@@ -186,7 +164,7 @@ create_file "$HOST_ROOT/src/edit/mapping-sourceIOnto-TargetOnto.rdf" '<?xml vers
 ' "Ontology mapping example"
 
 # -----------------------------------------------------------------------------
-# 4. src/sparql/
+# 5. src/sparql/
 # -----------------------------------------------------------------------------
 make_dir "$HOST_ROOT/src/sparql/checks"
 make_dir "$HOST_ROOT/src/sparql/updates"
@@ -214,7 +192,7 @@ WHERE  { ?s ?p ?o }
 ' "QL projection update template"
 
 # -----------------------------------------------------------------------------
-# 5. src/shapes/
+# 6. src/shapes/
 # -----------------------------------------------------------------------------
 make_dir "$HOST_ROOT/src/shapes/shacl"
 
@@ -238,13 +216,13 @@ _:ClassShape
 ' "SHACL shapes (Turtle)"
 
 # -----------------------------------------------------------------------------
-# 6. tmp/ (build artifacts)
+# 7. tmp/ (build artifacts)
 # -----------------------------------------------------------------------------
 make_dir "$HOST_ROOT/tmp"
 touch "$HOST_ROOT/tmp/.gitkeep"
 
 # -----------------------------------------------------------------------------
-# 7. Summary
+# 8. Summary
 # -----------------------------------------------------------------------------
 echo ""
 echo "✅ Project initialized successfully!"

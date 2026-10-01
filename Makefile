@@ -1,137 +1,70 @@
 # -----------------------------------------------------------------------------
-# Makefile — Ontology Build Pipeline (uses toolbox/*)
-# -----------------------------------------------------------------------------
-# Usage:
-#   make                # = help
-#   make all            # generate → reason → project-ql → report → validate
-#   make install-robot  # install ROBOT and Java 17 locally under .tools/
-#   make java-conf      # generate an ignored, machine-specific JVM profile
-#   make init-project   # initialize host repo structure (submodule mode)
-#   make progress       # run the complete pipeline with progress indicators
-#   make generate
-#   make reason         # REASONER=hermit make reason
-#   make report         # FAIL_ON=WARN make report
-#   make project-ql     # generate the Ontop OWL 2 QL projection
-#   make validate       # validate both OWL 2 DL and OWL 2 QL artifacts
-#   make test-imports   # verify Release download and merged import closure
-#   make test-qc        # verify ontology-scoped QC rules
-#   make test-profiles  # execute both profile tests
-#   make test-equivalences # exercise the BIAN/IMD equivalences with HermiT
-#   make test-release     # exercise resumable release publication locally
-#   make release        # VERSION_TAG=2025-08-15 make release
-#   make diff OLD=path/to/old.rdf NEW=path/to/new.rdf
-#   make clean
+# ANTONIA repository lifecycle
 # -----------------------------------------------------------------------------
 
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
-.PHONY: help all import install-robot generate reason project-ql report validate test-imports test-qc test-profiles test-equivalences test-release release diff clean init-x progress java-conf init-project
+VERSION ?=
+
+.PHONY: help check test test-config-update test-package package release clean
 
 help:
-	@echo "Ontology Build Pipeline"
+	@echo "ANTONIA Toolbox"
 	@echo
-	@echo "Helper:"
-	@echo "  install-robot: install ROBOT and Java 17 locally under .tools/"
-	@echo "  java-conf   : generate the ignored conf/java.conf JVM profile"
-	@echo "  init-project: initialize host repo structure (submodule mode)"
-	@echo "  progress    : run the complete pipeline with progress indicators"
-	@echo "  import 	 : import external ontologies (see toolbox/import.sh)"
-	@echo
-	@echo "Usage: [VARIABLE=value] make [target] "
 	@echo "Targets:"
-	@echo "  all         : generate → reason → project-ql → report → validate"
-	@echo "  generate    : expand TSV templates to RDF/XML modules"
-	@echo "  reason      : merge and classify ontology (use REASONER=hermit|ELK|jfact)"
-	@echo "  project-ql  : derive the OWL 2 QL projection used by Ontop"
-	@echo "  test-imports: verify Release download and the merged import closure"
-	@echo "  test-qc     : verify ontology-scoped quality-control rules"
-	@echo "  report      : run QC (use FAIL_ON=ERROR|WARN|NONE)"
-	@echo "  validate    : validate the OWL 2 DL reference and OWL 2 QL projection"
-	@echo "  test-profiles: execute the DL and QL profile tests"
-	@echo "  test-equivalences: infer the BIAN/IMD equivalence contracts"
-	@echo "  test-release: verify resumable tag and GitHub Release publication"
-	@echo "  release     : package versioned release (use VERSION_TAG=YYYY-MM-DD)"
-	@echo "  diff        : ROBOT diff (requires OLD=... and NEW=...)"
-	@echo "  clean       : remove build outputs (tmp/)"
+	@echo "  check              validate shell syntax and repository structure"
+	@echo "  test               run all ANTONIA tests"
+	@echo "  test-config-update verify additive configuration migration"
+	@echo "  test-package       verify the distributable toolbox archive"
+	@echo "  package            build Release assets (VERSION=<tag>)"
+	@echo "  release            tag and publish ANTONIA (VERSION=<tag>)"
+	@echo "  clean              remove locally generated Release assets"
 	@echo
 	@echo "Examples:"
-	@echo "  REASONER=hermit make reason"
-	@echo "  FAIL_ON=WARN make report"
-	@echo "  VERSION_TAG=2025-08-15 make release"
-	@echo "  make diff OLD=releases/2025-08-10/ontology.rdf NEW=tmp/merged.rdf"
+	@echo "  make test"
+	@echo "  make package VERSION=v1.0.0"
+	@echo "  make release VERSION=v1.0.0"
 
-# Optional: make scripts executable once
-init-x:
-	@chmod +x toolbox/*.sh || true
-	@echo "✓ toolbox scripts are executable"
+check:
+	@for script in install-antonia.sh update-antonia.sh package-antonia.sh release-antonia.sh toolbox/*.sh tests/robot/*.sh; do \
+		bash -n "$$script"; \
+	done
+	@test -f toolbox/Makefile
+	@test -f toolbox/templates/config/config.env
+	@echo "ANTONIA checks: passed"
 
-init-project:
-	@bash toolbox/init_project.sh
+test: check test-config-update test-package
 
-all: generate reason project-ql report validate
+test-config-update:
+	@./tests/robot/config-update.test.sh
 
-progress:
-	@bash -euo pipefail -c 'source ./toolbox/progress.sh; total=5; progress_step 1 $$total "generate"; progress_bar 1 $$total "generate"; make generate; printf "\n"; progress_step 2 $$total "reason"; progress_bar 2 $$total "reason"; make reason; printf "\n"; progress_step 3 $$total "project-ql"; progress_bar 3 $$total "project-ql"; make project-ql; printf "\n"; progress_step 4 $$total "report"; progress_bar 4 $$total "report"; make report; printf "\n"; progress_step 5 $$total "validate"; progress_bar 5 $$total "validate"; make validate; printf "\n"; echo "✓ Full pipeline complete"'
+test-package:
+	@./package-antonia.sh test-local
+	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/Makefile$$'
+	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/update_config.sh$$'
+	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/templates/config/config.env$$'
+	@if tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/toolbox/'; then \
+		echo "Error: double toolbox directory detected" >&2; \
+		exit 1; \
+	fi
+	@echo "ANTONIA package test: passed"
 
-java-conf:
-	@./toolbox/java_conf.sh
+package:
+	@if [ -z "$(VERSION)" ]; then \
+		echo "Error: VERSION=<release-tag> is required." >&2; \
+		exit 2; \
+	fi
+	@./package-antonia.sh "$(VERSION)"
 
-generate:
-	@./toolbox/generate_from_templates.sh
-
-import:
-	@./toolbox/import.sh
-
-install-robot:
-	@./toolbox/install_robot.sh
-
-reason:
-	@./toolbox/reason.sh
-
-project-ql:
-	@./toolbox/project_ql.sh
-
-report:
-	@./toolbox/report.sh
-
-validate:
-	@./toolbox/validate.sh
-
-test-profiles:
-	@./tests/robot/owl2_dl_profile.test.sh
-	@./tests/robot/owl2_ql_profile.test.sh
-
-test-equivalences:
-	@./tests/robot/business_area_domain_equivalence.test.sh
-	@./tests/robot/service_domain_equivalence.test.sh
-
-test-imports:
-	@./tests/robot/import_release.test.sh
-	@./tests/robot/import_closure.test.sh
-
-test-qc:
-	@./tests/robot/duplicate_label_scope.test.sh
-
-test-release:
-	@./tests/robot/release_idempotency.test.sh
-	@./tests/robot/mapping_ontology.test.sh
-
-# VERSION_TAG can be overridden: VERSION_TAG=2025-08-15 make release
 release:
-	@./toolbox/release.sh
-
-# Requires OLD and NEW variables pointing to ontology files
-diff:
-ifeq ($(strip $(OLD)),)
-	$(error Please provide OLD=path/to/old.rdf)
-endif
-ifeq ($(strip $(NEW)),)
-	$(error Please provide NEW=path/to/new.rdf)
-endif
-	@./toolbox/diff.sh "$(OLD)" "$(NEW)"
+	@if [ -z "$(VERSION)" ]; then \
+		echo "Error: VERSION=<release-tag> is required." >&2; \
+		exit 2; \
+	fi
+	@./release-antonia.sh "$(VERSION)"
 
 clean:
-	@rm -rf tmp
-	@echo "✓ cleaned tmp/"
-
+	@rm -f dist/antonia-toolbox.tar.gz dist/antonia-toolbox.tar.gz.sha256
+	@rmdir dist 2>/dev/null || true
+	@echo "ANTONIA local Release assets removed"

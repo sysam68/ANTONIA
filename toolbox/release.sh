@@ -11,7 +11,7 @@
 # -----------------------------------------------------------------------------
 set -euo pipefail
 
-# Resolve ROOT using common.sh logic (supports submodule mode)
+# Resolve ROOT using common.sh logic (supports released toolbox mode)
 source "$(dirname "$0")/common.sh"   # loads config/config.env
 
 # --- High-resolution timestamp (YYYYMMDD-HHMMSS-mmm) ---

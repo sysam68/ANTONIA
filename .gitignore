@@ -1,6 +1,9 @@
 # Build artifacts
 tmp/
 .tools/
+dist/
+.antonia-package.*
+.antonia-install.*
 
 # Local configuration
 conf/java.conf
@@ -11,5 +14,5 @@ config/java.conf
 *.swp
 *~
 
-# Submodule marker (host repo ignores toolbox/)
+# Legacy marker
 .toolbox-dir
