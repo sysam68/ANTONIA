@@ -1,7 +1,9 @@
-# Ontology Toolbox
+# ANTONIA — Ontology Toolbox
 
-This repository provides a ROBOT-based toolchain for maintaining expressive
-OWL 2 DL reference ontologies and operational Ontop projections.
+ANTONIA is a reusable ROBOT-based toolbox for maintaining expressive OWL 2 DL
+reference ontologies and operational Ontop projections. It combines a
+repeatable ontology build pipeline with interactive skills for ontology
+authoring, OBDA mapping, and executable quality controls.
 
 It is distributed as a versioned GitHub Release asset installed under
 `toolbox/` inside a host repository. The managed directory contains only the
@@ -99,7 +101,10 @@ toolchain. See the
 GitHub Release imports also require an authenticated GitHub CLI (`gh`) with
 read access to each configured repository.
 
-OntoGPT, Ontop, pySHACL, and JDBC support are installed on demand:
+## Interactive semantic authoring
+
+OntoGPT, Ontop, pySHACL, and JDBC support are installed on demand before
+starting one of the semantic workflows:
 
 ```bash
 make install-semantic-tools
@@ -107,6 +112,89 @@ make install-semantic-tools
 
 The command uses pinned, checksum-verified binaries and a repository-local
 Python environment under `.tools/`. It makes no global package changes.
+
+Then invoke the required skill from Codex:
+
+| Skill | Purpose | Main result |
+| --- | --- | --- |
+| `$antonia-ontologist` | Create or enrich an ontology from documents or an authorized PostgreSQL/MySQL source | Reviewed RDF/XML TBox and ontology design record |
+| `$antonia-ontop-mapping` | Align a relational schema with the existing ontology | Validated OBDA mapping |
+| `$antonia-onto-steward` | Define executable ontology and graph quality gates | SHACL shapes, ROBOT rules, and blocking SPARQL checks |
+
+Each skill first establishes the scope with the user. It requires a clean Git
+worktree, uses a dedicated branch, presents the resulting diff, and leaves the
+changes uncommitted. Raw documents, metadata, samples, extractions, and Ontop
+bootstrap outputs remain in the ignored `tmp/` directory.
+
+### Ontology creation and enrichment
+
+`$antonia-ontologist` accepts UTF-8 text, Markdown, text-based PDF, DOCX,
+PostgreSQL, and MySQL sources. For documents, OntoGPT extracts structured
+candidates with a domain-neutral LinkML template. For databases, Ontop extracts
+schema metadata and ANTONIA can read a bounded sample from explicitly
+allowlisted tables.
+
+OntoGPT is not the ontology authority: its output is evidence to review.
+ANTONIA remains responsible for distinguishing classes, individuals, and
+properties; resolving identity and IRI decisions; recording uncertainty; and
+transforming accepted candidates into the business ontology.
+
+Configure the workflow in `config/config.env`:
+
+```dotenv
+ONTOGPT_MODEL=ollama/<local-model>       # or another LiteLLM model
+ONTOGPT_ALLOW_EXTERNAL_LLM=0            # set to 1 only after explicit review
+DB_SAMPLE_TABLES=public.customer         # explicit comma-separated allowlist
+DB_SAMPLE_ROWS=20                        # accepted range: 1..100
+DB_SAMPLE_TO_LLM=0                       # independent consent for sample values
+ONTOLOGY_DESIGN_RECORD=docs/ontology-design.md
+```
+
+A non-local model cannot receive source content unless
+`ONTOGPT_ALLOW_EXTERNAL_LLM=1`. Database values require the additional
+`DB_SAMPLE_TO_LLM=1` authorization. The presence of an API key never implies
+either consent.
+
+### Ontop mapping
+
+`$antonia-ontop-mapping` uses the file configured by `ONTOP_PROPERTIES` to
+extract relational metadata and create a temporary Ontop bootstrap. The
+bootstrap is only technical evidence: it is not merged into the authoritative
+ontology. The skill confirms primary keys, instance IRI templates, joins,
+nullable columns, datatypes, and target ontology terms before updating and
+validating the configured `OBDA` file.
+
+Copy the generated example and keep credentials local:
+
+```bash
+cp src/edit/myOntology.properties.example src/edit/myOntology.properties
+```
+
+Real `src/edit/*.properties` files are Git-ignored and excluded from ANTONIA
+packages and ontology Releases. Do not put API keys or database credentials in
+`config.env`, an OBDA file, or an ontology design record.
+
+### Stewardship and quality gates
+
+`$antonia-onto-steward` turns reviewed requirements into SHACL shapes, ROBOT
+rules, or blocking SPARQL checks. Every control should have a stable identifier,
+rationale, target, severity, message, and positive and negative examples.
+
+`make report` evaluates SHACL against the classified graph and writes:
+
+- `tmp/shacl_report.ttl`, the machine-readable validation report;
+- `tmp/shacl_report.txt`, the human-readable validation report.
+
+The default `SHACL_FAIL_ON=VIOLATION` makes a SHACL violation fail the report.
+`WARNING`, `INFO`, and `NONE` provide alternative thresholds. Existing ROBOT
+and SPARQL gates continue to run in the same report workflow.
+
+### V1 boundaries
+
+V1 does not provide Neo4j ingestion, OCR for scanned documents, complete
+relational materialization for SHACL, remote URL ingestion, or automatic
+commit, push, merge, Release publication, or ontology acceptance. See the
+[complete semantic-authoring contract](toolbox/docs/semantic-authoring.md).
 
 The import manifest selects a GitHub Release asset by an explicit release tag
 or by `latest`. The import contract checks that the downloaded artifact
