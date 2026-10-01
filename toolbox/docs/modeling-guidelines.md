@@ -2,12 +2,12 @@
 
 ## 1. IRI Conventions
 
-- **Base IRI**: `http://example.org/ontology/`
+- **Base IRI**: use the value configured by `BASE_IRI`
 - **TBox entities**:
-http://example.org/ontology/ServiceDomain
+`<BASE_IRI>ServiceDomain`
 
 - **ABox instances**:
-http://example.org/ontology/instance/SD_AccountManagement
+`<INSTANCE_BASE_IRI>SD_AccountManagement`
 
 - Always use lowercase for local names except where BIAN or external standards define otherwise.
 
@@ -17,10 +17,10 @@ http://example.org/ontology/instance/SD_AccountManagement
 
 - **TBox**:
 - Classes, object properties, data properties, axioms
-- Stored in `src/tbox/`
+- Stored in the path configured by `TBOX`
 - **ABox**:
 - Individuals and their assertions
-- Stored in `src/abox/`
+- Stored in the optional path configured by `ABOX`
 
 This separation enables:
 - Clear maintenance of ontology structure
@@ -60,4 +60,3 @@ Use TSV templates for:
 - **DisjointClasses** to avoid overlaps
 - **Domain/Range** for properties
 - **Named Individuals** for real-world instances
-

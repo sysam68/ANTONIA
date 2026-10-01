@@ -191,6 +191,7 @@ if [ ! -f "$CANDIDATE/.antonia-managed" ] \
     || [ ! -f "$CANDIDATE/update-antonia.sh" ] \
     || [ ! -f "$CANDIDATE/init_project.sh" ] \
     || [ ! -f "$CANDIDATE/install_robot.sh" ] \
+    || [ ! -f "$CANDIDATE/install_semantic_tools.sh" ] \
     || [ ! -f "$CANDIDATE/common.sh" ] \
     || [ ! -f "$CANDIDATE/sync_agents.sh" ] \
     || [ ! -f "$CANDIDATE/update_config.sh" ] \

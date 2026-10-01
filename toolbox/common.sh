@@ -29,8 +29,8 @@ else
   TOOLBOX_MODE=0
 fi
 
-# Prefer the repository-local toolchain installed by `make install-robot`.
-if [ -x "$ROOT/.tools/bin/robot" ]; then
+# Prefer repository-local tools installed by ANTONIA.
+if [ -d "$ROOT/.tools/bin" ]; then
   PATH="$ROOT/.tools/bin:$PATH"
   export PATH
 fi
@@ -66,10 +66,12 @@ require_config() {
 }
 
 require_config \
-  TBOX ABOX MAPPINGS OBDA CATALOG QL_PROJECTION_UPDATE \
+  TBOX ABOX MAPPINGS OBDA ONTOP_PROPERTIES CATALOG QL_PROJECTION_UPDATE \
   IMPORTS_DIR MODULES_DIR ANNOTATIONS_DIR TEMPLATE_DIRS \
-  SHAPES_DIR SPARQL_CHECKS SPARQL_REPORTS TARGET RELEASES \
-  REASONER REFERENCE_PROFILE ONTOP_PROFILE JAVA_CONF
+  SHAPES_DIR SPARQL_CHECKS SPARQL_REPORTS ONTOLOGY_DESIGN_RECORD \
+  TARGET RELEASES REASONER REFERENCE_PROFILE ONTOP_PROFILE JAVA_CONF \
+  ONTOGPT_MODEL ONTOGPT_ALLOW_EXTERNAL_LLM DB_SAMPLE_ROWS \
+  DB_SAMPLE_TABLES DB_SAMPLE_TO_LLM SHACL_FAIL_ON
 
 # -----------------------------------------------------------------------------
 # Resolve relative paths against $ROOT
@@ -85,6 +87,7 @@ TBOX="$(abspath "$TBOX")"
 ABOX="$(abspath "$ABOX")"
 [ -n "$MAPPINGS" ] && MAPPINGS="$(abspath "$MAPPINGS")"
 OBDA="$(abspath "$OBDA")"
+ONTOP_PROPERTIES="$(abspath "$ONTOP_PROPERTIES")"
 CATALOG="$(abspath "$CATALOG")"
 QL_PROJECTION_UPDATE="$(abspath "$QL_PROJECTION_UPDATE")"
 IMPORTS_DIR="$(abspath "$IMPORTS_DIR")"
@@ -93,6 +96,7 @@ ANNOT_DIR="$(abspath "$ANNOTATIONS_DIR")"
 SHAPES_DIR="$(abspath "$SHAPES_DIR")"
 SPARQL_CHECKS="$(abspath "$SPARQL_CHECKS")"
 SPARQL_REPORTS="$(abspath "$SPARQL_REPORTS")"
+ONTOLOGY_DESIGN_RECORD="$(abspath "$ONTOLOGY_DESIGN_RECORD")"
 TARGET="$(abspath "$TARGET")"
 RELEASES="$(abspath "$RELEASES")"
 

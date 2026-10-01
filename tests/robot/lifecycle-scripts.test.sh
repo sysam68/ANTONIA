@@ -68,15 +68,20 @@ test -x "$SUCCESS_ROOT/toolbox/install-antonia.sh"
 test -x "$SUCCESS_ROOT/toolbox/update-antonia.sh"
 assert_managed_skills_installed "$SUCCESS_ROOT"
 test -f "$SUCCESS_ROOT/.tools/install-robot-invoked"
+test ! -e "$SUCCESS_ROOT/.tools/semantic"
+grep -q '^install-semantic-tools:' "$SUCCESS_ROOT/Makefile"
 grep -Fqx 'project-specific-rule' "$SUCCESS_ROOT/.gitignore"
 test "$(grep -Fxc 'tmp/' "$SUCCESS_ROOT/.gitignore")" -eq 1
 test "$(grep -Fxc '.tools/' "$SUCCESS_ROOT/.gitignore")" -eq 1
+test "$(grep -Fxc 'src/edit/*.properties' "$SUCCESS_ROOT/.gitignore")" -eq 1
+test -f "$SUCCESS_ROOT/src/edit/myOntology.properties.example"
 grep -q 'Installing the repository-local ROBOT toolchain' "$SUCCESS_ROOT/install.log"
 grep -q 'Removed bootstrap installer: install-antonia.sh' "$SUCCESS_ROOT/install.log"
 
 bash "$SUCCESS_ROOT/toolbox/init_project.sh" > "$SUCCESS_ROOT/reinit.log"
 test "$(grep -Fxc 'tmp/' "$SUCCESS_ROOT/.gitignore")" -eq 1
 test "$(grep -Fxc '.tools/' "$SUCCESS_ROOT/.gitignore")" -eq 1
+test "$(grep -Fxc 'src/edit/*.properties' "$SUCCESS_ROOT/.gitignore")" -eq 1
 
 mkdir -p "$SUCCESS_ROOT/.agents/skills/project-specific-skill"
 printf '%s\n' 'project-owned skill' \

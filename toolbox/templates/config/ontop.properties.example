@@ -1,0 +1,6 @@
+# Copy this file to the path configured by ONTOP_PROPERTIES.
+# The resulting *.properties file is ignored by Git and must never be released.
+jdbc.url=jdbc:postgresql://localhost:5432/database
+jdbc.user=replace-me
+jdbc.password=replace-me
+jdbc.driver=org.postgresql.Driver

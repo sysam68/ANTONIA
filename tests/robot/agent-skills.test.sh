@@ -12,6 +12,7 @@ EXPECTED_TARGETS="help
 all
 import
 install-robot
+install-semantic-tools
 update-antonia
 generate
 reason
@@ -58,6 +59,7 @@ help antonia-help
 all antonia-all
 import antonia-import
 install-robot antonia-install-robot
+install-semantic-tools antonia-install-semantic-tools
 update-antonia antonia-update
 generate antonia-generate
 reason antonia-reason

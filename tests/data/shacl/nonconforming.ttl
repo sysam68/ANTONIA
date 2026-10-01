@@ -1,0 +1,4 @@
+@prefix ex: <https://example.org/ontology/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+
+ex:UnlabelledClass a owl:Class .

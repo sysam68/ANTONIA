@@ -1,0 +1,90 @@
+id: https://example.org/antonia/templates/ontology-candidates
+name: antonia_ontology_candidates
+title: ANTONIA General Ontology Candidate Extraction
+description: Domain-neutral extraction of ontology candidates and their evidence.
+license: https://creativecommons.org/publicdomain/zero/1.0/
+prefixes:
+  linkml: https://w3id.org/linkml/
+  antonia: https://example.org/antonia/templates/ontology-candidates/
+default_prefix: antonia
+default_range: string
+imports:
+  - linkml:types
+
+classes:
+  OntologyCandidateSet:
+    description: Root record for candidate ontology knowledge extracted from one source.
+    tree_root: true
+    attributes:
+      description:
+        description: concise description of the extracted candidate set
+      scope:
+        description: concise description of the domain and boundary stated in the source
+      competency_questions:
+        description: semicolon-separated questions the source indicates the ontology should answer
+        multivalued: true
+      concepts:
+        description: semicolon-separated candidate domain concepts explicitly supported by the source
+        range: ConceptCandidate
+        multivalued: true
+      relations:
+        description: semicolon-separated candidate relations explicitly supported by the source
+        range: RelationCandidate
+        multivalued: true
+      constraints:
+        description: semicolon-separated candidate business constraints explicitly stated in the source
+        range: ConstraintCandidate
+        multivalued: true
+      unresolved_terms:
+        description: semicolon-separated ambiguous terms requiring human clarification
+        multivalued: true
+
+  ConceptCandidate:
+    description: A source-supported candidate concept requiring ontology review.
+    attributes:
+      description:
+        description: concise description of this candidate record
+      label:
+        description: preferred name of the candidate concept as written in the source
+      definition:
+        description: source-supported definition without adding unstated facts
+      synonyms:
+        description: semicolon-separated alternative names present in the source
+        multivalued: true
+      broader_concepts:
+        description: semicolon-separated broader concepts explicitly stated in the source
+        multivalued: true
+      source_passage:
+        description: short source passage supporting this candidate
+      confidence:
+        description: one of high, medium, or low based on how explicit the source is
+
+  RelationCandidate:
+    description: A source-supported relation between two candidate concepts.
+    attributes:
+      description:
+        description: concise description of this candidate relation record
+      subject:
+        description: source label of the relation subject
+      predicate:
+        description: source label of the relation
+      object:
+        description: source label of the relation object
+      source_passage:
+        description: short source passage supporting this relation
+      confidence:
+        description: one of high, medium, or low based on how explicit the source is
+
+  ConstraintCandidate:
+    description: A source-supported constraint requiring governance review.
+    attributes:
+      description:
+        description: concise description of this candidate constraint record
+      statement:
+        description: constraint stated in the source without strengthening it
+      applies_to:
+        description: source label of the concept or relation governed by the constraint
+      source_passage:
+        description: short source passage supporting this constraint
+      confidence:
+        description: one of high, medium, or low based on how explicit the source is

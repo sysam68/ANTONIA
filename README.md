@@ -16,6 +16,8 @@ runtime scripts and their documentation; it is not a Git submodule.
 - Releases keep both `<name>.rdf` and its `<name>.owl` compatibility copy.
 - An OBDA mapping is released when present; datasource `.properties` files are
   never packaged.
+- Interactive skills derive reviewed ontology candidates from documents or
+  PostgreSQL/MySQL metadata, align Ontop mappings, and author SHACL/SPARQL gates.
 
 See [the architecture](toolbox/docs/architecture.md) and
 [the release process](toolbox/docs/release-process.md) for the content
@@ -64,6 +66,12 @@ or invoke one directly, for example `$antonia-init-project`,
 top-level `/antonia-*` slash commands; the supported distributed form is
 `$antonia-*`. See [the complete skill mapping](toolbox/docs/agent-skills.md).
 
+The semantic-authoring workflows are `$antonia-ontologist`,
+`$antonia-ontop-mapping`, and `$antonia-onto-steward`. They require a clean
+worktree, work on a dedicated branch, leave the result uncommitted for review,
+and keep raw evidence under `tmp/`. See
+[semantic authoring](toolbox/docs/semantic-authoring.md).
+
 To update only the managed toolbox files to the latest release:
 
 ```bash
@@ -90,6 +98,15 @@ toolchain. See the
 [local installation procedure](toolbox/docs/robot-installation.md).
 GitHub Release imports also require an authenticated GitHub CLI (`gh`) with
 read access to each configured repository.
+
+OntoGPT, Ontop, pySHACL, and JDBC support are installed on demand:
+
+```bash
+make install-semantic-tools
+```
+
+The command uses pinned, checksum-verified binaries and a repository-local
+Python environment under `.tools/`. It makes no global package changes.
 
 The import manifest selects a GitHub Release asset by an explicit release tag
 or by `latest`. The import contract checks that the downloaded artifact

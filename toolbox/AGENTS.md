@@ -34,6 +34,12 @@ Make target skill directly with `$antonia-<command>`. For example,
 `$antonia-release VERSION_TAG=<version>` runs the guarded release workflow.
 See `toolbox/docs/agent-skills.md` for the complete mapping.
 
+The interactive responsibilities are separate: `$antonia-ontologist` creates
+or enriches the conceptual model, `$antonia-ontop-mapping` aligns relational
+sources with that model, and `$antonia-onto-steward` maintains executable
+quality controls. Raw extraction, sampling, and bootstrap evidence belongs
+under `tmp/`, never in ontology sources or Releases.
+
 ## Local toolchain
 
 Java 17 or later and ROBOT are required. Initial ANTONIA installation invokes
@@ -49,6 +55,10 @@ automatically prefers `.tools/bin`, so no global `PATH`, package manager, or
 `sudo` operation is required. See `toolbox/docs/robot-installation.md` for
 verification, configuration, and cleanup instructions.
 
+OntoGPT, Ontop, pySHACL, and PostgreSQL/MySQL clients are installed only when
+needed with `make install-semantic-tools`. They are pinned and isolated below
+`.tools/`; the base ANTONIA installation does not download them.
+
 GitHub Release imports require the GitHub CLI (`gh`) authenticated with read
 access to each repository declared in `config/import.env`.
 
@@ -63,14 +73,15 @@ JARs, `tmp/`, or ad-hoc release packages.
 Run commands from the ontology repository root:
 
 - `make import` refreshes configured external ontology Release assets.
+- `make install-semantic-tools` installs the local OntoGPT/Ontop/SHACL tools.
 - `make generate` expands TSV templates into RDF/XML modules.
 - `make reason` merges the complete import closure into `tmp/merged.rdf` and
   classifies the OWL 2 DL reference ontology into `tmp/classified.rdf`.
 - `REASONER=hermit make reason` overrides the configured reasoner.
 - `make project-ql` derives `tmp/ontop-ql.rdf` for Ontop from the merged
   ontology without weakening the expressive reference ontology.
-- `make report` runs QC reports and blocking SPARQL checks; use
-  `FAIL_ON=WARN make report` when warnings must fail.
+- `make report` runs QC reports, SHACL validation, and blocking SPARQL checks;
+  use `FAIL_ON=WARN` for ROBOT warnings and `SHACL_FAIL_ON` for SHACL severity.
 - `make validate` validates the classified reference as OWL 2 DL and the Ontop
   projection as OWL 2 QL.
 - `make all` runs generate, reason, QL projection, report, and validation. It

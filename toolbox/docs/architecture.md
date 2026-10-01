@@ -1,8 +1,4 @@
 
----
-
-## **`docs/architecture.md`**
-```markdown
 # Ontology Project Architecture
 
 ## 1. Overview
@@ -14,6 +10,8 @@ This template organizes an ontology project into **modular components**:
 - **Annotations**: Labels, comments, metadata, and documentation
 - **Templates**: TSV files to generate ontology modules programmatically
 - **SPARQL**: Queries for quality control and validation
+- **SHACL**: Executable graph constraints evaluated during `make report`
+- **Design record**: Versioned rationale, evidence, decisions, and uncertainty
 
 The goal is to **separate concerns** while enabling automated builds and versioning.
 
@@ -21,19 +19,18 @@ The goal is to **separate concerns** while enabling automated builds and version
 
 ## 2. Directory Structure
 
-src/
-tbox/ # Base ontology schema
-abox/ # Instance data
-annotations/ # Metadata ontologies
-templates/ # TSV templates (classes, properties, individuals)
-sparql/
-checks/ # Blocking checks (must return empty)
-reports/ # Non-blocking reports
-toolbox/ # Automation scripts for ROBOT
-tmp/ # Build outputs
-releases/ # Versioned release packages
-
-
+```text
+src/edit/                   authoritative TBox, optional ABox and OBDA
+src/edit/templates/         TSV templates
+src/edit/annotations/       annotation modules
+src/shapes/shacl/           SHACL shapes
+src/sparql/checks/          blocking queries
+src/sparql/reports/         non-blocking queries
+docs/ontology-design.md     modeling evidence and decisions
+toolbox/                    managed ANTONIA runtime
+tmp/                        ignored builds and extraction evidence
+releases/                   ontology release artifacts
+```
 
 ---
 
@@ -53,10 +50,10 @@ The workflow follows these stages:
 
 4. **Validation**
    - QC via ROBOT report
+   - SHACL over the classified graph and optional ABox
    - OWL 2 DL compliance
    - SPARQL checks
 
 5. **Release**
    - Package merged and classified ontologies
    - Optional diffs against last release
-

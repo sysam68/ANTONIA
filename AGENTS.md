@@ -31,6 +31,7 @@ ANTONIA-maintenance targets or instructions in those distributed files.
 ## Source structure
 
 - `toolbox/*.sh` contains the runtime scripts distributed to ontology projects.
+- `toolbox/*.py` contains deterministic semantic-authoring and validation helpers.
 - `toolbox/Makefile` is the authoritative ontology-project Makefile.
 - `toolbox/AGENTS.md` is the authoritative ontology-project agent guidance.
 - `toolbox/.agents/` contains the repository skills installed into ontology
@@ -62,6 +63,11 @@ must include at least:
 
 Never package datasource `.properties` files, local Java installations,
 downloaded ROBOT JARs, ontology build outputs, or repository-local secrets.
+
+The optional semantic-authoring toolchain is installed on demand below
+`.tools/` by `make install-semantic-tools`. Its downloaded Python, OntoGPT,
+Ontop, pySHACL, and JDBC components are runtime dependencies and must never be
+included in the ANTONIA Release archive.
 
 Installation and update must:
 

@@ -6,8 +6,9 @@
 # Steps:
 #   1) Ensure a classified ontology exists (runs reason.sh if needed)
 #   2) Run `robot report` to produce a QC TSV (fails on ERROR by default)
-#   3) Run SPARQL "reports" (non-blocking summaries → target/reports/*.tsv)
-#   4) Run SPARQL "checks" (must be empty; any result triggers failure)
+#   3) Run SHACL over the classified graph
+#   4) Run SPARQL "reports" (non-blocking summaries → target/reports/*.tsv)
+#   5) Run SPARQL "checks" (must be empty; any result triggers failure)
 #
 # Environment variables:
 #   FAIL_ON=ERROR|WARN|NONE   (default: ERROR)  -> passed to `robot report`
@@ -63,7 +64,34 @@ cmd_html=( robot report --input "$CLASSIFIED" --output "$QC_HTML" --fail-on "$FA
 echo "  - HTML: ${QC_HTML#$ROOT/}"
 
 # -----------------------------------------------------------------------------
-# 3) SPARQL "reports" (non-blocking analytics)
+# 3) SHACL validation
+# -----------------------------------------------------------------------------
+if [ -d "$SHAPES_DIR" ] \
+    && find "$SHAPES_DIR" -type f \
+      \( -name '*.ttl' -o -name '*.rdf' -o -name '*.owl' \) -print -quit \
+      | grep -q .; then
+  SEMANTIC_PYTHON="$ROOT/.tools/semantic/bin/python"
+  if [ ! -x "$SEMANTIC_PYTHON" ]; then
+    echo "✖ SHACL shapes are configured but pySHACL is not installed." >&2
+    echo "  Run: make install-semantic-tools" >&2
+    exit 1
+  fi
+  echo "▶ Running SHACL validation (fail-on: ${SHACL_FAIL_ON})"
+  "$SEMANTIC_PYTHON" "$(dirname "$0")/validate_shacl.py" \
+    --data "$CLASSIFIED" \
+    --shapes-dir "$SHAPES_DIR" \
+    --report-rdf "$TARGET/shacl_report.ttl" \
+    --report-text "$TARGET/shacl_report.txt" \
+    --fail-on "$SHACL_FAIL_ON" || {
+      echo "✖ SHACL validation failed (see ${TARGET#$ROOT/}/shacl_report.txt)" >&2
+      exit 1
+    }
+else
+  echo "ℹ No SHACL shapes found under: ${SHAPES_DIR#$ROOT/}"
+fi
+
+# -----------------------------------------------------------------------------
+# 4) SPARQL "reports" (non-blocking analytics)
 # -----------------------------------------------------------------------------
 if [ -d "$SPARQL_REPORTS" ]; then
   echo "▶ Running SPARQL reports"
@@ -79,7 +107,7 @@ else
 fi
 
 # -----------------------------------------------------------------------------
-# 4) SPARQL "checks" (blocking: must return empty result sets)
+# 5) SPARQL "checks" (blocking: must return empty result sets)
 # -----------------------------------------------------------------------------
 violations=0
 if [ -d "$SPARQL_CHECKS" ]; then
@@ -101,7 +129,7 @@ else
 fi
 
 # -----------------------------------------------------------------------------
-# 5) Final status
+# 6) Final status
 # -----------------------------------------------------------------------------
 if [ "$violations" -gt 0 ]; then
   echo "✖ $violations SPARQL check(s) failed."
@@ -111,6 +139,6 @@ fi
 echo "✓ QC completed successfully"
 echo "  - QC report:   ${QC_TSV#$ROOT/}"
 echo "  - QC HTML report:  ${QC_HTML#$ROOT/}"
+echo "  - SHACL report: ${TARGET#$ROOT/}/shacl_report.txt (if shapes exist)"
 echo "  - Reports dir: ${TARGET#$ROOT/}/reports (if any)"
 echo "  - Checks dir:  ${TARGET#$ROOT/}/checks  (if any)"
-

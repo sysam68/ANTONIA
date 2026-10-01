@@ -14,6 +14,7 @@ ANTONIA uses the supported skill invocation syntax instead.
 | `$antonia-init-project` | `make init-project` | Preserves existing files |
 | `$antonia-init-x` | `make init-x` | Inline Make recipe; no dedicated script |
 | `$antonia-install-robot` | `make install-robot` | Local `.tools/` only |
+| `$antonia-install-semantic-tools` | `make install-semantic-tools` | Local `.tools/` only |
 | `$antonia-update` | `make update-antonia` | Optional `ANTONIA_VERSION` |
 | `$antonia-java-conf` | `make java-conf` | Generates ignored local config |
 | `$antonia-import` | `make import` | Uses `config/import.env` |
@@ -33,10 +34,20 @@ ANTONIA uses the supported skill invocation syntax instead.
 | `$antonia-clean` | `make clean` | Removes `tmp/` |
 | `$antonia-release` | `make release` | Explicit publication request and `VERSION_TAG` |
 
+Interactive skills do not correspond to a single Make target:
+
+| Skill invocation | Responsibility | Required boundary |
+| --- | --- | --- |
+| `$antonia-ontologist` | Create or enrich the TBox from documents or PostgreSQL/MySQL | Clean dedicated branch; external-LLM consent |
+| `$antonia-ontop-mapping` | Align a JDBC datasource with the existing ontology in OBDA | Ignored `.properties`; explicit identity rules |
+| `$antonia-onto-steward` | Author SHACL, ROBOT, and SPARQL quality gates | Positive/negative examples and severity |
+
 Examples:
 
 ```text
 $antonia-init-project
+$antonia-install-semantic-tools
+$antonia-ontologist
 $antonia-reason REASONER=hermit
 $antonia-report FAIL_ON=WARN
 $antonia-diff OLD=releases/old.rdf NEW=tmp/classified.rdf

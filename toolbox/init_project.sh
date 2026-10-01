@@ -106,6 +106,7 @@ echo "  ✅ AGENTS.md — ontology guidance from toolbox/AGENTS.md"
 bash "$TOOLBOX_DIR/sync_agents.sh"
 ensure_gitignore_entry "$HOST_ROOT/.gitignore" "tmp/"
 ensure_gitignore_entry "$HOST_ROOT/.gitignore" ".tools/"
+ensure_gitignore_entry "$HOST_ROOT/.gitignore" "src/edit/*.properties"
 
 # -----------------------------------------------------------------------------
 # 2. config/
@@ -146,6 +147,11 @@ make_dir "$HOST_ROOT/src/edit/imports"
 make_dir "$HOST_ROOT/src/edit/modules"
 make_dir "$HOST_ROOT/src/edit/annotations"
 make_dir "$HOST_ROOT/src/edit/metadata"
+
+create_from_template \
+  "$HOST_ROOT/src/edit/myOntology.properties.example" \
+  "$TOOLBOX_DIR/templates/config/ontop.properties.example" \
+  "non-secret Ontop datasource example"
 
 create_file "$HOST_ROOT/src/edit/myOntology-tbox.rdf" '<?xml version="1.0"?>
 <rdf:RDF xmlns="https://example.org/ontology/myOntology#"
@@ -257,6 +263,7 @@ echo "  1. Edit config/config.env to match your ontology settings"
 echo "  2. Edit src/edit/myOntology-tbox.rdf with your ontology content"
 echo "  3. Add GitHub Release imports to config/import.env"
 echo "  4. Run: make install-robot"
-echo "  5. Run: make import && make all"
+echo "  5. Run: make install-semantic-tools when using OntoGPT, Ontop, or SHACL"
+echo "  6. Run: make import && make all"
 echo ""
 echo "For more information, see the toolbox documentation."

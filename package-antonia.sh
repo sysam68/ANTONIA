@@ -53,17 +53,22 @@ TOOLBOX_FILES=(
   import.sh
   init_project.sh
   install_robot.sh
+  install_semantic_tools.sh
   java_conf.sh
   progress.sh
   project_ql.sh
   reason.sh
   release.sh
   report.sh
+  run_ontogpt.sh
   sync_agents.sh
   update_config.sh
   validate.sh
   validate_dl.sh
   validate_ql.sh
+  validate_shacl.py
+  validate_ontogpt_output.py
+  sample_database.py
 )
 
 for file in "${TOOLBOX_FILES[@]}"; do
