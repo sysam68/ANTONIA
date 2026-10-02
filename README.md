@@ -1,6 +1,6 @@
-# ANTONIA — Ontology Toolbox
+# AntOnIA — Ontology Toolbox
 
-ANTONIA is a reusable ROBOT-based toolbox for maintaining expressive OWL 2 DL
+AntOnIA is a reusable ROBOT-based toolbox for maintaining expressive OWL 2 DL
 reference ontologies and operational Ontop projections. It combines a
 repeatable ontology build pipeline with interactive skills for ontology
 authoring, OBDA mapping, and executable quality controls.
