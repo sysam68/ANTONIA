@@ -60,14 +60,16 @@ robot --version
 ## RDF/XML files named `.rdf`
 
 ROBOT accepts `.owl` as an RDF/XML output extension and does not infer a
-supported format from the `.rdf` extension. Repository scripts therefore ask
-ROBOT to write a temporary `.owl` file, then copy the unchanged RDF/XML document
-to its required `.rdf` delivery name and remove the temporary file. This is a
-filename compatibility workaround, not an OWL-to-RDF semantic conversion.
+supported format from the `.rdf` extension. When `OUTPUT_FORMAT=rdf`, repository
+scripts therefore ask ROBOT to write a temporary `.owl` file, then copy the
+unchanged RDF/XML document to its required `.rdf` delivery name and remove the
+temporary file. With `OUTPUT_FORMAT=ttl` or `OUTPUT_FORMAT=owl`, ROBOT writes the
+configured path directly. This is a filename compatibility workaround, not an
+OWL-to-RDF semantic conversion.
 
 Do not call ROBOT with `--output result.rdf`, even with an explicit format.
-Always target a temporary `.owl` file and let the repository scripts publish
-the `.rdf` artifact.
+Use the shared output helpers and let the repository scripts publish the
+configured artifact.
 
 ## Optional JVM profile
 

@@ -18,6 +18,7 @@ trap cleanup EXIT
 mkdir -p "$WORK/toolbox" "$WORK/config" "$BIN"
 cp "$ROOT/toolbox/common.sh" "$WORK/toolbox/common.sh"
 cp "$ROOT/toolbox/reason.sh" "$WORK/toolbox/reason.sh"
+cp "$ROOT/toolbox/project_ql.sh" "$WORK/toolbox/project_ql.sh"
 
 cat > "$WORK/config/config.env" <<'EOF'
 TBOX=src/edit/myOntology-tbox.rdf
@@ -37,6 +38,7 @@ SPARQL_REPORTS=src/sparql/reports
 ONTOLOGY_DESIGN_RECORD=docs/ontology-design.md
 TARGET=tmp
 RELEASES=releases
+OUTPUT_FORMAT=rdf
 REASONER=HERMIT
 REFERENCE_PROFILE=DL
 ONTOP_PROFILE=QL
@@ -72,7 +74,8 @@ cat > "$BIN/java" <<'EOF'
 #!/usr/bin/env bash
 exit 0
 EOF
-chmod +x "$BIN/robot" "$BIN/java" "$WORK/toolbox/reason.sh"
+chmod +x "$BIN/robot" "$BIN/java" "$WORK/toolbox/reason.sh" \
+  "$WORK/toolbox/project_ql.sh"
 
 (
   cd "$WORK"
@@ -86,13 +89,16 @@ if grep -Fq 'unbound variable' "$TEST_ROOT/reason.log"; then
   cat "$TEST_ROOT/reason.log" >&2
   exit 1
 fi
-test ! -e "$WORK/tmp/merged.ttl"
-test ! -e "$WORK/tmp/classified.ttl"
+test ! -e "$WORK/tmp/merged.rdf"
+test ! -e "$WORK/tmp/classified.rdf"
 
 # A TBox alone is still a real input and must follow the normal merge/reason
 # path even when imports and mappings are absent.
 mkdir -p "$WORK/src/edit"
 printf '%s\n' '<rdf:RDF/>' > "$WORK/src/edit/myOntology-tbox.rdf"
+mkdir -p "$WORK/src/sparql/updates"
+printf '%s\n' 'DELETE {} INSERT {} WHERE {}' \
+  > "$WORK/src/sparql/updates/project-ql.ru"
 : > "$TEST_ROOT/robot.log"
 (
   cd "$WORK"
@@ -100,8 +106,10 @@ printf '%s\n' '<rdf:RDF/>' > "$WORK/src/edit/myOntology-tbox.rdf"
     ./toolbox/reason.sh
 ) > "$TEST_ROOT/tbox-only.log" 2>&1
 
-test -f "$WORK/tmp/merged.ttl"
-test -f "$WORK/tmp/classified.ttl"
+test -f "$WORK/tmp/merged.rdf"
+test -f "$WORK/tmp/classified.rdf"
+test ! -e "$WORK/tmp/merged.owl"
+test ! -e "$WORK/tmp/classified.owl"
 test "$(wc -l < "$TEST_ROOT/robot.log" | tr -d ' ')" -eq 2
 grep -Fq 'merge --input' "$TEST_ROOT/robot.log"
 grep -Fq 'reason --input' "$TEST_ROOT/robot.log"
@@ -110,4 +118,44 @@ if grep -Fq 'no import or files to merge' "$TEST_ROOT/tbox-only.log"; then
   exit 1
 fi
 
-echo "empty reasoning inputs test: passed"
+# The QL projection must consume the RDF/XML merge artifact produced above;
+# this guards against the former merged.ttl/merged.rdf handoff mismatch.
+(
+  cd "$WORK"
+  PATH="$BIN:$PATH" ROBOT_LOG="$TEST_ROOT/robot.log" \
+    ./toolbox/project_ql.sh
+) > "$TEST_ROOT/project-ql.log" 2>&1
+
+test -f "$WORK/tmp/ontop-ql.rdf"
+test ! -e "$WORK/tmp/ontop-ql.owl"
+grep -Eq 'query --input .*/tmp/merged\.rdf' "$TEST_ROOT/robot.log"
+if grep -Fq 'running reason.sh' "$TEST_ROOT/project-ql.log"; then
+  cat "$TEST_ROOT/project-ql.log" >&2
+  exit 1
+fi
+
+# The same centralized paths must work for the two other supported formats.
+for format in ttl owl; do
+  awk -v value="$format" '
+    /^OUTPUT_FORMAT=/ { print "OUTPUT_FORMAT=" value; next }
+    { print }
+  ' "$WORK/config/config.env" > "$WORK/config/config.env.next"
+  mv "$WORK/config/config.env.next" "$WORK/config/config.env"
+  rm -rf "$WORK/tmp"
+  : > "$TEST_ROOT/robot.log"
+
+  (
+    cd "$WORK"
+    PATH="$BIN:$PATH" ROBOT_LOG="$TEST_ROOT/robot.log" SKIP_TEMPLATES=1 \
+      ./toolbox/reason.sh
+    PATH="$BIN:$PATH" ROBOT_LOG="$TEST_ROOT/robot.log" \
+      ./toolbox/project_ql.sh
+  ) > "$TEST_ROOT/$format.log" 2>&1
+
+  test -f "$WORK/tmp/merged.$format"
+  test -f "$WORK/tmp/classified.$format"
+  test -f "$WORK/tmp/ontop-ql.$format"
+  grep -Eq "query --input .*/tmp/merged\\.$format" "$TEST_ROOT/robot.log"
+done
+
+echo "reasoning output formats test: passed"

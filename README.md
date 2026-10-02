@@ -12,10 +12,12 @@ runtime scripts and their documentation; it is not a Git submodule.
 ## Architecture
 
 - The authoritative ontology is maintained in RDF/XML under `src/edit/`.
-- `tmp/classified.rdf` is the reasoned OWL 2 DL reference ontology.
-- `tmp/merged.rdf` is the assembled graph before reasoning.
-- `tmp/ontop-ql.rdf` is the OWL 2 QL projection for Ontop.
-- Releases keep both `<name>.rdf` and its `<name>.owl` compatibility copy.
+- `OUTPUT_FORMAT=rdf|ttl|owl` controls every generated ontology serialization.
+- `tmp/classified.<format>` is the reasoned OWL 2 DL reference ontology.
+- `tmp/merged.<format>` is the assembled graph before reasoning.
+- `tmp/ontop-ql.<format>` is the OWL 2 QL projection for Ontop.
+- Releases use `<name>.<format>` and retain an `.owl` compatibility copy when
+  the configured primary format is not already `owl`.
 - An OBDA mapping is released when present; datasource `.properties` files are
   never packaged.
 - Interactive skills derive reviewed ontology candidates from documents or

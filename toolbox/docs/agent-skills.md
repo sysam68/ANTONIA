@@ -50,7 +50,7 @@ $antonia-install-semantic-tools
 $antonia-ontologist
 $antonia-reason REASONER=hermit
 $antonia-report FAIL_ON=WARN
-$antonia-diff OLD=releases/old.rdf NEW=tmp/classified.rdf
+$antonia-diff OLD=releases/old.<format> NEW=tmp/classified.<format>
 $antonia-release VERSION_TAG=2026-10-01
 ```
 

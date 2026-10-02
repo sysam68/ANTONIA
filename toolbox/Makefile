@@ -45,7 +45,7 @@ help:
 	@echo "  REASONER=hermit make reason"
 	@echo "  FAIL_ON=WARN make report"
 	@echo "  VERSION_TAG=2025-08-15 make release"
-	@echo "  make diff OLD=releases/old.rdf NEW=tmp/classified.rdf"
+	@echo "  make diff OLD=releases/old.<format> NEW=tmp/classified.<format>"
 	@echo '  $$antonia-release VERSION_TAG=2025-08-15'
 
 init-x:

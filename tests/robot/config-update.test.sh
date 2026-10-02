@@ -34,6 +34,7 @@ grep -q '^ONTOP_PROPERTIES=src/edit/myOntology.properties$' "$TEMP_ROOT/config/c
 grep -q '^ONTOGPT_ALLOW_EXTERNAL_LLM=0$' "$TEMP_ROOT/config/config.env"
 grep -q '^DB_SAMPLE_TO_LLM=0$' "$TEMP_ROOT/config/config.env"
 grep -q '^SHACL_FAIL_ON=VIOLATION$' "$TEMP_ROOT/config/config.env"
+grep -q '^OUTPUT_FORMAT=rdf' "$TEMP_ROOT/config/config.env"
 grep -q 'Existing variables: TBOX, REASONER, USE_GH' "$FIRST_OUTPUT"
 grep -q 'No longer expected: LEGACY_ONLY' "$FIRST_OUTPUT"
 

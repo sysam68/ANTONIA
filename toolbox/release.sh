@@ -53,8 +53,6 @@ ARCHIVE_DIR="$RELEASES/archive/$VERSION_TAG" # releases/archive/<date>/
 REL_BRANCH="build-$(timestamp_ms)"   # e.g. build-20240826-153012-123
 
 # Inputs from TARGET (must already exist)
-CLASSIFIED="$TARGET/classified.ttl"
-MERGED="$TARGET/merged.ttl"
 QC_TSV="$TARGET/qc_report.tsv"
 QC_HTML="$TARGET/qc_report.html"
 DIFF_HTML="$TARGET/diff.html"
@@ -107,46 +105,50 @@ echo "▶ Version tag:    $VERSION_TAG"
 echo "▶ Release tag:    $RELEASE_TAG"
 
 # Ensure required build artifacts exist
-[ -f "$CLASSIFIED" ] || abort "Missing $CLASSIFIED (build your ontology first)."
-[ -f "$MERGED" ]     || abort "Missing $MERGED (build your ontology first)."
+[ -f "$CLASSIFIED_ONTOLOGY" ] || abort "Missing $CLASSIFIED_ONTOLOGY (build your ontology first)."
+[ -f "$MERGED_ONTOLOGY" ]     || abort "Missing $MERGED_ONTOLOGY (build your ontology first)."
 
 # ---- 1) Prepare CURRENT (releases/) and ARCHIVE (releases/archive/<date>/) ----
 echo "▶ Preparing CURRENT and ARCHIVE trees"
 mkdir -p "$CURRENT_DIR" "$ARCHIVE_DIR"
 
 # Fixed names for CURRENT
-CUR_TTL="$CURRENT_DIR/${ONTO}.ttl"
-CUR_MERGED="$CURRENT_DIR/${ONTO}-merged.ttl"
+CUR_PRIMARY="$CURRENT_DIR/${ONTO}.${OUTPUT_FORMAT}"
+CUR_MERGED="$CURRENT_DIR/${ONTO}-merged.${OUTPUT_FORMAT}"
 CUR_OWL="$CURRENT_DIR/${ONTO}.owl"
 CUR_QC_TSV="$CURRENT_DIR/${ONTO}_qc_report.tsv"
 CUR_QC_HTML="$CURRENT_DIR/${ONTO}_qc_report.html"
 
 # Fixed names for ARCHIVE snapshot
-ARC_TTL="$ARCHIVE_DIR/${ONTO}.ttl"
-ARC_MERGED="$ARCHIVE_DIR/${ONTO}-merged.ttl"
+ARC_PRIMARY="$ARCHIVE_DIR/${ONTO}.${OUTPUT_FORMAT}"
+ARC_MERGED="$ARCHIVE_DIR/${ONTO}-merged.${OUTPUT_FORMAT}"
 ARC_OWL="$ARCHIVE_DIR/${ONTO}.owl"
 ARC_QC_TSV="$ARCHIVE_DIR/${ONTO}_qc_report.tsv"
 ARC_QC_HTML="$ARCHIVE_DIR/${ONTO}_qc_report.html"
 
 # Copy CURRENT
-cp -f "$CLASSIFIED" "$CUR_TTL"
-cp -f "$MERGED"     "$CUR_MERGED"
+cp -f "$CLASSIFIED_ONTOLOGY" "$CUR_PRIMARY"
+cp -f "$MERGED_ONTOLOGY"     "$CUR_MERGED"
 [ -f "$QC_TSV" ]   && cp -f "$QC_TSV"   "$CUR_QC_TSV"
 [ -f "$QC_HTML" ]  && cp -f "$QC_HTML"  "$CUR_QC_HTML"
 [ -f "$DIFF_HTML" ]&& cp -f "$DIFF_HTML" "$CURRENT_DIR/diff.html"
 [ -f "$DIFF_OWL" ] && cp -f "$DIFF_OWL"  "$CURRENT_DIR/diff.owl"
 
 # Copy ARCHIVE snapshot
-cp -f "$CLASSIFIED" "$ARC_TTL"
-cp -f "$MERGED"     "$ARC_MERGED"
+cp -f "$CLASSIFIED_ONTOLOGY" "$ARC_PRIMARY"
+cp -f "$MERGED_ONTOLOGY"     "$ARC_MERGED"
 [ -f "$QC_TSV" ]   && cp -f "$QC_TSV"   "$ARC_QC_TSV"
 [ -f "$QC_HTML" ]  && cp -f "$QC_HTML"  "$ARC_QC_HTML"
 [ -f "$DIFF_HTML" ]&& cp -f "$DIFF_HTML" "$ARCHIVE_DIR/diff.html"
 [ -f "$DIFF_OWL" ] && cp -f "$DIFF_OWL"  "$ARCHIVE_DIR/diff.owl"
 
 # Produce OWL (RDF/XML) for both CURRENT and ARCHIVE
-robot convert --input "$CUR_TTL" --output "$CUR_OWL"      # format deduced from .owl
-robot convert --input "$ARC_TTL" --output "$ARC_OWL"
+if [ "$CUR_PRIMARY" != "$CUR_OWL" ]; then
+  robot convert --input "$CUR_PRIMARY" --output "$CUR_OWL"
+fi
+if [ "$ARC_PRIMARY" != "$ARC_OWL" ]; then
+  robot convert --input "$ARC_PRIMARY" --output "$ARC_OWL"
+fi
 
 echo "✓ CURRENT → $(cd "$CURRENT_DIR" && pwd)"
 echo "✓ ARCHIVE → $(cd "$ARCHIVE_DIR" && pwd)"
@@ -231,8 +233,10 @@ elif [ "$BRANCH" = "$MAIN_BRANCH" ]; then
   if [ "$USE_GH" -eq 1 ] && command -v gh >/dev/null 2>&1 && [ "$GH_CREATE_RELEASE" -eq 1 ]; then
     echo "▶ Creating GitHub Release for '${RELEASE_TAG}' (assets from archive snapshot)"
     ASSETS=()
-    [ -f "$ARC_TTL" ]      && ASSETS+=("$ARC_TTL")
-    [ -f "$ARC_OWL" ]      && ASSETS+=("$ARC_OWL")
+    [ -f "$ARC_PRIMARY" ]  && ASSETS+=("$ARC_PRIMARY")
+    if [ "$ARC_OWL" != "$ARC_PRIMARY" ] && [ -f "$ARC_OWL" ]; then
+      ASSETS+=("$ARC_OWL")
+    fi
     [ -f "$ARC_MERGED" ]   && ASSETS+=("$ARC_MERGED")
     [ -f "$ARC_QC_TSV" ]   && ASSETS+=("$ARC_QC_TSV")
     [ -f "$ARC_QC_HTML" ]  && ASSETS+=("$ARC_QC_HTML")

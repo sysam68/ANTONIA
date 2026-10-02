@@ -8,19 +8,17 @@ source "$(dirname "$0")/common.sh"
   exit 1
 }
 
-MERGED="$TARGET/merged.rdf"
-QL_PROJECTION="$TARGET/ontop-ql.rdf"
 OUTFILE="$TARGET/ql-profile-validation.txt"
 
-if [ ! -f "$QL_PROJECTION" ] \
-  || { [ -f "$MERGED" ] && [ "$MERGED" -nt "$QL_PROJECTION" ]; } \
-  || [ "$QL_PROJECTION_UPDATE" -nt "$QL_PROJECTION" ]; then
+if [ ! -f "$ONTOP_QL_ONTOLOGY" ] \
+  || { [ -f "$MERGED_ONTOLOGY" ] && [ "$MERGED_ONTOLOGY" -nt "$ONTOP_QL_ONTOLOGY" ]; } \
+  || [ "$QL_PROJECTION_UPDATE" -nt "$ONTOP_QL_ONTOLOGY" ]; then
   "$(dirname "$0")/project_ql.sh"
 fi
 
 echo "▶ Validating Ontop projection (OWL 2 QL)"
 robot validate-profile \
-  --input "$QL_PROJECTION" \
+  --input "$ONTOP_QL_ONTOLOGY" \
   --profile QL \
   --output "$OUTFILE"
 

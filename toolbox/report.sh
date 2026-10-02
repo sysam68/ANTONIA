@@ -21,12 +21,11 @@ FAIL_ON="${FAIL_ON:-ERROR}"
 # -----------------------------------------------------------------------------
 # 1) Ensure classified ontology is available
 # -----------------------------------------------------------------------------
-CLASSIFIED="$TARGET/classified.ttl"
-if [ ! -f "$CLASSIFIED" ]; then
+if [ ! -f "$CLASSIFIED_ONTOLOGY" ]; then
   echo "▶ No classified ontology found → running reason.sh"
   "$(dirname "$0")/reason.sh"
 else
-  echo "▶ Using existing classified ontology: ${CLASSIFIED#$ROOT/}"
+  echo "▶ Using existing classified ontology: ${CLASSIFIED_ONTOLOGY#$ROOT/}"
 fi
 
 mkdir -p "$TARGET"
@@ -39,7 +38,7 @@ QC_HTML="$TARGET/qc_report.html"
 echo "▶ ROBOT report → ${QC_TSV#$ROOT/} (fail-on: ${FAIL_ON})"
 
 # Build command with optional profile/allowlist/expected from config.env
-cmd=( robot report --input "$CLASSIFIED" --output "$QC_TSV" --fail-on "$FAIL_ON" )
+cmd=( robot report --input "$CLASSIFIED_ONTOLOGY" --output "$QC_TSV" --fail-on "$FAIL_ON" )
 
 # If you set these in config/config.env, they will be absolute via common.sh
 # PROFILE=qc/profile.txt
@@ -53,7 +52,7 @@ cmd=( robot report --input "$CLASSIFIED" --output "$QC_TSV" --fail-on "$FAIL_ON"
 
 # HTML version of the same report
 # Build command with optional profile/allowlist/expected from config.env
-cmd_html=( robot report --input "$CLASSIFIED" --output "$QC_HTML" --fail-on "$FAIL_ON" )
+cmd_html=( robot report --input "$CLASSIFIED_ONTOLOGY" --output "$QC_HTML" --fail-on "$FAIL_ON" )
 
 [ -n "${PROFILE:-}" ]   && [ -f "$PROFILE" ]   && cmd_html+=( --profile "$PROFILE" )
 [ -n "${ALLOWLIST:-}" ] && [ -s "$ALLOWLIST" ] && cmd_html+=( --allowlist "$ALLOWLIST" )
@@ -78,7 +77,7 @@ if [ -d "$SHAPES_DIR" ] \
   fi
   echo "▶ Running SHACL validation (fail-on: ${SHACL_FAIL_ON})"
   "$SEMANTIC_PYTHON" "$(dirname "$0")/validate_shacl.py" \
-    --data "$CLASSIFIED" \
+    --data "$CLASSIFIED_ONTOLOGY" \
     --shapes-dir "$SHAPES_DIR" \
     --report-rdf "$TARGET/shacl_report.ttl" \
     --report-text "$TARGET/shacl_report.txt" \
@@ -100,7 +99,7 @@ if [ -d "$SPARQL_REPORTS" ]; then
     [ -f "$rq" ] || continue
     out="$TARGET/reports/$(basename "${rq%.rq}").tsv"
     echo "  - $(basename "$rq") → ${out#$ROOT/}"
-    robot query --input "$CLASSIFIED" --query "$rq" "$out"
+    robot query --input "$CLASSIFIED_ONTOLOGY" --query "$rq" "$out"
   done
 else
   echo "ℹ No SPARQL reports directory found: ${SPARQL_REPORTS#$ROOT/}"
@@ -116,7 +115,7 @@ if [ -d "$SPARQL_CHECKS" ]; then
   for rq in "$SPARQL_CHECKS"/*.rq; do
     [ -f "$rq" ] || continue
     out="$TARGET/checks/$(basename "${rq%.rq}").tsv"
-    robot query --input "$CLASSIFIED" --query "$rq" "$out"
+    robot query --input "$CLASSIFIED_ONTOLOGY" --query "$rq" "$out"
     if [ -s "$out" ]; then
       echo "✖ Check failed: $(basename "$rq") → non-empty results in ${out#$ROOT/}"
       violations=$((violations+1))

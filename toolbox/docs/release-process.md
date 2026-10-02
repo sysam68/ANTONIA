@@ -3,8 +3,8 @@
 ## 1. Overview
 
 The release process creates a **versioned package** of the ontology, including:
-- Classified ontology (`<name>.ttl`)
-- Merged ontology (`<name>-merged.ttl`)
+- Classified ontology (`<name>.<format>`, with a compatibility `<name>.owl` copy)
+- Merged ontology (`<name>-merged.<format>`)
 - QC and diff reports (if available)
 
 ---
@@ -33,8 +33,9 @@ Git tags are created automatically if the repository is under Git control
 Example:
 ```swift
 releases/2025-08-13/
-  ontology.ttl
-  ontology-merged.ttl
+  ontology.<format>
+  ontology.owl
+  ontology-merged.<format>
   diff.html
   qc_report.tsv
 
@@ -43,5 +44,3 @@ Always commit before creating a release
 Tag releases for reproducibility
 Keep TBox and ABox changes in separate commits when possible
 Update documentation when modeling rules change
-
-

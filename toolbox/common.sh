@@ -69,7 +69,7 @@ require_config \
   TBOX ABOX MAPPINGS OBDA ONTOP_PROPERTIES CATALOG QL_PROJECTION_UPDATE \
   IMPORTS_DIR MODULES_DIR ANNOTATIONS_DIR TEMPLATE_DIRS \
   SHAPES_DIR SPARQL_CHECKS SPARQL_REPORTS ONTOLOGY_DESIGN_RECORD \
-  TARGET RELEASES REASONER REFERENCE_PROFILE ONTOP_PROFILE JAVA_CONF \
+  TARGET RELEASES OUTPUT_FORMAT REASONER REFERENCE_PROFILE ONTOP_PROFILE JAVA_CONF \
   ONTOGPT_MODEL ONTOGPT_ALLOW_EXTERNAL_LLM DB_SAMPLE_ROWS \
   DB_SAMPLE_TABLES DB_SAMPLE_TO_LLM SHACL_FAIL_ON
 
@@ -99,6 +99,44 @@ SPARQL_REPORTS="$(abspath "$SPARQL_REPORTS")"
 ONTOLOGY_DESIGN_RECORD="$(abspath "$ONTOLOGY_DESIGN_RECORD")"
 TARGET="$(abspath "$TARGET")"
 RELEASES="$(abspath "$RELEASES")"
+
+case "$OUTPUT_FORMAT" in
+  rdf|ttl|owl) : ;;
+  *)
+    echo "✖ OUTPUT_FORMAT must be rdf, ttl, or owl; got: $OUTPUT_FORMAT" >&2
+    exit 1
+    ;;
+esac
+
+# Canonical build artifacts. Runtime scripts consume these variables instead
+# of reconstructing filenames independently, so a format change applies to the
+# complete pipeline.
+ontology_output_path() {
+  printf '%s/%s.%s\n' "$TARGET" "$1" "$OUTPUT_FORMAT"
+}
+
+MERGED_ONTOLOGY="$(ontology_output_path merged)"
+CLASSIFIED_ONTOLOGY="$(ontology_output_path classified)"
+ONTOP_QL_ONTOLOGY="$(ontology_output_path ontop-ql)"
+DL_VIEW_ONTOLOGY="$(ontology_output_path classified-dl-view)"
+
+# ROBOT infers serialization from the output extension but does not recognize
+# .rdf. For RDF/XML delivery, write .owl first and copy the bytes to .rdf.
+robot_output_path() {
+  case "$OUTPUT_FORMAT" in
+    rdf) printf '%s.owl\n' "${1%.*}" ;;
+    *) printf '%s\n' "$1" ;;
+  esac
+}
+
+finalize_robot_output() {
+  local final_path="$1"
+  local robot_path="$2"
+  if [ "$robot_path" != "$final_path" ]; then
+    cp -f "$robot_path" "$final_path"
+    rm -f "$robot_path"
+  fi
+}
 
 # TEMPLATE_DIRS (CSV) → Bash array of absolute paths
 IFS=',' read -r -a _TEMPLATE_DIRS_CSV <<< "$TEMPLATE_DIRS"

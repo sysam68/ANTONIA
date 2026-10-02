@@ -4,26 +4,26 @@
 # Build the working ontology and run reasoning with ROBOT.
 #
 # Steps:
-#   1) Generate TTL modules from all TSV templates (classes, annotations, ABox)
+#   1) Generate RDF/XML modules from all TSV templates (classes, annotations, ABox)
 #   2) Merge TBox + (optional) ABox + imports + generated modules + annotations
 #   3) Classify with the selected reasoner (default: ELK)
 #
-# Outputs:
-#   - target/merged.ttl
-#   - target/classified.ttl
+# Outputs use OUTPUT_FORMAT (rdf, ttl, or owl):
+#   - target/merged.<format>
+#   - target/classified.<format>
 #
 # Environment variables:
 #   REASONER=hermit|jfact|ELK|structural   (default: ELK)
-#   SKIP_TEMPLATES=1                       (skip TSV->TTL generation)
+#   SKIP_TEMPLATES=1                       (skip TSV->RDF/XML generation)
 # -----------------------------------------------------------------------------
 set -euo pipefail
 source "$(dirname "$0")/common.sh"
 
-# 1) TSV -> TTL generation (optional)
+# 1) TSV -> RDF/XML generation (optional)
 if [ "${SKIP_TEMPLATES:-0}" != "1" ]; then
   "$(dirname "$0")/generate_from_templates.sh"
 else
-  echo "▶ Skipping TSV → TTL generation (SKIP_TEMPLATES=1)"
+  echo "▶ Skipping TSV → RDF/XML generation (SKIP_TEMPLATES=1)"
 fi
 
 # 2) Build merge input list from known locations
@@ -42,20 +42,22 @@ if [ "${#MERGE_INPUTS[@]}" -eq 0 ]; then
 fi
 
 # 2a) Merge
-MERGED="$TARGET/merged.ttl"
-echo "▶ Merging ontologies → ${MERGED#$ROOT/}"
-robot merge "${MERGE_INPUTS[@]}" --output "$MERGED"
+MERGED_ROBOT_OUTPUT="$(robot_output_path "$MERGED_ONTOLOGY")"
+echo "▶ Merging ontologies → ${MERGED_ONTOLOGY#$ROOT/}"
+robot merge "${MERGE_INPUTS[@]}" --output "$MERGED_ROBOT_OUTPUT"
+finalize_robot_output "$MERGED_ONTOLOGY" "$MERGED_ROBOT_OUTPUT"
 
 # 3) Reason
-CLASSIFIED="$TARGET/classified.ttl"
-echo "▶ Reasoning with ${REASONER} → ${CLASSIFIED#$ROOT/}"
+CLASSIFIED_ROBOT_OUTPUT="$(robot_output_path "$CLASSIFIED_ONTOLOGY")"
+echo "▶ Reasoning with ${REASONER} → ${CLASSIFIED_ONTOLOGY#$ROOT/}"
 robot reason \
-  --input "$MERGED" \
+  --input "$MERGED_ONTOLOGY" \
   --reasoner "$REASONER" \
   --equivalent-classes-allowed none \
   --exclude-tautologies structural \
-  --output "$CLASSIFIED"
+  --output "$CLASSIFIED_ROBOT_OUTPUT"
+finalize_robot_output "$CLASSIFIED_ONTOLOGY" "$CLASSIFIED_ROBOT_OUTPUT"
 
 echo "✓ Reasoning complete"
-echo "  - Merged:     ${MERGED#$ROOT/}"
-echo "  - Classified: ${CLASSIFIED#$ROOT/}"
+echo "  - Merged:     ${MERGED_ONTOLOGY#$ROOT/}"
+echo "  - Classified: ${CLASSIFIED_ONTOLOGY#$ROOT/}"

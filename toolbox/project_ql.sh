@@ -1,18 +1,15 @@
 #!/usr/bin/env bash
 # -----------------------------------------------------------------------------
 # project_ql.sh
-# Derive the conservative OWL 2 QL ontology used by Ontop from merged.rdf.
+# Derive the conservative OWL 2 QL ontology used by Ontop from the configured
+# merged ontology serialization.
 # The expressive OWL 2 DL reference ontology remains unchanged.
 # -----------------------------------------------------------------------------
 set -euo pipefail
 source "$(dirname "$0")/common.sh"
 
-MERGED="$TARGET/merged.rdf"
-QL_PROJECTION="$TARGET/ontop-ql.rdf"
-QL_PROJECTION_OWL="$TARGET/ontop-ql.owl"
-
-if [ ! -f "$MERGED" ]; then
-  echo "▶ No merged RDF ontology found → running reason.sh"
+if [ ! -f "$MERGED_ONTOLOGY" ]; then
+  echo "▶ No merged ontology found → running reason.sh"
   "$(dirname "$0")/reason.sh"
 fi
 
@@ -21,12 +18,12 @@ fi
   exit 1
 }
 
-echo "▶ Deriving OWL 2 QL projection → ${QL_PROJECTION#$ROOT/}"
+QL_ROBOT_OUTPUT="$(robot_output_path "$ONTOP_QL_ONTOLOGY")"
+echo "▶ Deriving OWL 2 QL projection → ${ONTOP_QL_ONTOLOGY#$ROOT/}"
 robot query \
-  --input "$MERGED" \
+  --input "$MERGED_ONTOLOGY" \
   --update "$QL_PROJECTION_UPDATE" \
-  --output "$QL_PROJECTION_OWL"
-cp -f "$QL_PROJECTION_OWL" "$QL_PROJECTION"
-rm -f "$QL_PROJECTION_OWL"
+  --output "$QL_ROBOT_OUTPUT"
+finalize_robot_output "$ONTOP_QL_ONTOLOGY" "$QL_ROBOT_OUTPUT"
 
-echo "✓ Ontop projection generated: ${QL_PROJECTION#$ROOT/}"
+echo "✓ Ontop projection generated: ${ONTOP_QL_ONTOLOGY#$ROOT/}"

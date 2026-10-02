@@ -208,11 +208,29 @@ PY
   chmod +x "$REPORT_ROOT/.tools/bin/java" "$REPORT_ROOT/.tools/bin/robot" \
     "$REPORT_ROOT/.tools/semantic/bin/python"
 
-  cp "$ROOT/tests/data/shacl/conforming.ttl" "$REPORT_ROOT/tmp/classified.ttl"
+  "$ROOT/.tools/semantic/bin/python" - \
+    "$ROOT/tests/data/shacl/conforming.ttl" \
+    "$REPORT_ROOT/tmp/classified.rdf" <<'PY'
+import sys
+from rdflib import Graph
+
+Graph().parse(sys.argv[1], format="turtle").serialize(
+    destination=sys.argv[2], format="xml"
+)
+PY
   "$REPORT_ROOT/toolbox/report.sh" > "$TEMP_ROOT/report-conforming.log"
   grep -Fq 'QC completed successfully' "$TEMP_ROOT/report-conforming.log"
 
-  cp "$ROOT/tests/data/shacl/nonconforming.ttl" "$REPORT_ROOT/tmp/classified.ttl"
+  "$ROOT/.tools/semantic/bin/python" - \
+    "$ROOT/tests/data/shacl/nonconforming.ttl" \
+    "$REPORT_ROOT/tmp/classified.rdf" <<'PY'
+import sys
+from rdflib import Graph
+
+Graph().parse(sys.argv[1], format="turtle").serialize(
+    destination=sys.argv[2], format="xml"
+)
+PY
   if "$REPORT_ROOT/toolbox/report.sh" > "$TEMP_ROOT/report-nonconforming.log" 2>&1; then
     echo "Error: make report path accepted a SHACL violation" >&2
     exit 1

@@ -80,12 +80,12 @@ Run commands from the ontology repository root:
 - `make import` refreshes configured external ontology Release assets.
 - `make install-semantic-tools` installs the local OntoGPT/Ontop/SHACL tools.
 - `make generate` expands TSV templates into RDF/XML modules.
-- `make reason` merges the complete import closure into `tmp/merged.rdf` and
-  classifies the OWL 2 DL reference ontology into `tmp/classified.rdf`. In a
+- `make reason` merges the complete import closure into `tmp/merged.<format>` and
+  classifies the OWL 2 DL reference ontology into `tmp/classified.<format>`. In a
   newly initialized project with no ontology files yet, it reports the absence
   of merge inputs and exits successfully without creating those outputs.
 - `REASONER=hermit make reason` overrides the configured reasoner.
-- `make project-ql` derives `tmp/ontop-ql.rdf` for Ontop from the merged
+- `make project-ql` derives `tmp/ontop-ql.<format>` for Ontop from the merged
   ontology without weakening the expressive reference ontology.
 - `make report` runs QC reports, SHACL validation, and blocking SPARQL checks;
   use `FAIL_ON=WARN` for ROBOT warnings and `SHACL_FAIL_ON` for SHACL severity.
@@ -95,7 +95,7 @@ Run commands from the ontology repository root:
   does not refresh imports or run focused test scripts.
 - `make progress` runs the same five targets in the same order, with the same
   overrides and stop-on-error behavior, while displaying progress indicators.
-- `make diff OLD=releases/old.rdf NEW=tmp/classified.rdf` compares ontology
+- `make diff OLD=releases/old.<format> NEW=tmp/classified.<format>` compares ontology
   versions semantically.
 
 `make clean` removes `tmp/`; do not use it when uncommitted build evidence must
@@ -104,7 +104,7 @@ be preserved.
 ## Import-closure contract
 
 `toolbox/reason.sh` must merge with `--collapse-import-closure true` and the
-portable XML catalog. A valid `tmp/merged.rdf` is self-contained: it includes
+portable XML catalog. A valid `tmp/merged.<format>` is self-contained: it includes
 the configured import closure and has no residual `owl:imports`.
 
 Run `make test-imports` after changing `config/import.env`, the XML catalog, an
@@ -115,10 +115,11 @@ published release. Retain download-content validation in `toolbox/import.sh`.
 
 ## Modeling and serialization conventions
 
-Use UTF-8 RDF/XML (`.rdf`) for authoritative ontology sources and generated
-outputs, TSV for templates, and SPARQL (`.rq` checks/reports and `.ru` updates)
-for validation and transformations. Turtle is acceptable for pinned external
-imports and compact test fixtures.
+Use UTF-8 RDF/XML (`.rdf`) for authoritative ontology sources. Generated
+outputs use `OUTPUT_FORMAT=rdf|ttl|owl` from `config/config.env`; `rdf` is the
+default. Use TSV for templates and SPARQL (`.rq` checks/reports and `.ru`
+updates) for validation and transformations. Turtle is acceptable for pinned
+external imports and compact test fixtures.
 
 ROBOT does not recognize `.rdf` as an output-format extension. When ROBOT must
 write RDF/XML, write an intermediate `.owl` file, copy that byte-equivalent
@@ -132,12 +133,12 @@ descriptively with snake_case, for example `missing_labels.rq`.
 
 The ontology products have distinct content:
 
-- `merged.rdf`: asserted and generated input graph before reasoning;
-- `classified.rdf`: expressive OWL 2 DL reference after reasoning;
-- `ontop-ql.rdf`: conservative OWL 2 QL projection for Ontop.
+- `merged.<format>`: asserted and generated input graph before reasoning;
+- `classified.<format>`: expressive OWL 2 DL reference after reasoning;
+- `ontop-ql.<format>`: conservative OWL 2 QL projection for Ontop.
 
 The release may retain `<name>.owl` as a compatibility reserialization of the
-same classified graph as `<name>.rdf`; it is not another semantic product.
+same classified graph as `<name>.<format>`; it is not another semantic product.
 
 ## Testing and validation
 
@@ -165,14 +166,14 @@ Run `make all` and the focused tests before `make release`. The ontology release
 script packages existing artifacts and does not rebuild them. A release may
 contain:
 
-- `<name>.rdf` and its retained `<name>.owl` compatibility copy;
-- `<name>-merged.rdf`;
-- `<name>-ql.rdf`;
+- `<name>.<format>` and, when needed, its retained `<name>.owl` compatibility copy;
+- `<name>-merged.<format>`;
+- `<name>-ql.<format>`;
 - the configured RDF mapping ontology, byte-for-byte, when present;
 - `<name>.obda` when the configured source exists;
 - available QC, profile-validation, and diff reports.
 
-Do not release Turtle files or datasource `.properties` files. The release
+Do not release datasource `.properties` files. The release
 script performs Git commits, branch/tag operations, pushes, and optional GitHub
 Release creation; do not invoke it merely to test packaging.
 

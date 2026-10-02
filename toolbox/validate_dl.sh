@@ -8,26 +8,23 @@ source "$(dirname "$0")/common.sh"
   exit 1
 }
 
-CLASSIFIED="$TARGET/classified.rdf"
-DL_VIEW="$TARGET/classified-dl-view.rdf"
-DL_VIEW_OWL="$TARGET/classified-dl-view.owl"
 OUTFILE="$TARGET/dl-profile-validation.txt"
 
-if [ ! -f "$CLASSIFIED" ]; then
-  echo "▶ No classified RDF ontology found → running reason.sh"
+if [ ! -f "$CLASSIFIED_ONTOLOGY" ]; then
+  echo "▶ No classified ontology found → running reason.sh"
   "$(dirname "$0")/reason.sh"
 fi
 
+DL_ROBOT_OUTPUT="$(robot_output_path "$DL_VIEW_ONTOLOGY")"
 robot query \
-  --input "$CLASSIFIED" \
+  --input "$CLASSIFIED_ONTOLOGY" \
   --update "$ROOT/src/sparql/updates/fix-dl-profile.ru" \
-  --output "$DL_VIEW_OWL"
-cp -f "$DL_VIEW_OWL" "$DL_VIEW"
-rm -f "$DL_VIEW_OWL"
+  --output "$DL_ROBOT_OUTPUT"
+finalize_robot_output "$DL_VIEW_ONTOLOGY" "$DL_ROBOT_OUTPUT"
 
 echo "▶ Validating expressive reference ontology (OWL 2 DL)"
 robot validate-profile \
-  --input "$DL_VIEW" \
+  --input "$DL_VIEW_ONTOLOGY" \
   --profile DL \
   --output "$OUTFILE"
 

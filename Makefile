@@ -54,6 +54,10 @@ check:
 		echo "Error: install_robot.sh must not require common.sh before bootstrap" >&2; \
 		exit 1; \
 	fi
+	@if grep -En '\$$TARGET/(merged|classified|ontop-ql)\.(rdf|ttl|owl)' toolbox/*.sh; then \
+		echo "Error: ontology output paths must use the canonical common.sh variables" >&2; \
+		exit 1; \
+	fi
 	@python3 -c 'import pathlib; [compile(p.read_text(), str(p), "exec") for p in pathlib.Path("toolbox").rglob("*.py")]'
 	@echo "ANTONIA checks: passed"
 
