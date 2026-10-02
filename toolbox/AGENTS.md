@@ -81,7 +81,9 @@ Run commands from the ontology repository root:
 - `make install-semantic-tools` installs the local OntoGPT/Ontop/SHACL tools.
 - `make generate` expands TSV templates into RDF/XML modules.
 - `make reason` merges the complete import closure into `tmp/merged.rdf` and
-  classifies the OWL 2 DL reference ontology into `tmp/classified.rdf`.
+  classifies the OWL 2 DL reference ontology into `tmp/classified.rdf`. In a
+  newly initialized project with no ontology files yet, it reports the absence
+  of merge inputs and exits successfully without creating those outputs.
 - `REASONER=hermit make reason` overrides the configured reasoner.
 - `make project-ql` derives `tmp/ontop-ql.rdf` for Ontop from the merged
   ontology without weakening the expressive reference ontology.

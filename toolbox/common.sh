@@ -151,18 +151,14 @@ tsvs_under() {
   find "$d" -maxdepth 1 -type f -name '*.tsv' | sort || true
 }
 
-# Build a flat array of '--input <file>' arguments for 'robot merge'
-# Includes: TBOX (required), ABOX (optional), and all TTLs from IMPORTS/MODULES/ANNOT_DIR.
+# Build a flat array of '--input <file>' arguments for 'robot merge'.
+# Includes the TBox, ABox, and mapping ontology when their configured files
+# exist, plus all supported files from IMPORTS/MODULES/ANNOT_DIR.
 build_merge_inputs() {
   local inputs=()
 
-  # TBox is mandatory
-  if [ -f "$TBOX" ]; then
-    inputs+=( --input "$TBOX" )
-  else
-    echo "✖ Missing TBox: $TBOX" >&2
-    return 1
-  fi
+  # A newly initialized project may not have ontology sources yet.
+  [ -f "$TBOX" ] && inputs+=( --input "$TBOX" )
 
   # ABox is optional
   [ -f "$ABOX" ] && inputs+=( --input "$ABOX" )
@@ -177,9 +173,10 @@ build_merge_inputs() {
   while read -r f; do [ -n "${f:-}" ] && inputs+=( --input "$f" ); done < <(ontology_files_under "$MODULES_DIR")
   while read -r f; do [ -n "${f:-}" ] && inputs+=( --input "$f" ); done < <(ontology_files_under "$ANNOT_DIR")
 
-  # Print as lines so caller can read into an array:
-  #   readarray -t MERGE_INPUTS < <(build_merge_inputs)
-  printf '%s\n' "${inputs[@]}"
+  # Print as lines so Bash 3.2 callers can populate an array.
+  if [ "${#inputs[@]}" -gt 0 ]; then
+    printf '%s\n' "${inputs[@]}"
+  fi
 }
 
 # Export TOOLBOX_MODE for scripts that need to know

@@ -13,5 +13,7 @@ make reason
 ```
 
 Preserve a user-supplied `REASONER=hermit|ELK|jfact`; do not invent an override.
-Verify that the merged output has no residual `owl:imports` and report reasoning
-failures with their actual evidence.
+When ontology inputs exist, verify that the merged output has no residual
+`owl:imports` and report reasoning failures with their actual evidence. When no
+ontology file exists yet, report the successful no-op message instead of
+expecting merge or classification outputs.

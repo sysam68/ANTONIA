@@ -33,10 +33,12 @@ while IFS= read -r arg; do
   MERGE_INPUTS+=("$arg")
 done < <(build_merge_inputs)
 
-# Sanity check: ensure we have at least the TBox
+# A newly initialized project may not contain ontology sources yet. This is a
+# valid no-op; once at least one source exists, the normal merge/reasoning path
+# remains mandatory.
 if [ "${#MERGE_INPUTS[@]}" -eq 0 ]; then
-  echo "✖ No inputs collected for merge. Check your paths in common.sh."
-  exit 1
+  echo "ℹ no import or files to merge; skipping reasoning."
+  exit 0
 fi
 
 # 2a) Merge
@@ -57,4 +59,3 @@ robot reason \
 echo "✓ Reasoning complete"
 echo "  - Merged:     ${MERGED#$ROOT/}"
 echo "  - Classified: ${CLASSIFIED#$ROOT/}"
-
