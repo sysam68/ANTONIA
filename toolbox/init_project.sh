@@ -128,12 +128,7 @@ create_from_template \
 # -----------------------------------------------------------------------------
 make_dir "$HOST_ROOT/qc"
 
-create_file "$HOST_ROOT/qc/profile.txt" 'ERROR\tduplicate_label
-ERROR\tmultiple_labels
-ERROR\tlabel_formatting
-ERROR\tlabel_whitespace
-ERROR\tinvalid_entity_uri
-' "QC severity profile"
+create_file "$HOST_ROOT/qc/profile.txt" $'ERROR\tduplicate_label\nERROR\tmultiple_labels\nERROR\tlabel_formatting\nERROR\tlabel_whitespace\nERROR\tinvalid_entity_uri\n' "QC severity profile"
 
 create_file "$HOST_ROOT/qc/allowlist.tsv" '' "QC allowlist (empty by default)"
 create_file "$HOST_ROOT/qc/obo-expected.tsv" '' "OBO expected terms (empty by default)"

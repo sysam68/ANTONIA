@@ -54,6 +54,19 @@ assert_not_starting_with_backslash() {
   fi
 }
 
+assert_qc_profile_uses_tabs() {
+  local path="$1"
+  local actual=""
+  local expected=""
+
+  expected=$'ERROR\tduplicate_label\nERROR\tmultiple_labels\nERROR\tlabel_formatting\nERROR\tlabel_whitespace\nERROR\tinvalid_entity_uri'
+  actual="$(cat "$path")"
+  if [ "$actual" != "$expected" ]; then
+    echo "Error: initialized QC profile does not contain tab-separated rules: $path" >&2
+    exit 1
+  fi
+}
+
 mkdir -p "$RELEASE_ROOT/stage"
 tar -xzf "$ROOT/dist/antonia-toolbox.tar.gz" -C "$RELEASE_ROOT/stage"
 cp "$ROOT/tests/data/install-robot-stub.sh" \
@@ -96,6 +109,7 @@ for initialized_file in \
   "$SUCCESS_ROOT/src/shapes/shacl/ontology-shapes.ttl"; do
   assert_not_starting_with_backslash "$initialized_file"
 done
+assert_qc_profile_uses_tabs "$SUCCESS_ROOT/qc/profile.txt"
 grep -q 'Installing the repository-local ROBOT toolchain' "$SUCCESS_ROOT/install.log"
 grep -q 'Removed bootstrap installer: install-antonia.sh' "$SUCCESS_ROOT/install.log"
 
