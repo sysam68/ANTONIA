@@ -16,14 +16,21 @@ cleanup() {
 }
 trap cleanup EXIT
 
-mkdir -p "$HOST_ROOT/config" "$HOST_ROOT/qc" "$HOST_ROOT/tmp" \
-  "$HOST_ROOT/src/sparql/checks" "$HOST_ROOT/src/sparql/reports" "$BIN"
+mkdir -p "$HOST_ROOT/config" "$HOST_ROOT/custom/qc" \
+  "$HOST_ROOT/custom/sparql/checks" "$HOST_ROOT/custom/sparql/reports" \
+  "$HOST_ROOT/custom/output" "$TEMP_ROOT/captured" "$BIN"
 cp -R "$ROOT/toolbox" "$HOST_ROOT/toolbox"
 cp "$ROOT/toolbox/templates/config/config.env" "$HOST_ROOT/config/config.env"
-printf '%s\n' $'ERROR\tmissing_label' > "$HOST_ROOT/qc/profile.txt"
-printf '%s\n' '<rdf:RDF/>' > "$HOST_ROOT/tmp/classified.rdf"
+cat >> "$HOST_ROOT/config/config.env" <<'EOF'
+PROFILE=custom/qc/robot-profile.txt
+SPARQL_CHECKS=custom/sparql/checks
+SPARQL_REPORTS=custom/sparql/reports
+TARGET=custom/output
+EOF
+printf '%s\n' $'ERROR\tmissing_label' > "$HOST_ROOT/custom/qc/robot-profile.txt"
+printf '%s\n' '<rdf:RDF/>' > "$HOST_ROOT/custom/output/classified.rdf"
 
-cat > "$HOST_ROOT/src/sparql/checks/project_rule.rq" <<'EOF'
+cat > "$HOST_ROOT/custom/sparql/checks/project_rule.rq" <<'EOF'
 SELECT DISTINCT ?entity ?property ?value WHERE {
   BIND(<urn:antonia:config:BASE_IRI> AS ?entity)
   BIND(<urn:antonia:qc:PROJECT_RULE> AS ?property)
@@ -32,7 +39,7 @@ SELECT DISTINCT ?entity ?property ?value WHERE {
 }
 EOF
 printf '%s\n' 'SELECT (COUNT(*) AS ?count) WHERE { ?s ?p ?o }' \
-  > "$HOST_ROOT/src/sparql/reports/counts.rq"
+  > "$HOST_ROOT/custom/sparql/reports/counts.rq"
 
 cat > "$BIN/robot" <<'EOF'
 #!/usr/bin/env bash
@@ -43,13 +50,22 @@ shift
 case "$command" in
   report)
     output=""
+    profile=""
     while [ "$#" -gt 0 ]; do
       case "$1" in
         --output) output="$2"; shift 2 ;;
+        --profile) profile="$2"; shift 2 ;;
         *) shift ;;
       esac
     done
     test -n "$output"
+    test -n "$profile"
+    cp "$profile" "$ROBOT_CAPTURE_DIR/effective-profile.txt"
+    while IFS=$'\t' read -r severity rule; do
+      case "$rule" in
+        file://*) cp "${rule#file://}" "$ROBOT_CAPTURE_DIR/$(basename "${rule#file://}")" ;;
+      esac
+    done < "$profile"
     mkdir -p "$(dirname "$output")"
     : > "$output"
     ;;
@@ -85,26 +101,27 @@ chmod +x "$BIN/robot" "$BIN/java"
 (
   cd "$HOST_ROOT"
   PATH="$BIN:$PATH" ROBOT_LOG="$TEMP_ROOT/robot.log" \
+    ROBOT_CAPTURE_DIR="$TEMP_ROOT/captured" \
     ./toolbox/report.sh > "$TEMP_ROOT/report.log"
 )
 
 test "$(grep -c '^report ' "$TEMP_ROOT/robot.log")" -eq 2
 test "$(grep -c '^query ' "$TEMP_ROOT/robot.log")" -eq 1
-grep -Fq '/src/sparql/reports/counts.rq' "$TEMP_ROOT/robot.log"
-if grep -Fq '/src/sparql/checks/' "$TEMP_ROOT/robot.log"; then
+grep -Fq '/custom/sparql/reports/counts.rq' "$TEMP_ROOT/robot.log"
+if grep -Fq '/custom/sparql/checks/' "$TEMP_ROOT/robot.log"; then
   echo "Error: a blocking SPARQL control ran through robot query" >&2
   exit 1
 fi
 
-EFFECTIVE_PROFILE="$HOST_ROOT/tmp/robot-profile.txt"
+EFFECTIVE_PROFILE="$TEMP_ROOT/captured/effective-profile.txt"
 grep -Fqx $'ERROR\tmissing_label' "$EFFECTIVE_PROFILE"
-grep -Eq $'^ERROR\tfile://.*/tmp/robot-report-queries/native-forbidden_iri\.rq$' \
+grep -Eq $'^ERROR\tfile://.*/antonia-robot-report\.[^/]+/queries/native-forbidden_iri\.rq$' \
   "$EFFECTIVE_PROFILE"
-grep -Eq $'^ERROR\tfile://.*/tmp/robot-report-queries/project-project_rule\.rq$' \
+grep -Eq $'^ERROR\tfile://.*/antonia-robot-report\.[^/]+/queries/project-project_rule\.rq$' \
   "$EFFECTIVE_PROFILE"
 
-NATIVE_QUERY="$HOST_ROOT/tmp/robot-report-queries/native-forbidden_iri.rq"
-PROJECT_QUERY="$HOST_ROOT/tmp/robot-report-queries/project-project_rule.rq"
+NATIVE_QUERY="$TEMP_ROOT/captured/native-forbidden_iri.rq"
+PROJECT_QUERY="$TEMP_ROOT/captured/project-project_rule.rq"
 grep -Fq 'SELECT DISTINCT ?entity ?property ?value' "$NATIVE_QUERY"
 grep -Fq '<https://example.org/ontology/myOntology/>' "$NATIVE_QUERY"
 grep -Fq '<https://example.org/id/myOntology/>' "$NATIVE_QUERY"
@@ -114,7 +131,13 @@ if grep -Fq '<urn:antonia:config:' "$NATIVE_QUERY" "$PROJECT_QUERY"; then
   echo "Error: an ANTONIA configuration sentinel was not rendered" >&2
   exit 1
 fi
-test ! -e "$HOST_ROOT/tmp/checks"
+test ! -e "$HOST_ROOT/custom/output/robot-profile.txt"
+test ! -e "$HOST_ROOT/custom/output/robot-report-queries"
+test -f "$HOST_ROOT/custom/output/qc_report.tsv"
+test -f "$HOST_ROOT/custom/output/qc_report.html"
+test -f "$HOST_ROOT/custom/output/reports/counts.tsv"
+grep -Fq 'Profile: custom/qc/robot-profile.txt' "$TEMP_ROOT/report.log"
+grep -Fq 'Project checks: custom/sparql/checks' "$TEMP_ROOT/report.log"
 grep -Fq 'No SHACL shapes found' "$TEMP_ROOT/report.log"
 
 # Exercise the native query with the pinned local ROBOT when it is available.

@@ -6,10 +6,10 @@
 #
 # Steps:
 #   1) Ensure a classified ontology exists (runs reason.sh if needed)
-#   2) Render native and project SPARQL controls into a ROBOT profile
+#   2) Render native and project SPARQL controls into a temporary ROBOT profile
 #   3) Run `robot report` to produce the canonical QC TSV and HTML
 #   4) Run SHACL over the classified graph when shapes exist
-#   5) Run SPARQL analytics (non-blocking summaries → target/reports/*.tsv)
+#   5) Run SPARQL analytics (non-blocking summaries under configured TARGET)
 #
 # Environment variables:
 #   FAIL_ON=ERROR|WARN|NONE   (default: ERROR)  -> passed to `robot report`
@@ -20,6 +20,15 @@ source "$(dirname "$0")/common.sh"
 FAIL_ON="${FAIL_ON:-ERROR}"
 TOOLBOX_DIR="$(cd "$(dirname "$0")" && pwd -P)"
 NATIVE_CHECKS_DIR="$TOOLBOX_DIR/checks"
+ROBOT_RUNTIME_DIR=""
+
+cleanup_robot_runtime() {
+  [ -n "$ROBOT_RUNTIME_DIR" ] || return 0
+  case "$ROBOT_RUNTIME_DIR" in
+    */antonia-robot-report.*) rm -rf -- "$ROBOT_RUNTIME_DIR" ;;
+  esac
+}
+trap cleanup_robot_runtime EXIT
 
 validate_config_iri() {
   local name="$1"
@@ -95,12 +104,10 @@ fi
 validate_config_iri BASE_IRI "$BASE_IRI"
 validate_config_iri INSTANCE_BASE_IRI "$INSTANCE_BASE_IRI"
 
-ROBOT_QUERY_DIR="$TARGET/robot-report-queries"
-ROBOT_PROFILE="$TARGET/robot-profile.txt"
+ROBOT_RUNTIME_DIR="$(mktemp -d "${TMPDIR:-/tmp}/antonia-robot-report.XXXXXX")"
+ROBOT_QUERY_DIR="$ROBOT_RUNTIME_DIR/queries"
+ROBOT_PROFILE="$ROBOT_RUNTIME_DIR/profile.txt"
 mkdir -p "$ROBOT_QUERY_DIR"
-for stale_query in "$ROBOT_QUERY_DIR"/*.rq; do
-  [ -f "$stale_query" ] && rm -f -- "$stale_query"
-done
 : > "$ROBOT_PROFILE"
 
 if [ -n "${PROFILE:-}" ] && [ -f "$PROFILE" ]; then
@@ -125,7 +132,10 @@ if [ -d "$SPARQL_CHECKS" ]; then
   done
 fi
 
-echo "▶ ROBOT controls → ${ROBOT_PROFILE#$ROOT/}"
+echo "▶ ROBOT controls"
+[ -n "${PROFILE:-}" ] && echo "  - Profile: ${PROFILE#$ROOT/}"
+echo "  - Native checks: ${NATIVE_CHECKS_DIR#$ROOT/}"
+echo "  - Project checks: ${SPARQL_CHECKS#$ROOT/}"
 
 # -----------------------------------------------------------------------------
 # 3) ROBOT report (canonical QC gate) TSV + HTML
