@@ -42,6 +42,18 @@ assert_managed_skills_installed() {
   done < "$manifest"
 }
 
+assert_not_starting_with_backslash() {
+  local path="$1"
+  local first_byte=""
+
+  test -s "$path"
+  first_byte="$(LC_ALL=C od -An -tx1 -N1 "$path" | tr -d '[:space:]')"
+  if [ "$first_byte" = "5c" ]; then
+    echo "Error: initialized file starts with a literal backslash: $path" >&2
+    exit 1
+  fi
+}
+
 mkdir -p "$RELEASE_ROOT/stage"
 tar -xzf "$ROOT/dist/antonia-toolbox.tar.gz" -C "$RELEASE_ROOT/stage"
 cp "$ROOT/tests/data/install-robot-stub.sh" \
@@ -75,6 +87,15 @@ test "$(grep -Fxc 'tmp/' "$SUCCESS_ROOT/.gitignore")" -eq 1
 test "$(grep -Fxc '.tools/' "$SUCCESS_ROOT/.gitignore")" -eq 1
 test "$(grep -Fxc 'src/edit/*.properties' "$SUCCESS_ROOT/.gitignore")" -eq 1
 test -f "$SUCCESS_ROOT/src/edit/myOntology.properties.example"
+for initialized_file in \
+  "$SUCCESS_ROOT/qc/profile.txt" \
+  "$SUCCESS_ROOT/src/edit/myOntology-tbox.rdf" \
+  "$SUCCESS_ROOT/src/edit/mapping-sourceIOnto-TargetOnto.rdf" \
+  "$SUCCESS_ROOT/src/sparql/checks/example_check.rq" \
+  "$SUCCESS_ROOT/src/sparql/updates/project-ql.ru" \
+  "$SUCCESS_ROOT/src/shapes/shacl/ontology-shapes.ttl"; do
+  assert_not_starting_with_backslash "$initialized_file"
+done
 grep -q 'Installing the repository-local ROBOT toolchain' "$SUCCESS_ROOT/install.log"
 grep -q 'Removed bootstrap installer: install-antonia.sh' "$SUCCESS_ROOT/install.log"
 

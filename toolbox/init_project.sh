@@ -128,8 +128,7 @@ create_from_template \
 # -----------------------------------------------------------------------------
 make_dir "$HOST_ROOT/qc"
 
-create_file "$HOST_ROOT/qc/profile.txt" '\
-ERROR\tduplicate_label
+create_file "$HOST_ROOT/qc/profile.txt" 'ERROR\tduplicate_label
 ERROR\tmultiple_labels
 ERROR\tlabel_formatting
 ERROR\tlabel_whitespace
@@ -201,8 +200,7 @@ make_dir "$HOST_ROOT/src/sparql/checks"
 make_dir "$HOST_ROOT/src/sparql/updates"
 make_dir "$HOST_ROOT/src/sparql/reports"
 
-create_file "$HOST_ROOT/src/sparql/checks/example_check.rq" '\
-# SPARQL check: example - must return empty results to pass
+create_file "$HOST_ROOT/src/sparql/checks/example_check.rq" '# SPARQL check: example - must return empty results to pass
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
@@ -214,8 +212,7 @@ WHERE {
 }
 ' "Example SPARQL check"
 
-create_file "$HOST_ROOT/src/sparql/updates/project-ql.ru" '\
-# SPARQL update: project ontology to OWL 2 QL for Ontop
+create_file "$HOST_ROOT/src/sparql/updates/project-ql.ru" '# SPARQL update: project ontology to OWL 2 QL for Ontop
 # This is a template - customize for your ontology
 DELETE { ?s ?p ?o }
 INSERT { ?s ?p ?o }
@@ -227,8 +224,7 @@ WHERE  { ?s ?p ?o }
 # -----------------------------------------------------------------------------
 make_dir "$HOST_ROOT/src/shapes/shacl"
 
-create_file "$HOST_ROOT/src/shapes/shacl/ontology-shapes.ttl" '\
-# SHACL shapes for ontology validation
+create_file "$HOST_ROOT/src/shapes/shacl/ontology-shapes.ttl" '# SHACL shapes for ontology validation
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
