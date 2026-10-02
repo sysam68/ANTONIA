@@ -9,6 +9,9 @@
 - **ABox instances**:
 `<INSTANCE_BASE_IRI>SD_AccountManagement`
 
+The native `forbidden_iri` ROBOT report rule enforces these configured bases
+and rejects version segments in schema entity IRIs.
+
 - Always use lowercase for local names except where BIAN or external standards define otherwise.
 
 ---
@@ -29,11 +32,11 @@ This separation enables:
 
 ---
 
-## 3. Instances in the Base IRI
+## 3. Instances in the Instance Base IRI
 
-- All individuals go under `/instance/`
+- All named individuals use the configured `INSTANCE_BASE_IRI`.
 - Example:
-:SD_CustomerOnboarding rdf:type :ServiceDomain .
+`<INSTANCE_BASE_IRI>SD_CustomerOnboarding rdf:type <BASE_IRI>ServiceDomain .`
 
 
 ---

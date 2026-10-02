@@ -26,7 +26,7 @@ help:
 	@echo "  generate    : expand TSV templates to RDF/XML modules"
 	@echo "  reason      : merge and classify ontology (use REASONER=hermit|ELK|jfact)"
 	@echo "  project-ql  : derive the OWL 2 QL projection used by Ontop"
-	@echo "  report      : run QC (use FAIL_ON=ERROR|WARN|NONE)"
+	@echo "  report      : run ROBOT-integrated QC and optional SHACL"
 	@echo "  validate    : validate the OWL 2 DL reference and OWL 2 QL projection"
 	@echo "  test-imports: verify Release download and the merged import closure"
 	@echo "  test-qc     : verify ontology-scoped quality-control rules"

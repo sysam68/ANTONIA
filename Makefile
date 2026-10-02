@@ -7,7 +7,7 @@ SHELL := /bin/bash
 
 VERSION ?=
 
-.PHONY: help check test test-agent-skills test-config-update test-import-release test-reason-empty test-semantic-authoring test-database-integration test-release-channels test-package test-lifecycle package release prerelease clean
+.PHONY: help check test test-agent-skills test-config-update test-import-release test-reason-empty test-report-integration test-semantic-authoring test-database-integration test-release-channels test-package test-lifecycle package release prerelease clean
 
 help:
 	@echo "ANTONIA Toolbox"
@@ -19,6 +19,7 @@ help:
 	@echo "  test-config-update verify additive configuration migration"
 	@echo "  test-import-release verify latest and explicit GitHub Release imports"
 	@echo "  test-reason-empty  verify that absent ontology inputs are a valid no-op"
+	@echo "  test-report-integration verify ROBOT-native SPARQL control reporting"
 	@echo "  test-semantic-authoring verify semantic skills and helper safety"
 	@echo "  test-database-integration verify PostgreSQL/MySQL sampling and Ontop bootstrap"
 	@echo "  test-release-channels verify stable and development publication guards"
@@ -50,6 +51,7 @@ check:
 		esac; \
 	done < toolbox/.agents/.antonia-managed
 	@test -f toolbox/templates/config/config.env
+	@test -f toolbox/checks/forbidden_iri.rq
 	@if grep -Eq '^[[:space:]]*source .*common\.sh' toolbox/install_robot.sh; then \
 		echo "Error: install_robot.sh must not require common.sh before bootstrap" >&2; \
 		exit 1; \
@@ -61,7 +63,7 @@ check:
 	@python3 -c 'import pathlib; [compile(p.read_text(), str(p), "exec") for p in pathlib.Path("toolbox").rglob("*.py")]'
 	@echo "ANTONIA checks: passed"
 
-test: check test-agent-skills test-config-update test-import-release test-reason-empty test-semantic-authoring test-release-channels test-lifecycle
+test: check test-agent-skills test-config-update test-import-release test-reason-empty test-report-integration test-semantic-authoring test-release-channels test-lifecycle
 
 test-agent-skills:
 	@./tests/robot/agent-skills.test.sh
@@ -74,6 +76,9 @@ test-import-release:
 
 test-reason-empty:
 	@./tests/robot/reason-empty-inputs.test.sh
+
+test-report-integration:
+	@./tests/robot/report-integration.test.sh
 
 test-semantic-authoring:
 	@./tests/robot/semantic-authoring.test.sh
@@ -110,6 +115,7 @@ test-package:
 	@tar -xOf dist/antonia-toolbox.tar.gz toolbox/Makefile | grep -q '^update-antonia:'
 	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/update_config.sh$$'
 	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/templates/config/config.env$$'
+	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/checks/forbidden_iri.rq$$'
 	@if tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/toolbox/'; then \
 		echo "Error: double toolbox directory detected" >&2; \
 		exit 1; \

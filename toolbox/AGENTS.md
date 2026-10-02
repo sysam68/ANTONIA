@@ -14,9 +14,11 @@ the configured XML catalog. Selectors may be immutable Release tags or
 import. Treat imported ontology files as versioned source dependencies, not as
 build outputs.
 
-Keep generated ontology modules in the configured modules directory, SHACL
-constraints under `src/shapes/`, and SPARQL checks, reports, and updates under
-`src/sparql/`. Transient build artifacts belong in `tmp/`; distributable
+Keep generated ontology modules in the configured modules directory, optional
+SHACL constraints under `src/shapes/`, and SPARQL checks, analytics, and updates
+under `src/sparql/`. Blocking SPARQL checks must be ROBOT report queries that
+return exactly `?entity ?property ?value`; do not execute them as separate
+`robot query` gates. Transient build artifacts belong in `tmp/`; distributable
 current and dated packages belong in `releases/`.
 
 The root `Makefile` and `AGENTS.md` are managed copies of `toolbox/Makefile` and
@@ -87,8 +89,10 @@ Run commands from the ontology repository root:
 - `REASONER=hermit make reason` overrides the configured reasoner.
 - `make project-ql` derives `tmp/ontop-ql.<format>` for Ontop from the merged
   ontology without weakening the expressive reference ontology.
-- `make report` runs QC reports, SHACL validation, and blocking SPARQL checks;
-  use `FAIL_ON=WARN` for ROBOT warnings and `SHACL_FAIL_ON` for SHACL severity.
+- `make report` injects native and project SPARQL controls into the canonical
+  ROBOT TSV/HTML report. It runs external SHACL validation only when shapes
+  exist; use `FAIL_ON=WARN` for ROBOT warnings and `SHACL_FAIL_ON` for SHACL
+  severity.
 - `make validate` validates the classified reference as OWL 2 DL and the Ontop
   projection as OWL 2 QL.
 - `make all` runs generate, reason, QL projection, report, and validation. It
@@ -127,9 +131,12 @@ document to the required `.rdf` delivery name, then remove the intermediate
 file. Do not pass a `.rdf` output path directly to ROBOT even with an explicit
 format.
 
-Preserve the ontology IRIs configured in `config/config.env`. Keep generated
-content template-driven rather than editing files in `tmp/`. Name checks
-descriptively with snake_case, for example `missing_labels.rq`.
+Preserve the ontology IRIs configured in `config/config.env`. The native
+`forbidden_iri` ROBOT rule enforces unversioned schema IRIs under `BASE_IRI` and
+named-individual IRIs under `INSTANCE_BASE_IRI`. Keep generated content
+template-driven rather than editing files in `tmp/`. Name project checks
+descriptively with snake_case and return exactly
+`?entity ?property ?value`.
 
 The ontology products have distinct content:
 
@@ -152,9 +159,10 @@ make test-profiles
 make test-equivalences
 ```
 
-A successful change leaves the import closure self-contained, blocking SPARQL
-checks empty, QC acceptable, and both OWL profile validations clean. Inspect
-reports under `tmp/` on failure. Add focused fixtures under `tests/data/`, shell
+A successful change leaves the import closure self-contained, all ROBOT report
+queries empty, QC acceptable, and both OWL profile validations clean. Inspect
+the canonical QC report and optional SHACL reports under `tmp/` on failure. Add
+focused fixtures under `tests/data/`, shell
 tests under `tests/robot/`, and SPARQL contracts under `tests/sparql/`.
 
 If Java or ROBOT is unavailable, run `make install-robot`; do not report full

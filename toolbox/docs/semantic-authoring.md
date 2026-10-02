@@ -31,11 +31,18 @@ every Release.
 
 ## Stewardship
 
-`$antonia-onto-steward` maintains SHACL shapes, ROBOT report rules, and
-blocking SPARQL checks. `make report` evaluates SHACL against the classified
-local graph through pySHACL, writes `tmp/shacl_report.ttl` and
-`tmp/shacl_report.txt`, then retains the existing ROBOT and SPARQL gates.
-Violations block by default; Warning and Info severities remain visible.
+`$antonia-onto-steward` maintains ROBOT report rules and optional SHACL shapes.
+Every project SPARQL control must return exactly
+`?entity ?property ?value`; `make report` renders configuration sentinels and
+injects native and project controls into `tmp/robot-profile.txt` before
+producing the canonical ROBOT TSV/HTML report. Blocking SPARQL controls are not
+executed separately with `robot query`.
+
+When shape files exist, `make report` also evaluates SHACL against the
+classified local graph through pySHACL and writes `tmp/shacl_report.ttl` and
+`tmp/shacl_report.txt`. Without shapes, pySHACL is neither required nor
+invoked. Violations block by default; Warning and Info severities remain
+visible.
 
 ## Shared workflow
 

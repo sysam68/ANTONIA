@@ -21,7 +21,8 @@ runtime scripts and their documentation; it is not a Git submodule.
 - An OBDA mapping is released when present; datasource `.properties` files are
   never packaged.
 - Interactive skills derive reviewed ontology candidates from documents or
-  PostgreSQL/MySQL metadata, align Ontop mappings, and author SHACL/SPARQL gates.
+  PostgreSQL/MySQL metadata, align Ontop mappings, and author ROBOT-integrated
+  controls or optional SHACL shapes.
 
 See [the architecture](toolbox/docs/architecture.md) and
 [the release process](toolbox/docs/release-process.md) for the content
@@ -137,7 +138,7 @@ Then invoke the required skill from Codex:
 | --- | --- | --- |
 | `$antonia-ontologist` | Create or enrich an ontology from documents or an authorized PostgreSQL/MySQL source | Reviewed RDF/XML TBox and ontology design record |
 | `$antonia-ontop-mapping` | Align a relational schema with the existing ontology | Validated OBDA mapping |
-| `$antonia-onto-steward` | Define executable ontology and graph quality gates | SHACL shapes, ROBOT rules, and blocking SPARQL checks |
+| `$antonia-onto-steward` | Define executable ontology and graph quality gates | ROBOT-integrated rules and optional SHACL shapes |
 
 Each skill first establishes the scope with the user. It requires a clean Git
 worktree, uses a dedicated branch, presents the resulting diff, and leaves the
@@ -194,18 +195,28 @@ packages and ontology Releases. Do not put API keys or database credentials in
 
 ### Stewardship and quality gates
 
-`$antonia-onto-steward` turns reviewed requirements into SHACL shapes, ROBOT
-rules, or blocking SPARQL checks. Every control should have a stable identifier,
-rationale, target, severity, message, and positive and negative examples.
+`$antonia-onto-steward` turns reviewed requirements into ROBOT rules or, only
+when shape semantics are required, SHACL shapes. Project SPARQL controls must
+return exactly `?entity ?property ?value`; `make report` renders their
+configuration sentinels and injects them into the canonical ROBOT profile.
+Every control should have a stable identifier, rationale, target, severity,
+message, and positive and negative examples.
 
-`make report` evaluates SHACL against the classified graph and writes:
+When SHACL shapes exist, `make report` evaluates them against the classified
+graph and writes:
 
 - `tmp/shacl_report.ttl`, the machine-readable validation report;
 - `tmp/shacl_report.txt`, the human-readable validation report.
 
 The default `SHACL_FAIL_ON=VIOLATION` makes a SHACL violation fail the report.
-`WARNING`, `INFO`, and `NONE` provide alternative thresholds. Existing ROBOT
-and SPARQL gates continue to run in the same report workflow.
+`WARNING`, `INFO`, and `NONE` provide alternative thresholds. pySHACL is not
+invoked when no shape exists. Native and project SPARQL controls appear in the
+ROBOT TSV/HTML report rather than separate blocking outputs.
+
+ANTONIA always includes the native `forbidden_iri` ROBOT rule. It renders
+`BASE_IRI` and `INSTANCE_BASE_IRI` from `config/config.env`, rejects versioned
+schema IRIs, and keeps ontology-entity and named-individual namespaces
+separate.
 
 ### V1 boundaries
 

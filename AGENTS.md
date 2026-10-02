@@ -38,6 +38,8 @@ ANTONIA-maintenance targets or instructions in those distributed files.
   projects, including one guarded skill for every target defined by the
   ontology-project Makefile.
 - `toolbox/templates/config/` contains the expected project configuration.
+- `toolbox/checks/` contains native ROBOT report controls
+  rendered from project configuration.
 - `toolbox/docs/` contains documentation shipped with the toolbox.
 - `install-antonia.sh` installs a released toolbox and initializes a project.
 - `update-antonia.sh` is the source of the updater packaged under `toolbox/`.
@@ -58,6 +60,7 @@ must include at least:
 - `toolbox/Makefile` and `toolbox/AGENTS.md`;
 - every runtime shell script required by the ontology pipeline;
 - `toolbox/templates/config/config.env`;
+- `toolbox/checks/forbidden_iri.rq`;
 - toolbox documentation;
 - `toolbox/.agents/.antonia-managed` and every declared repository skill;
 - `.antonia-managed`, recording the concrete Release version.

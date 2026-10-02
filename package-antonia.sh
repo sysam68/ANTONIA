@@ -130,6 +130,12 @@ if [ ! -d "$ROOT/toolbox/docs" ]; then
 fi
 cp -R "$ROOT/toolbox/docs" "$TEMP_ROOT/toolbox/docs"
 
+if [ ! -d "$ROOT/toolbox/checks" ]; then
+  echo "Error: missing native ROBOT controls: toolbox/checks" >&2
+  exit 1
+fi
+cp -R "$ROOT/toolbox/checks" "$TEMP_ROOT/toolbox/checks"
+
 if [ ! -d "$ROOT/toolbox/templates" ]; then
   echo "Error: missing toolbox templates: toolbox/templates" >&2
   exit 1

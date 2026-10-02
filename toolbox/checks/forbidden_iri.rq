@@ -1,0 +1,81 @@
+PREFIX owl:  <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+# Native blocking rule: this ROBOT report query must return no rows.
+#
+# The urn:antonia:config:* sentinels are rendered from config/config.env by
+# toolbox/report.sh before ROBOT executes the query.
+#
+# Stable schema identities must be unversioned and separated from instance
+# identities so references survive ontology releases.
+#
+# ROBOT custom report queries must return exactly ?entity ?property ?value.
+SELECT DISTINCT ?entity ?property ?value
+WHERE {
+  {
+    VALUES ?entityType {
+      owl:Class
+      owl:ObjectProperty
+      owl:DatatypeProperty
+      owl:AnnotationProperty
+      rdfs:Datatype
+    }
+    ?entity a ?entityType .
+    FILTER(ISIRI(?entity))
+    BIND("ontology entity" AS ?target)
+    BIND(STR(<urn:antonia:config:BASE_IRI>) AS ?expectedBase)
+
+    # Standard vocabulary namespaces accepted without project ownership.
+    BIND(
+      STRSTARTS(STR(?entity), "http://purl.org/dc/")
+      || STRSTARTS(STR(?entity), "http://www.w3.org/")
+      AS ?allowedByDefault
+    )
+
+    VALUES ?violation {
+      "ENTITY_OUTSIDE_BASE_IRI"
+      "VERSIONED_ENTITY_IRI"
+    }
+    FILTER(
+      (?violation = "ENTITY_OUTSIDE_BASE_IRI"
+        && !STRSTARTS(STR(?entity), ?expectedBase)
+        && !?allowedByDefault)
+      ||
+      # Reject version path/hash segments such as 3.2.0, 2026-10-02, or v2.
+      (?violation = "VERSIONED_ENTITY_IRI"
+        && !?allowedByDefault
+        && REGEX(
+          STR(?entity),
+          "(^|[/#])(v[0-9]+([.-][0-9]+)*|[0-9]+([.-][0-9]+)+)([/#]|$)",
+          "i"
+        ))
+    )
+    BIND(
+      IF(
+        ?violation = "ENTITY_OUTSIDE_BASE_IRI",
+        "Ontology entity IRI must start with BASE_IRI or an allowed namespace",
+        "Ontology entity IRI must not contain a version segment"
+      ) AS ?message
+    )
+  }
+  UNION
+  {
+    ?entity a owl:NamedIndividual .
+    FILTER(ISIRI(?entity))
+    BIND("named individual" AS ?target)
+    BIND(STR(<urn:antonia:config:INSTANCE_BASE_IRI>) AS ?expectedBase)
+    FILTER(!STRSTARTS(STR(?entity), ?expectedBase))
+    BIND("INSTANCE_OUTSIDE_INSTANCE_BASE_IRI" AS ?violation)
+    BIND("Instance IRI must start with INSTANCE_BASE_IRI" AS ?message)
+  }
+
+  BIND(IRI(CONCAT("urn:antonia:qc:", ?violation)) AS ?property)
+  BIND(
+    CONCAT(
+      ?message,
+      "; target=", ?target,
+      "; expectedBase=", ?expectedBase
+    ) AS ?value
+  )
+}
+ORDER BY ?entity ?property ?value

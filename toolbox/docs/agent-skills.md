@@ -21,7 +21,7 @@ ANTONIA uses the supported skill invocation syntax instead.
 | `$antonia-generate` | `make generate` | Uses configured TSV templates |
 | `$antonia-reason` | `make reason` | Optional `REASONER` |
 | `$antonia-project-ql` | `make project-ql` | Requires merged ontology |
-| `$antonia-report` | `make report` | Optional `FAIL_ON` |
+| `$antonia-report` | `make report` | ROBOT-integrated controls; optional `FAIL_ON` and SHACL |
 | `$antonia-validate` | `make validate` | Validates DL and QL outputs |
 | `$antonia-all` | `make all` | Complete non-import pipeline |
 | `$antonia-progress` | `make progress` | Same pipeline with progress |
@@ -40,7 +40,7 @@ Interactive skills do not correspond to a single Make target:
 | --- | --- | --- |
 | `$antonia-ontologist` | Create or enrich the TBox from documents or PostgreSQL/MySQL | Clean dedicated branch; external-LLM consent |
 | `$antonia-ontop-mapping` | Align a JDBC datasource with the existing ontology in OBDA | Ignored `.properties`; explicit identity rules |
-| `$antonia-onto-steward` | Author SHACL, ROBOT, and SPARQL quality gates | Positive/negative examples and severity |
+| `$antonia-onto-steward` | Author ROBOT-integrated controls and optional SHACL shapes | Positive/negative examples and severity |
 
 Examples:
 
@@ -53,5 +53,10 @@ $antonia-report FAIL_ON=WARN
 $antonia-diff OLD=releases/old.<format> NEW=tmp/classified.<format>
 $antonia-release VERSION_TAG=2026-10-01
 ```
+
+Project controls under `src/sparql/checks/` must return exactly
+`?entity ?property ?value`; `make report` injects them into the effective ROBOT
+profile. `src/sparql/reports/` is reserved for non-blocking analytics. External
+pySHACL validation runs only when SHACL shape files exist.
 
 Restart Codex if newly installed skills do not appear in `/skills` immediately.

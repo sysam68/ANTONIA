@@ -17,8 +17,8 @@
 #   config/           with template config.env and import.env
 #   qc/               with example QC files
 #   src/edit/         with myOntology-tbox.rdf and mapping example
-#   src/sparql/       with checks, updates, reports directories
-#   src/shapes/       with SHACL directory
+#   src/sparql/       with ROBOT checks, updates, and analytics directories
+#   src/shapes/       with an optional SHACL directory
 #   tmp/              for build artifacts (git-ignored)
 # -----------------------------------------------------------------------------
 set -euo pipefail
@@ -128,7 +128,7 @@ create_from_template \
 # -----------------------------------------------------------------------------
 make_dir "$HOST_ROOT/qc"
 
-create_file "$HOST_ROOT/qc/profile.txt" $'ERROR\tduplicate_label\nERROR\tmultiple_labels\nERROR\tlabel_formatting\nERROR\tlabel_whitespace\nERROR\tinvalid_entity_uri\n' "QC severity profile"
+create_file "$HOST_ROOT/qc/profile.txt" $'ERROR\tduplicate_label\nERROR\tmultiple_labels\nERROR\tlabel_formatting\nERROR\tlabel_whitespace\nERROR\tinvalid_entity_uri\nERROR\tmissing_label\n' "ROBOT QC severity profile"
 
 create_file "$HOST_ROOT/qc/allowlist.tsv" '' "QC allowlist (empty by default)"
 create_file "$HOST_ROOT/qc/obo-expected.tsv" '' "OBO expected terms (empty by default)"
@@ -148,7 +148,7 @@ create_from_template \
   "non-secret Ontop datasource example"
 
 create_file "$HOST_ROOT/src/edit/myOntology-tbox.rdf" '<?xml version="1.0"?>
-<rdf:RDF xmlns="https://example.org/ontology/myOntology#"
+<rdf:RDF xmlns="https://example.org/ontology/myOntology/"
      xml:base="https://example.org/ontology/myOntology/"
      xmlns:owl="http://www.w3.org/2002/07/owl#"
      xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -164,7 +164,7 @@ create_file "$HOST_ROOT/src/edit/myOntology-tbox.rdf" '<?xml version="1.0"?>
     </owl:Ontology>
 
     <!-- Example class -->
-    <owl:Class rdf:about="https://example.org/ontology/myOntology#ExampleClass">
+    <owl:Class rdf:about="https://example.org/ontology/myOntology/ExampleClass">
         <rdfs:label xml:lang="en">Example Class</rdfs:label>
         <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
     </owl:Class>
@@ -195,17 +195,7 @@ make_dir "$HOST_ROOT/src/sparql/checks"
 make_dir "$HOST_ROOT/src/sparql/updates"
 make_dir "$HOST_ROOT/src/sparql/reports"
 
-create_file "$HOST_ROOT/src/sparql/checks/example_check.rq" '# SPARQL check: example - must return empty results to pass
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-
-SELECT ?class ?label
-WHERE {
-  ?class a owl:Class .
-  OPTIONAL { ?class rdfs:label ?label }
-  FILTER(!BOUND(?label))
-}
-' "Example SPARQL check"
+create_file "$HOST_ROOT/src/sparql/checks/.gitkeep" '' "project ROBOT checks placeholder"
 
 create_file "$HOST_ROOT/src/sparql/updates/project-ql.ru" '# SPARQL update: project ontology to OWL 2 QL for Ontop
 # This is a template - customize for your ontology
@@ -219,23 +209,7 @@ WHERE  { ?s ?p ?o }
 # -----------------------------------------------------------------------------
 make_dir "$HOST_ROOT/src/shapes/shacl"
 
-create_file "$HOST_ROOT/src/shapes/shacl/ontology-shapes.ttl" '# SHACL shapes for ontology validation
-@prefix sh: <http://www.w3.org/ns/shacl#> .
-@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
-@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-
-# Example shape: every class must have a label
-_:ClassShape
-    a sh:NodeShape ;
-    sh:targetClass owl:Class ;
-    sh:property [
-        sh:path rdfs:label ;
-        sh:minCount 1 ;
-        sh:message "Every class must have an rdfs:label" ;
-    ] .
-' "SHACL shapes (Turtle)"
+create_file "$HOST_ROOT/src/shapes/shacl/.gitkeep" '' "optional SHACL shapes placeholder"
 
 # -----------------------------------------------------------------------------
 # 7. tmp/ (build artifacts)

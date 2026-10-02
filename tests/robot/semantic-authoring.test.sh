@@ -24,6 +24,11 @@ test -f "$ROOT/toolbox/.agents/skills/antonia-ontologist/scripts/normalize_docum
 grep -Fq 'ONTOGPT_ALLOW_EXTERNAL_LLM=0' "$ROOT/toolbox/templates/config/config.env"
 grep -Fq 'DB_SAMPLE_TO_LLM=0' "$ROOT/toolbox/templates/config/config.env"
 grep -Fq 'validate_shacl.py' "$ROOT/toolbox/report.sh"
+grep -Fq 'must return exactly `?entity ?property ?value`' \
+  "$ROOT/toolbox/.agents/skills/antonia-onto-steward/SKILL.md"
+grep -Fq 'Never implement a blocking SPARQL control as a separate `robot query` gate.' \
+  "$ROOT/toolbox/.agents/skills/antonia-onto-steward/SKILL.md"
+test -f "$ROOT/toolbox/checks/forbidden_iri.rq"
 
 printf 'A domain statement.\n' > "$TEMP_ROOT/source.md"
 python3 "$ROOT/toolbox/.agents/skills/antonia-ontologist/scripts/normalize_document.py" \

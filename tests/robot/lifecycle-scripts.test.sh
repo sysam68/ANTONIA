@@ -59,7 +59,7 @@ assert_qc_profile_uses_tabs() {
   local actual=""
   local expected=""
 
-  expected=$'ERROR\tduplicate_label\nERROR\tmultiple_labels\nERROR\tlabel_formatting\nERROR\tlabel_whitespace\nERROR\tinvalid_entity_uri'
+  expected=$'ERROR\tduplicate_label\nERROR\tmultiple_labels\nERROR\tlabel_formatting\nERROR\tlabel_whitespace\nERROR\tinvalid_entity_uri\nERROR\tmissing_label'
   actual="$(cat "$path")"
   if [ "$actual" != "$expected" ]; then
     echo "Error: initialized QC profile does not contain tab-separated rules: $path" >&2
@@ -100,13 +100,18 @@ test "$(grep -Fxc 'tmp/' "$SUCCESS_ROOT/.gitignore")" -eq 1
 test "$(grep -Fxc '.tools/' "$SUCCESS_ROOT/.gitignore")" -eq 1
 test "$(grep -Fxc 'src/edit/*.properties' "$SUCCESS_ROOT/.gitignore")" -eq 1
 test -f "$SUCCESS_ROOT/src/edit/myOntology.properties.example"
+grep -Fq 'rdf:about="https://example.org/ontology/myOntology/ExampleClass"' \
+  "$SUCCESS_ROOT/src/edit/myOntology-tbox.rdf"
+test -f "$SUCCESS_ROOT/toolbox/checks/forbidden_iri.rq"
+test -f "$SUCCESS_ROOT/src/sparql/checks/.gitkeep"
+test -f "$SUCCESS_ROOT/src/shapes/shacl/.gitkeep"
+test ! -e "$SUCCESS_ROOT/src/sparql/checks/example_check.rq"
+test ! -e "$SUCCESS_ROOT/src/shapes/shacl/ontology-shapes.ttl"
 for initialized_file in \
   "$SUCCESS_ROOT/qc/profile.txt" \
   "$SUCCESS_ROOT/src/edit/myOntology-tbox.rdf" \
   "$SUCCESS_ROOT/src/edit/mapping-sourceIOnto-TargetOnto.rdf" \
-  "$SUCCESS_ROOT/src/sparql/checks/example_check.rq" \
-  "$SUCCESS_ROOT/src/sparql/updates/project-ql.ru" \
-  "$SUCCESS_ROOT/src/shapes/shacl/ontology-shapes.ttl"; do
+  "$SUCCESS_ROOT/src/sparql/updates/project-ql.ru"; do
   assert_not_starting_with_backslash "$initialized_file"
 done
 assert_qc_profile_uses_tabs "$SUCCESS_ROOT/qc/profile.txt"
