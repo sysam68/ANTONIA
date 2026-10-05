@@ -61,6 +61,7 @@ must include at least:
 - every runtime shell script required by the ontology pipeline;
 - `toolbox/templates/config/config.env`;
 - `toolbox/checks/forbidden_iri.rq`;
+- `toolbox/checks/forbidden_equivalence.rq`;
 - toolbox documentation;
 - `toolbox/.agents/.antonia-managed` and every declared repository skill;
 - `.antonia-managed`, recording the concrete Release version.

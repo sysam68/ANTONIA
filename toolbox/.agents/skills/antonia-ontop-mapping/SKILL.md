@@ -15,16 +15,20 @@ is absent. Never print the configured properties file or credentials.
 ## Build the technical baseline
 
 Use the path in `ONTOP_PROPERTIES` and write every intermediate under
-`tmp/antonia-ontop-mapping/`:
+`TARGET/antonia-ontop-mapping/`:
 
 ```bash
-ontop extract-db-metadata -p <properties> -o <tmp>/db-metadata.json
+ontop extract-db-metadata -p <properties> -o <TARGET>/db-metadata.json
 ontop bootstrap -b <instance-base-iri> -p <properties> \
-  -m <tmp>/bootstrap.obda -t <tmp>/bootstrap.owl
+  -m <TARGET>/bootstrap.obda -t <TARGET>/bootstrap.owl
 ```
 
 The bootstrap ontology mirrors the database and is evidence only. Do not merge
 it into the authoritative TBox or copy it into a Release.
+
+`owl:equivalentClass` assertions are allowed only in the ontology-to-ontology
+file configured by `MAPPINGS`. Do not confuse that RDF alignment ontology with
+the relational OBDA file configured by `OBDA`.
 
 ## Align and validate
 

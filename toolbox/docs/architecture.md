@@ -31,7 +31,7 @@ src/sparql/checks/          ROBOT report queries (?entity ?property ?value)
 src/sparql/reports/         non-blocking queries
 docs/ontology-design.md     modeling evidence and decisions
 toolbox/                    managed ANTONIA runtime
-tmp/                        ignored builds and extraction evidence
+TARGET/                     ignored builds and evidence (`tmp/` by default)
 releases/                   ontology release artifacts
 ```
 
@@ -46,6 +46,7 @@ The workflow follows these stages:
    - Separate TBox and ABox generation
 
 2. **Merging**
+   - Validate each non-mapping source for forbidden class equivalences
    - Combine TBox, ABox, annotations, imports
 
 3. **Reasoning**

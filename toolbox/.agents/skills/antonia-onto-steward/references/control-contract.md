@@ -20,6 +20,13 @@ ROBOT profile. `toolbox/report.sh` renders its `BASE_IRI` and
 `INSTANCE_BASE_IRI` sentinels from `config/config.env`; projects must not copy,
 shadow, or duplicate this managed rule.
 
+The toolbox-native `forbidden_equivalence` query is a source-scope exception:
+`toolbox/reason.sh` executes it with `robot report` on each ontology source
+before fusion and excludes only the RDF alignment ontology configured by
+`MAPPINGS`. This preserves source provenance while keeping ROBOT as the control
+plane. The complete reasoning pass accepts asserted mapping equivalences but
+rejects newly inferred class equivalences.
+
 Each rule needs a stable identifier, message, target, severity, rationale, and
 positive/negative fixture. For custom ROBOT queries, bind the stable rule IRI
 to `?property` and actionable evidence to `?value`. Under the default

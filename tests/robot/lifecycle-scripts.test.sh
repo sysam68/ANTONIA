@@ -103,6 +103,7 @@ test -f "$SUCCESS_ROOT/src/edit/myOntology.properties.example"
 grep -Fq 'rdf:about="https://example.org/ontology/myOntology/ExampleClass"' \
   "$SUCCESS_ROOT/src/edit/myOntology-tbox.rdf"
 test -f "$SUCCESS_ROOT/toolbox/checks/forbidden_iri.rq"
+test -f "$SUCCESS_ROOT/toolbox/checks/forbidden_equivalence.rq"
 test -f "$SUCCESS_ROOT/src/sparql/checks/.gitkeep"
 test -f "$SUCCESS_ROOT/src/shapes/shacl/.gitkeep"
 test ! -e "$SUCCESS_ROOT/src/sparql/checks/example_check.rq"
@@ -117,6 +118,23 @@ done
 assert_qc_profile_uses_tabs "$SUCCESS_ROOT/qc/profile.txt"
 grep -q 'Installing the repository-local ROBOT toolchain' "$SUCCESS_ROOT/install.log"
 grep -q 'Removed bootstrap installer: install-antonia.sh' "$SUCCESS_ROOT/install.log"
+
+printf '\nTARGET=custom-build\n' >> "$SUCCESS_ROOT/config/config.env"
+mkdir -p "$SUCCESS_ROOT/custom-build"
+printf '%s\n' 'remove me' > "$SUCCESS_ROOT/custom-build/build-output.txt"
+printf '%s\n' 'preserve me' > "$SUCCESS_ROOT/tmp/project-evidence.txt"
+make -C "$SUCCESS_ROOT" clean > "$SUCCESS_ROOT/clean.log"
+test ! -e "$SUCCESS_ROOT/custom-build"
+grep -Fqx 'preserve me' "$SUCCESS_ROOT/tmp/project-evidence.txt"
+grep -Fq 'cleaned custom-build/' "$SUCCESS_ROOT/clean.log"
+printf 'TARGET=..\n' >> "$SUCCESS_ROOT/config/config.env"
+if make -C "$SUCCESS_ROOT" clean > "$SUCCESS_ROOT/unsafe-clean.log" 2>&1; then
+  echo "Error: make clean accepted an unsafe TARGET" >&2
+  exit 1
+fi
+test -d "$SUCCESS_ROOT"
+grep -Fq 'Refusing unsafe TARGET path' "$SUCCESS_ROOT/unsafe-clean.log"
+printf 'TARGET=custom-build\n' >> "$SUCCESS_ROOT/config/config.env"
 
 bash "$SUCCESS_ROOT/toolbox/init_project.sh" > "$SUCCESS_ROOT/reinit.log"
 test "$(grep -Fxc 'tmp/' "$SUCCESS_ROOT/.gitignore")" -eq 1

@@ -18,8 +18,9 @@ Keep generated ontology modules in the configured modules directory, optional
 SHACL constraints under `src/shapes/`, and SPARQL checks, analytics, and updates
 under `src/sparql/`. Blocking SPARQL checks must be ROBOT report queries that
 return exactly `?entity ?property ?value`; do not execute them as separate
-`robot query` gates. Transient build artifacts belong in `tmp/`; distributable
-current and dated packages belong in `releases/`.
+`robot query` gates. Transient build artifacts belong under the configured
+`TARGET` (`tmp/` by default); distributable current and dated packages belong
+in `releases/`.
 
 The root `Makefile` and `AGENTS.md` are managed copies of `toolbox/Makefile` and
 `toolbox/AGENTS.md`. Repository skills declared by
@@ -45,7 +46,7 @@ The interactive responsibilities are separate: `$antonia-ontologist` creates
 or enriches the conceptual model, `$antonia-ontop-mapping` aligns relational
 sources with that model, and `$antonia-onto-steward` maintains executable
 quality controls. Raw extraction, sampling, and bootstrap evidence belongs
-under `tmp/`, never in ontology sources or Releases.
+under the configured `TARGET`, never in ontology sources or Releases.
 
 ## Local toolchain
 
@@ -73,7 +74,7 @@ access to each repository declared in `config/import.env`.
 used to bound processor count and heap through `JAVA_TOOL_OPTIONS`.
 
 Do not commit `.tools/`, `config/java.conf`, downloaded Java runtimes, ROBOT
-JARs, `tmp/`, or ad-hoc release packages.
+JARs, the configured `TARGET`, or ad-hoc release packages.
 
 ## Build commands
 
@@ -82,12 +83,13 @@ Run commands from the ontology repository root:
 - `make import` refreshes configured external ontology Release assets.
 - `make install-semantic-tools` installs the local OntoGPT/Ontop/SHACL tools.
 - `make generate` expands TSV templates into RDF/XML modules.
-- `make reason` merges the complete import closure into `tmp/merged.<format>` and
-  classifies the OWL 2 DL reference ontology into `tmp/classified.<format>`. In a
+- `make reason` validates equivalence scope source by source before fusion,
+  merges the complete import closure into `TARGET/merged.<format>`, and
+  classifies the OWL 2 DL reference ontology into `TARGET/classified.<format>`. In a
   newly initialized project with no ontology files yet, it reports the absence
   of merge inputs and exits successfully without creating those outputs.
 - `REASONER=hermit make reason` overrides the configured reasoner.
-- `make project-ql` derives `tmp/ontop-ql.<format>` for Ontop from the merged
+- `make project-ql` derives `TARGET/ontop-ql.<format>` for Ontop from the merged
   ontology without weakening the expressive reference ontology.
 - `make report` injects native and project SPARQL controls into the canonical
   ROBOT TSV/HTML report. It runs external SHACL validation only when shapes
@@ -99,16 +101,16 @@ Run commands from the ontology repository root:
   does not refresh imports or run focused test scripts.
 - `make progress` runs the same five targets in the same order, with the same
   overrides and stop-on-error behavior, while displaying progress indicators.
-- `make diff OLD=releases/old.<format> NEW=tmp/classified.<format>` compares ontology
+- `make diff OLD=releases/old.<format> NEW=TARGET/classified.<format>` compares ontology
   versions semantically.
 
-`make clean` removes `tmp/`; do not use it when uncommitted build evidence must
-be preserved.
+`make clean` removes the directory configured by `TARGET`; do not use it when
+uncommitted build evidence must be preserved.
 
 ## Import-closure contract
 
 `toolbox/reason.sh` must merge with `--collapse-import-closure true` and the
-portable XML catalog. A valid `tmp/merged.<format>` is self-contained: it includes
+portable XML catalog. A valid `TARGET/merged.<format>` is self-contained: it includes
 the configured import closure and has no residual `owl:imports`.
 
 Run `make test-imports` after changing `config/import.env`, the XML catalog, an
@@ -134,9 +136,16 @@ format.
 Preserve the ontology IRIs configured in `config/config.env`. The native
 `forbidden_iri` ROBOT rule enforces unversioned schema IRIs under `BASE_IRI` and
 named-individual IRIs under `INSTANCE_BASE_IRI`. Keep generated content
-template-driven rather than editing files in `tmp/`. Name project checks
+template-driven rather than editing files under `TARGET`. Name project checks
 descriptively with snake_case and return exactly
 `?entity ?property ?value`.
+
+Class equivalence assertions are allowed only in the ontology-to-ontology file
+configured by `MAPPINGS`. `toolbox/reason.sh` validates every other source with
+ROBOT before any merge, then uses `asserted-only` for the complete graph so
+newly inferred class equivalences remain blocking. Do not declare
+`owl:equivalentClass` in the TBox, ABox, imports, generated modules, or
+annotations.
 
 The ontology products have distinct content:
 
@@ -161,7 +170,7 @@ make test-equivalences
 
 A successful change leaves the import closure self-contained, all ROBOT report
 queries empty, QC acceptable, and both OWL profile validations clean. Inspect
-the canonical QC report and optional SHACL reports under `tmp/` on failure. Add
+the canonical QC report and optional SHACL reports under `TARGET` on failure. Add
 focused fixtures under `tests/data/`, shell
 tests under `tests/robot/`, and SPARQL contracts under `tests/sparql/`.
 

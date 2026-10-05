@@ -191,9 +191,16 @@ tsvs_under() {
 
 # Build a flat array of '--input <file>' arguments for 'robot merge'.
 # Includes the TBox, ABox, and mapping ontology when their configured files
-# exist, plus all supported files from IMPORTS/MODULES/ANNOT_DIR.
+# exist, plus all supported files from IMPORTS/MODULES/ANNOT_DIR. Pass 0 to
+# exclude the configured mapping ontology for source-scope validation.
 build_merge_inputs() {
+  local include_mapping="${1:-1}"
   local inputs=()
+
+  case "$include_mapping" in
+    0|1) ;;
+    *) echo "Error: build_merge_inputs expects 0 or 1" >&2; return 2 ;;
+  esac
 
   # A newly initialized project may not have ontology sources yet.
   [ -f "$TBOX" ] && inputs+=( --input "$TBOX" )
@@ -202,14 +209,30 @@ build_merge_inputs() {
   [ -f "$ABOX" ] && inputs+=( --input "$ABOX" )
 
   # An ontology-to-ontology mapping is optional and independent from the TBox.
-  if [ -n "${MAPPINGS:-}" ] && [ -f "$MAPPINGS" ]; then
+  if [ "$include_mapping" -eq 1 ] \
+      && [ -n "${MAPPINGS:-}" ] && [ -f "$MAPPINGS" ]; then
     inputs+=( --input "$MAPPINGS" )
   fi
 
   # Collect additional ontology files
-  while read -r f; do [ -n "${f:-}" ] && inputs+=( --input "$f" ); done < <(ontology_files_under "$IMPORTS_DIR")
-  while read -r f; do [ -n "${f:-}" ] && inputs+=( --input "$f" ); done < <(ontology_files_under "$MODULES_DIR")
-  while read -r f; do [ -n "${f:-}" ] && inputs+=( --input "$f" ); done < <(ontology_files_under "$ANNOT_DIR")
+  while read -r f; do
+    [ -n "${f:-}" ] || continue
+    [ "$include_mapping" -eq 0 ] && [ -n "${MAPPINGS:-}" ] \
+      && [ "$f" = "$MAPPINGS" ] && continue
+    inputs+=( --input "$f" )
+  done < <(ontology_files_under "$IMPORTS_DIR")
+  while read -r f; do
+    [ -n "${f:-}" ] || continue
+    [ "$include_mapping" -eq 0 ] && [ -n "${MAPPINGS:-}" ] \
+      && [ "$f" = "$MAPPINGS" ] && continue
+    inputs+=( --input "$f" )
+  done < <(ontology_files_under "$MODULES_DIR")
+  while read -r f; do
+    [ -n "${f:-}" ] || continue
+    [ "$include_mapping" -eq 0 ] && [ -n "${MAPPINGS:-}" ] \
+      && [ "$f" = "$MAPPINGS" ] && continue
+    inputs+=( --input "$f" )
+  done < <(ontology_files_under "$ANNOT_DIR")
 
   # Print as lines so Bash 3.2 callers can populate an array.
   if [ "${#inputs[@]}" -gt 0 ]; then

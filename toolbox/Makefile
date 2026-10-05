@@ -18,13 +18,13 @@ help:
 	@echo "  update-antonia: update from stable (script supports -dev and -version=<tag>)"
 	@echo "  java-conf   : generate the ignored config/java.conf JVM profile"
 	@echo "  init-project: initialize missing host project files"
-	@echo "  progress    : run the complete pipeline with progress indicators"
+	@echo "  progress    : run the five-stage build with progress indicators"
 	@echo "  import      : import external ontologies"
 	@echo
 	@echo "Targets:"
 	@echo "  all         : generate → reason → project-ql → report → validate"
 	@echo "  generate    : expand TSV templates to RDF/XML modules"
-	@echo "  reason      : merge and classify ontology (use REASONER=hermit|ELK|jfact)"
+	@echo "  reason      : check sources, merge, and classify (REASONER=hermit|ELK|jfact)"
 	@echo "  project-ql  : derive the OWL 2 QL projection used by Ontop"
 	@echo "  report      : run ROBOT-integrated QC and optional SHACL"
 	@echo "  validate    : validate the OWL 2 DL reference and OWL 2 QL projection"
@@ -35,7 +35,7 @@ help:
 	@echo "  test-release: verify resumable ontology release publication"
 	@echo "  release     : package the ontology release (VERSION_TAG=YYYY-MM-DD)"
 	@echo "  diff        : ROBOT diff (requires OLD=... and NEW=...)"
-	@echo "  clean       : remove ontology build outputs under tmp/"
+	@echo "  clean       : remove the build directory configured by TARGET"
 	@echo
 	@echo "Codex skills:"
 	@echo "  /skills     : browse installed ANTONIA skills"
@@ -45,7 +45,7 @@ help:
 	@echo "  REASONER=hermit make reason"
 	@echo "  FAIL_ON=WARN make report"
 	@echo "  VERSION_TAG=2025-08-15 make release"
-	@echo "  make diff OLD=releases/old.<format> NEW=tmp/classified.<format>"
+	@echo "  make diff OLD=releases/old.<format> NEW=<TARGET>/classified.<format>"
 	@echo '  $$antonia-release VERSION_TAG=2025-08-15'
 
 init-x:
@@ -58,7 +58,7 @@ init-project:
 all: generate reason project-ql report validate
 
 progress:
-	@bash -euo pipefail -c 'source ./toolbox/progress.sh; total=5; progress_step 1 $$total "generate"; progress_bar 1 $$total "generate"; make generate; printf "\n"; progress_step 2 $$total "reason"; progress_bar 2 $$total "reason"; make reason; printf "\n"; progress_step 3 $$total "project-ql"; progress_bar 3 $$total "project-ql"; make project-ql; printf "\n"; progress_step 4 $$total "report"; progress_bar 4 $$total "report"; make report; printf "\n"; progress_step 5 $$total "validate"; progress_bar 5 $$total "validate"; make validate; printf "\n"; echo "✓ Full pipeline complete"'
+	@bash -euo pipefail -c 'source ./toolbox/progress.sh; total=5; progress_step 1 $$total "generate"; progress_bar 1 $$total "generate"; make generate; printf "\n"; progress_step 2 $$total "reason"; progress_bar 2 $$total "reason"; make reason; printf "\n"; progress_step 3 $$total "project-ql"; progress_bar 3 $$total "project-ql"; make project-ql; printf "\n"; progress_step 4 $$total "report"; progress_bar 4 $$total "report"; make report; printf "\n"; progress_step 5 $$total "validate"; progress_bar 5 $$total "validate"; make validate; printf "\n"; echo "✓ Build pipeline complete"'
 
 java-conf:
 	@./toolbox/java_conf.sh
@@ -122,5 +122,4 @@ endif
 	@./toolbox/diff.sh "$(OLD)" "$(NEW)"
 
 clean:
-	@rm -rf tmp
-	@echo "✓ cleaned tmp/"
+	@./toolbox/clean.sh

@@ -101,4 +101,11 @@ done
 INIT_X_DRY_RUN="$(make -f "$MAKEFILE" -n init-x)"
 printf '%s\n' "$INIT_X_DRY_RUN" | grep -Fq 'chmod +x toolbox/*.sh'
 
+while IFS= read -r script; do
+  if [ ! -f "$ROOT/$script" ]; then
+    test -f "$ROOT/${script#toolbox/}"
+  fi
+done < <(sed -n 's|^[[:space:]]*@\./\(toolbox/[A-Za-z0-9_.-]*\.sh\).*|\1|p' \
+  "$MAKEFILE" | LC_ALL=C sort -u)
+
 echo "agent skills test: passed"

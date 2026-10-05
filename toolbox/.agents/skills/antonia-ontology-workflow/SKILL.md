@@ -17,24 +17,26 @@ For a request that maps to one Make target, prefer the matching
 - Read `config/import.env` and the XML catalog before changing an import.
 - Inspect the working tree and preserve unrelated changes.
 - Distinguish authoritative sources under `src/` from generated evidence under
-  `tmp/` and distributable artifacts under `releases/`.
+  the configured `TARGET` and distributable artifacts under `releases/`.
 
 ## Make the change at its authoritative source
 
 - Change ontology semantics in the configured editable ontology, mapping
   ontology, templates, SHACL shapes, or SPARQL rules as appropriate.
-- Do not edit generated files in `tmp/` as source material.
+- Do not edit generated files under `TARGET` as source material.
 - Do not hard-code names, IRIs, or paths from another ontology repository into
   the shared toolbox.
 - Keep the OWL 2 DL reference ontology distinct from the derived OWL 2 QL
   projection used by Ontop.
+- Declare class equivalences only in the ontology-to-ontology file configured
+  by `MAPPINGS`; they are forbidden in every other ontology source.
 
 ## Validate proportionally
 
 - For import or catalog changes, run `make import` and `make test-imports`.
 - For ontology or pipeline changes, run `make all` and the relevant focused
   tests, normally `make test-profiles` and `make test-equivalences`.
-- Inspect the reports under `tmp/` when validation fails; do not infer success
+- Inspect the reports under `TARGET` when validation fails; do not infer success
   from command execution alone.
 - If Java or ROBOT is unavailable, run `make install-robot`. State clearly when
   full validation could not be completed.

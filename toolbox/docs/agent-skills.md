@@ -31,7 +31,7 @@ ANTONIA uses the supported skill invocation syntax instead.
 | `$antonia-test-equivalences` | `make test-equivalences` | Semantic contracts |
 | `$antonia-test-release` | `make test-release` | Never publishes |
 | `$antonia-diff` | `make diff` | Requires `OLD` and `NEW` |
-| `$antonia-clean` | `make clean` | Removes `tmp/` |
+| `$antonia-clean` | `make clean` | Removes the configured `TARGET` |
 | `$antonia-release` | `make release` | Explicit publication request and `VERSION_TAG` |
 
 Interactive skills do not correspond to a single Make target:
@@ -50,7 +50,7 @@ $antonia-install-semantic-tools
 $antonia-ontologist
 $antonia-reason REASONER=hermit
 $antonia-report FAIL_ON=WARN
-$antonia-diff OLD=releases/old.<format> NEW=tmp/classified.<format>
+$antonia-diff OLD=releases/old.<format> NEW=<TARGET>/classified.<format>
 $antonia-release VERSION_TAG=2026-10-01
 ```
 

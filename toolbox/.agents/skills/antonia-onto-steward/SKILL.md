@@ -28,9 +28,10 @@ positive example, and negative example.
   report rule does not provide. Store those shapes under `src/shapes/shacl/`;
   pySHACL remains the only external validation path and runs only when shape
   files exist.
-- Do not duplicate the native `forbidden_iri` rule or another gate without a
-  documented reason. The native rule is rendered from `BASE_IRI` and
-  `INSTANCE_BASE_IRI` by `toolbox/report.sh`.
+- Do not duplicate the native `forbidden_iri` or `forbidden_equivalence` rule.
+  The IRI rule is rendered from `BASE_IRI` and `INSTANCE_BASE_IRI` by
+  `toolbox/report.sh`. The equivalence rule runs through `robot report` on each
+  source before fusion, excluding only the ontology configured by `MAPPINGS`.
 - Preserve project-specific rules and messages. Use stable shape and rule IRIs
   so findings remain comparable over time.
 

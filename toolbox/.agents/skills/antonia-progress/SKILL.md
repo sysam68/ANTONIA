@@ -1,6 +1,6 @@
 ---
 name: antonia-progress
-description: Run the complete ANTONIA ontology pipeline with progress indicators.
+description: Run the five-stage ANTONIA ontology build pipeline with progress indicators.
 ---
 
 # Run the pipeline with progress

@@ -59,7 +59,9 @@ Use TSV templates for:
 ## 5. Modeling Patterns
 
 - **SubClassOf hierarchy** for taxonomy
-- **EquivalentClasses** for strict definitions
+- **EquivalentClasses** only in the ontology-to-ontology file configured by
+  `MAPPINGS`; they are forbidden in the TBox, ABox, imports, generated modules,
+  and annotations
 - **DisjointClasses** to avoid overlaps
 - **Domain/Range** for properties
 - **Named Individuals** for real-world instances

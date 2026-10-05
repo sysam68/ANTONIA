@@ -47,6 +47,7 @@ for lifecycle_script in install-antonia.sh update-antonia.sh; do
 done
 
 TOOLBOX_FILES=(
+  clean.sh
   common.sh
   diff.sh
   generate_from_templates.sh

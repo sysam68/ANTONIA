@@ -29,6 +29,7 @@ grep -Fq 'must return exactly `?entity ?property ?value`' \
 grep -Fq 'Never implement a blocking SPARQL control as a separate `robot query` gate.' \
   "$ROOT/toolbox/.agents/skills/antonia-onto-steward/SKILL.md"
 test -f "$ROOT/toolbox/checks/forbidden_iri.rq"
+test -f "$ROOT/toolbox/checks/forbidden_equivalence.rq"
 
 printf 'A domain statement.\n' > "$TEMP_ROOT/source.md"
 python3 "$ROOT/toolbox/.agents/skills/antonia-ontologist/scripts/normalize_document.py" \

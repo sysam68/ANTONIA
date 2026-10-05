@@ -13,13 +13,17 @@ runtime scripts and their documentation; it is not a Git submodule.
 
 - The authoritative ontology is maintained in RDF/XML under `src/edit/`.
 - `OUTPUT_FORMAT=rdf|ttl|owl` controls every generated ontology serialization.
-- `tmp/classified.<format>` is the reasoned OWL 2 DL reference ontology.
-- `tmp/merged.<format>` is the assembled graph before reasoning.
-- `tmp/ontop-ql.<format>` is the OWL 2 QL projection for Ontop.
+- `TARGET/classified.<format>` is the reasoned OWL 2 DL reference ontology.
+- `TARGET/merged.<format>` is the assembled graph before reasoning.
+- `TARGET/ontop-ql.<format>` is the OWL 2 QL projection for Ontop.
+
+`TARGET` is configured in `config/config.env` and defaults to `tmp/`.
 - Releases use `<name>.<format>` and retain an `.owl` compatibility copy when
   the configured primary format is not already `owl`.
 - An OBDA mapping is released when present; datasource `.properties` files are
   never packaged.
+- Class equivalence assertions are accepted only from the RDF ontology mapping
+  configured by `MAPPINGS`; all other sources are checked before fusion.
 - Interactive skills derive reviewed ontology candidates from documents or
   PostgreSQL/MySQL metadata, align Ontop mappings, and author ROBOT-integrated
   controls or optional SHACL shapes.
@@ -74,7 +78,7 @@ top-level `/antonia-*` slash commands; the supported distributed form is
 The semantic-authoring workflows are `$antonia-ontologist`,
 `$antonia-ontop-mapping`, and `$antonia-onto-steward`. They require a clean
 worktree, work on a dedicated branch, leave the result uncommitted for review,
-and keep raw evidence under `tmp/`. See
+and keep raw evidence under the configured `TARGET`. See
 [semantic authoring](toolbox/docs/semantic-authoring.md).
 
 To update only the managed toolbox files to the latest release:
@@ -143,7 +147,7 @@ Then invoke the required skill from Codex:
 Each skill first establishes the scope with the user. It requires a clean Git
 worktree, uses a dedicated branch, presents the resulting diff, and leaves the
 changes uncommitted. Raw documents, metadata, samples, extractions, and Ontop
-bootstrap outputs remain in the ignored `tmp/` directory.
+bootstrap outputs remain under the configured `TARGET` directory.
 
 ### Ontology creation and enrichment
 
@@ -205,8 +209,8 @@ message, and positive and negative examples.
 When SHACL shapes exist, `make report` evaluates them against the classified
 graph and writes:
 
-- `tmp/shacl_report.ttl`, the machine-readable validation report;
-- `tmp/shacl_report.txt`, the human-readable validation report.
+- `TARGET/shacl_report.ttl`, the machine-readable validation report;
+- `TARGET/shacl_report.txt`, the human-readable validation report.
 
 The default `SHACL_FAIL_ON=VIOLATION` makes a SHACL violation fail the report.
 `WARNING`, `INFO`, and `NONE` provide alternative thresholds. pySHACL is not
@@ -217,6 +221,12 @@ ANTONIA always includes the native `forbidden_iri` ROBOT rule. It renders
 `BASE_IRI` and `INSTANCE_BASE_IRI` from `config/config.env`, rejects versioned
 schema IRIs, and keeps ontology-entity and named-individual namespaces
 separate.
+
+The native `forbidden_equivalence` rule runs through `robot report` on every
+ontology source before fusion, except the RDF alignment ontology configured by
+`MAPPINGS`. The complete graph then uses ROBOT's `asserted-only` reasoning
+policy: asserted mapping equivalences are accepted, while newly inferred class
+equivalences remain blocking.
 
 ### V1 boundaries
 

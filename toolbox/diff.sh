@@ -3,8 +3,8 @@
 # diff.sh
 # Compare two ontology versions using ROBOT diff.
 # Outputs:
-#   - target/diff.html   (human-readable HTML report)
-#   - target/diff.owl    (machine-readable OWL diff)
+#   - TARGET/diff.html   (human-readable HTML report)
+#   - TARGET/diff.owl    (machine-readable OWL diff)
 # -----------------------------------------------------------------------------
 set -euo pipefail
 source "$(dirname "$0")/common.sh"
@@ -48,4 +48,3 @@ robot diff \
 echo "✓ Diff completed"
 echo "  - HTML report: $TARGET/diff.html"
 echo "  - OWL diff:    $TARGET/diff.owl"
-

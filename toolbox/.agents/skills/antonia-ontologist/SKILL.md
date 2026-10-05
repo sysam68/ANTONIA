@@ -18,7 +18,7 @@ before acting.
   intent: subject, audience, purpose, competency questions, and sources.
 - Run `make install-semantic-tools` when the local OntoGPT toolchain is absent.
 - Store normalized inputs, extraction results, database metadata, and samples
-  under `tmp/antonia-ontologist/`.
+  under `TARGET/antonia-ontologist/`.
 
 ## Extract candidates
 
@@ -41,6 +41,8 @@ an LLM unless `DB_SAMPLE_TO_LLM=1`.
   annotations. Do not turn every noun, table, column, or record into a class.
 - Preserve existing axioms. Stop on an IRI collision, incompatible definition,
   destructive rename, or deletion until the user resolves it.
+- Do not write `owl:equivalentClass` into the TBox or ABox. Cross-ontology
+  equivalences belong only in the configured `MAPPINGS` ontology.
 - Write accepted axioms to the configured RDF/XML TBox. Keep generated or raw
   intermediates out of `src/`.
 - Create or update the configured ontology-design record from

@@ -15,10 +15,11 @@ cleanup() {
 }
 trap cleanup EXIT
 
-mkdir -p "$WORK/toolbox" "$WORK/config" "$BIN"
+mkdir -p "$WORK/toolbox/checks" "$WORK/config" "$BIN"
 cp "$ROOT/toolbox/common.sh" "$WORK/toolbox/common.sh"
 cp "$ROOT/toolbox/reason.sh" "$WORK/toolbox/reason.sh"
 cp "$ROOT/toolbox/project_ql.sh" "$WORK/toolbox/project_ql.sh"
+cp "$ROOT/toolbox/checks/forbidden_equivalence.rq" "$WORK/toolbox/checks/"
 
 cat > "$WORK/config/config.env" <<'EOF'
 TBOX=src/edit/myOntology-tbox.rdf
@@ -110,9 +111,11 @@ test -f "$WORK/tmp/merged.rdf"
 test -f "$WORK/tmp/classified.rdf"
 test ! -e "$WORK/tmp/merged.owl"
 test ! -e "$WORK/tmp/classified.owl"
-test "$(wc -l < "$TEST_ROOT/robot.log" | tr -d ' ')" -eq 2
+test "$(wc -l < "$TEST_ROOT/robot.log" | tr -d ' ')" -eq 3
 grep -Fq 'merge --input' "$TEST_ROOT/robot.log"
-grep -Fq 'reason --input' "$TEST_ROOT/robot.log"
+test "$(grep -c 'report --input' "$TEST_ROOT/robot.log")" -eq 1
+test "$(grep -c 'reason --input' "$TEST_ROOT/robot.log")" -eq 1
+grep -Fq -- '--equivalent-classes-allowed none' "$TEST_ROOT/robot.log"
 if grep -Fq 'no import or files to merge' "$TEST_ROOT/tbox-only.log"; then
   cat "$TEST_ROOT/tbox-only.log" >&2
   exit 1
