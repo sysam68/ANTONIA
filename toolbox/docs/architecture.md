@@ -46,6 +46,7 @@ The workflow follows these stages:
    - Separate TBox and ABox generation
 
 2. **Merging**
+   - Validate configured IRI ownership on project-owned sources only
    - Validate each non-mapping source for forbidden class equivalences
    - Combine TBox, ABox, annotations, imports
 
@@ -53,7 +54,7 @@ The workflow follows these stages:
    - Run classification with ELK, HermiT, or JFact
 
 4. **Validation**
-   - native and project SPARQL controls via the canonical ROBOT report
+   - project SPARQL controls via the canonical post-reasoning ROBOT report
    - optional SHACL over the classified graph and optional ABox
    - OWL 2 DL compliance
    - non-blocking SPARQL analytics

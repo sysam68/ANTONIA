@@ -83,15 +83,16 @@ Run commands from the ontology repository root:
 - `make import` refreshes configured external ontology Release assets.
 - `make install-semantic-tools` installs the local OntoGPT/Ontop/SHACL tools.
 - `make generate` expands TSV templates into RDF/XML modules.
-- `make reason` validates equivalence scope source by source before fusion,
-  merges the complete import closure into `TARGET/merged.<format>`, and
-  classifies the OWL 2 DL reference ontology into `TARGET/classified.<format>`. In a
-  newly initialized project with no ontology files yet, it reports the absence
-  of merge inputs and exits successfully without creating those outputs.
+- `make reason` validates IRI ownership on project-owned sources and equivalence
+  scope source by source before fusion, merges the complete import closure into
+  `TARGET/merged.<format>`, and classifies the OWL 2 DL reference ontology into
+  `TARGET/classified.<format>`. In a newly initialized project with no ontology
+  files yet, it reports the absence of merge inputs and exits successfully
+  without creating those outputs.
 - `REASONER=hermit make reason` overrides the configured reasoner.
 - `make project-ql` derives `TARGET/ontop-ql.<format>` for Ontop from the merged
   ontology without weakening the expressive reference ontology.
-- `make report` injects native and project SPARQL controls into the canonical
+- `make report` injects project SPARQL controls into the canonical post-reasoning
   ROBOT TSV/HTML report. It runs external SHACL validation only when shapes
   exist; use `FAIL_ON=WARN` for ROBOT warnings and `SHACL_FAIL_ON` for SHACL
   severity.
@@ -133,12 +134,14 @@ document to the required `.rdf` delivery name, then remove the intermediate
 file. Do not pass a `.rdf` output path directly to ROBOT even with an explicit
 format.
 
-Preserve the ontology IRIs configured in `config/config.env`. The native
-`forbidden_iri` ROBOT rule enforces unversioned schema IRIs under `BASE_IRI` and
-named-individual IRIs under `INSTANCE_BASE_IRI`. Keep generated content
-template-driven rather than editing files under `TARGET`. Name project checks
-descriptively with snake_case and return exactly
-`?entity ?property ?value`.
+Preserve the ontology IRIs configured in `config/config.env`. Before merge, the
+native `forbidden_iri` ROBOT rule enforces unversioned schema IRIs under
+`BASE_IRI` and named-individual IRIs under `INSTANCE_BASE_IRI` only in the
+project-owned TBox, ABox, generated modules, and annotations. Do not apply this
+ownership rule to imported ontologies or the alignment ontology configured by
+`MAPPINGS`. Keep generated content template-driven rather than editing files
+under `TARGET`. Name project checks descriptively with snake_case and return
+exactly `?entity ?property ?value`.
 
 Class equivalence assertions are allowed only in the ontology-to-ontology file
 configured by `MAPPINGS`. `toolbox/reason.sh` validates every other source with

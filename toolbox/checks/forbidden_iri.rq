@@ -1,10 +1,11 @@
 PREFIX owl:  <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
-# Native blocking rule: this ROBOT report query must return no rows.
+# Native blocking rule executed on project-owned ontology sources before merge.
+# Imported ontologies and the configured MAPPINGS ontology are out of scope.
 #
 # The urn:antonia:config:* sentinels are rendered from config/config.env by
-# toolbox/report.sh before ROBOT executes the query.
+# toolbox/reason.sh before ROBOT executes the query.
 #
 # Stable schema identities must be unversioned and separated from instance
 # identities so references survive ontology releases.

@@ -9,8 +9,11 @@
 - **ABox instances**:
 `<INSTANCE_BASE_IRI>SD_AccountManagement`
 
-The native `forbidden_iri` ROBOT report rule enforces these configured bases
-and rejects version segments in schema entity IRIs.
+Before merge, the native `forbidden_iri` ROBOT report rule enforces these
+configured bases on the project-owned TBox, ABox, generated modules, and
+annotations, and rejects version segments in schema entity IRIs. Imported
+ontologies and the ontology configured by `MAPPINGS` are excluded because their
+entity namespaces are externally owned.
 
 - Always use lowercase for local names except where BIAN or external standards define otherwise.
 

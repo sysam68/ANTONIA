@@ -120,6 +120,59 @@ CLASSIFIED_ONTOLOGY="$(ontology_output_path classified)"
 ONTOP_QL_ONTOLOGY="$(ontology_output_path ontop-ql)"
 DL_VIEW_ONTOLOGY="$(ontology_output_path classified-dl-view)"
 
+# Validate the configured ontology namespaces before interpolating them into a
+# SPARQL query. These helpers are shared by pre-merge source controls and the
+# post-reasoning report controls.
+validate_config_iri() {
+  local name="$1"
+  local value="$2"
+
+  if [ -z "$value" ] \
+      || ! printf '%s\n' "$value" | grep -Eq '^[A-Za-z][A-Za-z0-9+.-]*:.+'; then
+    echo "✖ $name must be a non-empty absolute IRI in ${ENV_FILE#$ROOT/}." >&2
+    return 1
+  fi
+
+  case "$value" in
+    *' '*|*$'\t'*|*$'\n'*|*$'\r'*|*'<'*|*'>'*|*'"'*|*'{'*|*'}'*|*'|'*|*'^'*|*'`'*|*'\'*)
+      echo "✖ $name contains a character forbidden in a SPARQL IRI: $value" >&2
+      return 1
+      ;;
+  esac
+}
+
+render_robot_query() {
+  local source="$1"
+  local destination="$2"
+
+  if ! declare -p BASE_IRI >/dev/null 2>&1 \
+      || ! declare -p INSTANCE_BASE_IRI >/dev/null 2>&1; then
+    echo "✖ BASE_IRI and INSTANCE_BASE_IRI are required in ${ENV_FILE#$ROOT/}." >&2
+    return 1
+  fi
+  validate_config_iri BASE_IRI "$BASE_IRI"
+  validate_config_iri INSTANCE_BASE_IRI "$INSTANCE_BASE_IRI"
+
+  awk -v base_iri="$BASE_IRI" -v instance_base_iri="$INSTANCE_BASE_IRI" '
+    function replace_all(text, token, value, position) {
+      while ((position = index(text, token)) > 0) {
+        text = substr(text, 1, position - 1) value substr(text, position + length(token))
+      }
+      return text
+    }
+    {
+      line = replace_all($0, "<urn:antonia:config:BASE_IRI>", "<" base_iri ">")
+      line = replace_all(line, "<urn:antonia:config:INSTANCE_BASE_IRI>", "<" instance_base_iri ">")
+      print line
+    }
+  ' "$source" > "$destination"
+
+  if grep -Fq '<urn:antonia:config:' "$destination"; then
+    echo "✖ Unresolved ANTONIA configuration sentinel in: $source" >&2
+    return 1
+  fi
+}
+
 # ROBOT infers serialization from the output extension but does not recognize
 # .rdf. For RDF/XML delivery, write .owl first and copy the bytes to .rdf.
 robot_output_path() {
@@ -187,6 +240,16 @@ tsvs_under() {
   local d="$1"
   test -d "$d" || return 0
   find "$d" -maxdepth 1 -type f -name '*.tsv' | sort || true
+}
+
+# List the ontology sources owned by the host project. Imported ontologies and
+# the alignment ontology configured by MAPPINGS are deliberately excluded:
+# their entity IRIs are owned by their publishers, not by this project.
+project_source_files() {
+  [ -f "$TBOX" ] && printf '%s\n' "$TBOX"
+  [ -f "$ABOX" ] && printf '%s\n' "$ABOX"
+  ontology_files_under "$MODULES_DIR"
+  ontology_files_under "$ANNOT_DIR"
 }
 
 # Build a flat array of '--input <file>' arguments for 'robot merge'.

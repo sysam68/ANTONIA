@@ -214,13 +214,17 @@ graph and writes:
 
 The default `SHACL_FAIL_ON=VIOLATION` makes a SHACL violation fail the report.
 `WARNING`, `INFO`, and `NONE` provide alternative thresholds. pySHACL is not
-invoked when no shape exists. Native and project SPARQL controls appear in the
-ROBOT TSV/HTML report rather than separate blocking outputs.
+invoked when no shape exists. Project SPARQL controls appear in the canonical
+ROBOT TSV/HTML report. Native source-scope controls run through `robot report`
+before merge so a failure identifies the responsible source file.
 
-ANTONIA always includes the native `forbidden_iri` ROBOT rule. It renders
-`BASE_IRI` and `INSTANCE_BASE_IRI` from `config/config.env`, rejects versioned
-schema IRIs, and keeps ontology-entity and named-individual namespaces
-separate.
+ANTONIA always includes the native `forbidden_iri` ROBOT rule. Before any
+merge, it renders `BASE_IRI` and `INSTANCE_BASE_IRI` from `config/config.env`
+and applies them only to project-owned ontology sources: TBox, ABox, generated
+modules, and annotations. Imported ontologies and the alignment ontology
+configured by `MAPPINGS` retain their publishers' namespaces and are excluded
+from this ownership rule. The rule rejects versioned schema IRIs and keeps
+ontology-entity and named-individual namespaces separate.
 
 The native `forbidden_equivalence` rule runs through `robot report` on every
 ontology source before fusion, except the RDF alignment ontology configured by

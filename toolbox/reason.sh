@@ -5,7 +5,7 @@
 #
 # Steps:
 #   1) Generate RDF/XML modules from all TSV templates (classes, annotations, ABox)
-#   2) Reject class equivalences in every source except configured MAPPINGS
+#   2) Validate project-owned IRIs and reject forbidden source equivalences
 #   3) Merge TBox + (optional) ABox + mappings + imports + generated modules
 #   4) Classify with the selected reasoner (default: ELK)
 #
@@ -22,6 +22,7 @@ source "$(dirname "$0")/common.sh"
 
 TOOLBOX_DIR="$(cd "$(dirname "$0")" && pwd -P)"
 EQUIVALENCE_CHECK="$TOOLBOX_DIR/checks/forbidden_equivalence.rq"
+IRI_CHECK="$TOOLBOX_DIR/checks/forbidden_iri.rq"
 REASON_RUNTIME_DIR=""
 
 cleanup_reason_runtime() {
@@ -65,34 +66,72 @@ while IFS= read -r arg; do
   NON_MAPPING_INPUTS+=("$arg")
 done < <(build_merge_inputs 0)
 
+PROJECT_SOURCES=()
+while IFS= read -r source_ontology; do
+  [ -n "${source_ontology:-}" ] || continue
+  PROJECT_SOURCES+=("$source_ontology")
+done < <(project_source_files)
+
 if [ "${#NON_MAPPING_INPUTS[@]}" -gt 0 ]; then
   if [ ! -f "$EQUIVALENCE_CHECK" ]; then
     echo "✖ Missing native ROBOT control: $EQUIVALENCE_CHECK" >&2
     exit 1
   fi
+  if [ "${#PROJECT_SOURCES[@]}" -gt 0 ] && [ ! -f "$IRI_CHECK" ]; then
+    echo "✖ Missing native ROBOT control: $IRI_CHECK" >&2
+    exit 1
+  fi
+
   REASON_RUNTIME_DIR="$(mktemp -d "${TMPDIR:-/tmp}/antonia-reason.XXXXXX")"
   EQUIVALENCE_PROFILE="$REASON_RUNTIME_DIR/equivalence-profile.txt"
   printf 'ERROR\tfile://%s\n' "$EQUIVALENCE_CHECK" > "$EQUIVALENCE_PROFILE"
+  PROJECT_SOURCE_PROFILE="$REASON_RUNTIME_DIR/project-source-profile.txt"
+  cp "$EQUIVALENCE_PROFILE" "$PROJECT_SOURCE_PROFILE"
+  if [ "${#PROJECT_SOURCES[@]}" -gt 0 ]; then
+    RENDERED_IRI_CHECK="$REASON_RUNTIME_DIR/native-forbidden_iri.rq"
+    render_robot_query "$IRI_CHECK" "$RENDERED_IRI_CHECK"
+    printf 'ERROR\tfile://%s\n' "$RENDERED_IRI_CHECK" \
+      >> "$PROJECT_SOURCE_PROFILE"
+  fi
   mapping_display="${MAPPINGS#$ROOT/}"
   [ -n "$mapping_display" ] || mapping_display="the configured MAPPINGS ontology"
-  echo "▶ Validating source equivalences before merge"
+  echo "▶ Validating ontology sources before merge"
   source_index=1
   input_index=1
   while [ "$input_index" -lt "${#NON_MAPPING_INPUTS[@]}" ]; do
     source_ontology="${NON_MAPPING_INPUTS[$input_index]}"
     source_output="$REASON_RUNTIME_DIR/source-$source_index.tsv"
     source_log="$REASON_RUNTIME_DIR/source-$source_index.log"
-    echo "  - ${source_ontology#$ROOT/}"
+    source_profile="$EQUIVALENCE_PROFILE"
+    source_scope="external import"
+    for project_source in "${PROJECT_SOURCES[@]}"; do
+      if [ "$source_ontology" = "$project_source" ]; then
+        source_profile="$PROJECT_SOURCE_PROFILE"
+        source_scope="project-owned ontology"
+        break
+      fi
+    done
+    echo "  - ${source_ontology#$ROOT/} ($source_scope)"
     report_cmd=( robot report \
       --input "$source_ontology" \
-      --profile "$EQUIVALENCE_PROFILE" \
+      --profile "$source_profile" \
       --fail-on ERROR \
       --output "$source_output" )
     [ -f "$CATALOG" ] && report_cmd+=( --catalog "$CATALOG" )
     if ! "${report_cmd[@]}" > "$source_log" 2>&1; then
       cat "$source_log" >&2
-      echo "✖ Class equivalence is forbidden outside $mapping_display." >&2
+      [ ! -s "$source_output" ] || cat "$source_output" >&2
+      echo "✖ Ontology source control failed before merge." >&2
       echo "  Source: ${source_ontology#$ROOT/}" >&2
+      if [ "$source_scope" = "project-owned ontology" ] \
+          && { grep -Eq 'native-forbidden_iri|ENTITY_OUTSIDE_BASE_IRI|VERSIONED_ENTITY_IRI|INSTANCE_OUTSIDE_INSTANCE_BASE_IRI' \
+            "$source_log" "$source_output" 2>/dev/null; }; then
+        echo "  IRI ownership applies only to project-owned sources, not imports or MAPPINGS." >&2
+      fi
+      if grep -Eqi 'forbidden_equivalence|equivalentClass|class equivalence' \
+          "$source_log" "$source_output" 2>/dev/null; then
+        echo "  Class equivalence is forbidden outside $mapping_display." >&2
+      fi
       exit 1
     fi
     source_index=$((source_index + 1))

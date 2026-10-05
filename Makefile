@@ -7,7 +7,7 @@ SHELL := /bin/bash
 
 VERSION ?=
 
-.PHONY: help check test test-agent-skills test-config-update test-import-release test-reason-empty test-equivalence-scope test-report-integration test-semantic-authoring test-database-integration test-release-channels test-package test-lifecycle package release prerelease clean
+.PHONY: help check test test-agent-skills test-config-update test-import-release test-reason-empty test-equivalence-scope test-iri-scope test-report-integration test-semantic-authoring test-database-integration test-release-channels test-package test-lifecycle package release prerelease clean
 
 help:
 	@echo "ANTONIA Toolbox"
@@ -20,6 +20,7 @@ help:
 	@echo "  test-import-release verify latest and explicit GitHub Release imports"
 	@echo "  test-reason-empty  verify that absent ontology inputs are a valid no-op"
 	@echo "  test-equivalence-scope verify equivalences are confined to MAPPINGS"
+	@echo "  test-iri-scope     verify IRI ownership before merge on local sources only"
 	@echo "  test-report-integration verify ROBOT-native SPARQL control reporting"
 	@echo "  test-semantic-authoring verify semantic skills and helper safety"
 	@echo "  test-database-integration verify PostgreSQL/MySQL sampling and Ontop bootstrap"
@@ -66,7 +67,7 @@ check:
 	@python3 -c 'import pathlib; [compile(p.read_text(), str(p), "exec") for p in pathlib.Path("toolbox").rglob("*.py")]'
 	@echo "ANTONIA checks: passed"
 
-test: check test-agent-skills test-config-update test-import-release test-reason-empty test-equivalence-scope test-report-integration test-semantic-authoring test-release-channels test-lifecycle
+test: check test-agent-skills test-config-update test-import-release test-reason-empty test-equivalence-scope test-iri-scope test-report-integration test-semantic-authoring test-release-channels test-lifecycle
 
 test-agent-skills:
 	@./tests/robot/agent-skills.test.sh
@@ -82,6 +83,9 @@ test-reason-empty:
 
 test-equivalence-scope:
 	@./tests/robot/equivalence-scope.test.sh
+
+test-iri-scope:
+	@./tests/robot/iri-scope.test.sh
 
 test-report-integration:
 	@./tests/robot/report-integration.test.sh

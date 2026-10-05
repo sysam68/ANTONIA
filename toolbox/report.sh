@@ -6,7 +6,7 @@
 #
 # Steps:
 #   1) Ensure a classified ontology exists (runs reason.sh if needed)
-#   2) Render native and project SPARQL controls into a temporary ROBOT profile
+#   2) Render project SPARQL controls into a temporary ROBOT profile
 #   3) Run `robot report` to produce the canonical QC TSV and HTML
 #   4) Run SHACL over the classified graph when shapes exist
 #   5) Run SPARQL analytics (non-blocking summaries under configured TARGET)
@@ -19,7 +19,6 @@ source "$(dirname "$0")/common.sh"
 
 FAIL_ON="${FAIL_ON:-ERROR}"
 TOOLBOX_DIR="$(cd "$(dirname "$0")" && pwd -P)"
-NATIVE_CHECKS_DIR="$TOOLBOX_DIR/checks"
 ROBOT_RUNTIME_DIR=""
 
 cleanup_robot_runtime() {
@@ -29,48 +28,6 @@ cleanup_robot_runtime() {
   esac
 }
 trap cleanup_robot_runtime EXIT
-
-validate_config_iri() {
-  local name="$1"
-  local value="$2"
-
-  if [ -z "$value" ] \
-      || ! printf '%s\n' "$value" | grep -Eq '^[A-Za-z][A-Za-z0-9+.-]*:.+'; then
-    echo "✖ $name must be a non-empty absolute IRI in ${ENV_FILE#$ROOT/}." >&2
-    return 1
-  fi
-
-  case "$value" in
-    *' '*|*$'\t'*|*$'\n'*|*$'\r'*|*'<'*|*'>'*|*'"'*|*'{'*|*'}'*|*'|'*|*'^'*|*'`'*|*'\'*)
-      echo "✖ $name contains a character forbidden in a SPARQL IRI: $value" >&2
-      return 1
-      ;;
-  esac
-}
-
-render_robot_query() {
-  local source="$1"
-  local destination="$2"
-
-  awk -v base_iri="$BASE_IRI" -v instance_base_iri="$INSTANCE_BASE_IRI" '
-    function replace_all(text, token, value, position) {
-      while ((position = index(text, token)) > 0) {
-        text = substr(text, 1, position - 1) value substr(text, position + length(token))
-      }
-      return text
-    }
-    {
-      line = replace_all($0, "<urn:antonia:config:BASE_IRI>", "<" base_iri ">")
-      line = replace_all(line, "<urn:antonia:config:INSTANCE_BASE_IRI>", "<" instance_base_iri ">")
-      print line
-    }
-  ' "$source" > "$destination"
-
-  if grep -Fq '<urn:antonia:config:' "$destination"; then
-    echo "✖ Unresolved ANTONIA configuration sentinel in: $source" >&2
-    return 1
-  fi
-}
 
 append_robot_check() {
   local source="$1"
@@ -94,7 +51,7 @@ fi
 mkdir -p "$TARGET"
 
 # -----------------------------------------------------------------------------
-# 2) Effective ROBOT profile: built-in rules plus all blocking SPARQL controls
+# 2) Effective ROBOT profile: built-in rules plus project SPARQL controls
 # -----------------------------------------------------------------------------
 if ! declare -p BASE_IRI >/dev/null 2>&1 \
     || ! declare -p INSTANCE_BASE_IRI >/dev/null 2>&1; then
@@ -117,14 +74,6 @@ if [ -n "${PROFILE:-}" ] && [ -f "$PROFILE" ]; then
   fi
 fi
 
-if [ ! -f "$NATIVE_CHECKS_DIR/forbidden_iri.rq" ]; then
-  echo "✖ Missing native ROBOT control: $NATIVE_CHECKS_DIR/forbidden_iri.rq" >&2
-  exit 1
-fi
-append_robot_check \
-  "$NATIVE_CHECKS_DIR/forbidden_iri.rq" \
-  "native-forbidden_iri.rq"
-
 if [ -d "$SPARQL_CHECKS" ]; then
   for rq in "$SPARQL_CHECKS"/*.rq; do
     [ -f "$rq" ] || continue
@@ -134,7 +83,6 @@ fi
 
 echo "▶ ROBOT controls"
 [ -n "${PROFILE:-}" ] && echo "  - Profile: ${PROFILE#$ROOT/}"
-echo "  - Native checks: ${NATIVE_CHECKS_DIR#$ROOT/}"
 echo "  - Project checks: ${SPARQL_CHECKS#$ROOT/}"
 
 # -----------------------------------------------------------------------------

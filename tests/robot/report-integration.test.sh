@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Verify that ROBOT owns every SPARQL control and that native IRI sentinels are
-# rendered from project configuration. SHACL remains optional and external.
+# Verify that ROBOT owns every post-reasoning project SPARQL control. Native IRI
+# ownership is a pre-merge source control covered by iri-scope.test.sh.
 
 set -euo pipefail
 
@@ -115,19 +115,17 @@ fi
 
 EFFECTIVE_PROFILE="$TEMP_ROOT/captured/effective-profile.txt"
 grep -Fqx $'ERROR\tmissing_label' "$EFFECTIVE_PROFILE"
-grep -Eq $'^ERROR\tfile://.*/antonia-robot-report\.[^/]+/queries/native-forbidden_iri\.rq$' \
-  "$EFFECTIVE_PROFILE"
 grep -Eq $'^ERROR\tfile://.*/antonia-robot-report\.[^/]+/queries/project-project_rule\.rq$' \
   "$EFFECTIVE_PROFILE"
+if grep -Fq 'native-forbidden_iri.rq' "$EFFECTIVE_PROFILE"; then
+  echo "Error: forbidden_iri was applied to the classified merge" >&2
+  exit 1
+fi
 
-NATIVE_QUERY="$TEMP_ROOT/captured/native-forbidden_iri.rq"
 PROJECT_QUERY="$TEMP_ROOT/captured/project-project_rule.rq"
-grep -Fq 'SELECT DISTINCT ?entity ?property ?value' "$NATIVE_QUERY"
-grep -Fq '<https://example.org/ontology/myOntology/>' "$NATIVE_QUERY"
-grep -Fq '<https://example.org/id/myOntology/>' "$NATIVE_QUERY"
 grep -Fq '<https://example.org/ontology/myOntology/>' "$PROJECT_QUERY"
 grep -Fq '<https://example.org/id/myOntology/>' "$PROJECT_QUERY"
-if grep -Fq '<urn:antonia:config:' "$NATIVE_QUERY" "$PROJECT_QUERY"; then
+if grep -Fq '<urn:antonia:config:' "$PROJECT_QUERY"; then
   echo "Error: an ANTONIA configuration sentinel was not rendered" >&2
   exit 1
 fi
@@ -139,52 +137,5 @@ test -f "$HOST_ROOT/custom/output/reports/counts.tsv"
 grep -Fq 'Profile: custom/qc/robot-profile.txt' "$TEMP_ROOT/report.log"
 grep -Fq 'Project checks: custom/sparql/checks' "$TEMP_ROOT/report.log"
 grep -Fq 'No SHACL shapes found' "$TEMP_ROOT/report.log"
-
-# Exercise the native query with the pinned local ROBOT when it is available.
-if [ -x "$ROOT/.tools/bin/robot" ] && [ -x "$ROOT/.tools/bin/java" ]; then
-  REAL_ROOT="$TEMP_ROOT/real-host"
-  mkdir -p "$REAL_ROOT/config" "$REAL_ROOT/qc" "$REAL_ROOT/tmp"
-  cp -R "$ROOT/toolbox" "$REAL_ROOT/toolbox"
-  cp "$ROOT/toolbox/templates/config/config.env" "$REAL_ROOT/config/config.env"
-  : > "$REAL_ROOT/qc/profile.txt"
-
-  cat > "$REAL_ROOT/tmp/classified.rdf" <<'EOF'
-<?xml version="1.0"?>
-<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-         xmlns:owl="http://www.w3.org/2002/07/owl#">
-  <owl:Class rdf:about="https://example.org/ontology/myOntology/GoodClass"/>
-  <owl:NamedIndividual rdf:about="https://example.org/id/myOntology/good"/>
-</rdf:RDF>
-EOF
-  (
-    cd "$REAL_ROOT"
-    PATH="$ROOT/.tools/bin:$PATH" ./toolbox/report.sh \
-      > "$TEMP_ROOT/real-conforming.log"
-  )
-
-  cat > "$REAL_ROOT/tmp/classified.rdf" <<'EOF'
-<?xml version="1.0"?>
-<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-         xmlns:owl="http://www.w3.org/2002/07/owl#">
-  <owl:Class rdf:about="https://foreign.example/BadClass"/>
-  <owl:Class rdf:about="https://example.org/ontology/myOntology/v2/VersionedClass"/>
-  <owl:NamedIndividual rdf:about="https://example.org/ontology/myOntology/bad-individual"/>
-</rdf:RDF>
-EOF
-  if (
-    cd "$REAL_ROOT"
-    PATH="$ROOT/.tools/bin:$PATH" ./toolbox/report.sh \
-      > "$TEMP_ROOT/real-nonconforming.log" 2>&1
-  ); then
-    echo "Error: native forbidden_iri control accepted invalid IRIs" >&2
-    exit 1
-  fi
-  grep -Fq 'ENTITY_OUTSIDE_BASE_IRI' "$REAL_ROOT/tmp/qc_report.tsv"
-  grep -Fq 'VERSIONED_ENTITY_IRI' "$REAL_ROOT/tmp/qc_report.tsv"
-  grep -Fq 'INSTANCE_OUTSIDE_INSTANCE_BASE_IRI' "$REAL_ROOT/tmp/qc_report.tsv"
-  echo "native forbidden IRI ROBOT query: passed"
-else
-  echo "native forbidden IRI ROBOT query: skipped (local ROBOT unavailable)"
-fi
 
 echo "ROBOT report integration test: passed"

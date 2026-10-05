@@ -20,6 +20,7 @@ cp "$ROOT/toolbox/common.sh" "$WORK/toolbox/common.sh"
 cp "$ROOT/toolbox/reason.sh" "$WORK/toolbox/reason.sh"
 cp "$ROOT/toolbox/project_ql.sh" "$WORK/toolbox/project_ql.sh"
 cp "$ROOT/toolbox/checks/forbidden_equivalence.rq" "$WORK/toolbox/checks/"
+cp "$ROOT/toolbox/checks/forbidden_iri.rq" "$WORK/toolbox/checks/"
 
 cat > "$WORK/config/config.env" <<'EOF'
 TBOX=src/edit/myOntology-tbox.rdf
@@ -44,6 +45,8 @@ REASONER=HERMIT
 REFERENCE_PROFILE=DL
 ONTOP_PROFILE=QL
 JAVA_CONF=config/java.conf
+BASE_IRI=https://example.org/ontology/myOntology/
+INSTANCE_BASE_IRI=https://example.org/id/myOntology/
 ONTOGPT_MODEL=
 ONTOGPT_ALLOW_EXTERNAL_LLM=0
 DB_SAMPLE_ROWS=20
