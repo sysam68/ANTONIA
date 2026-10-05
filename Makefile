@@ -7,7 +7,7 @@ SHELL := /bin/bash
 
 VERSION ?=
 
-.PHONY: help check test test-agent-skills test-config-update test-import-release test-reason-empty test-equivalence-scope test-iri-scope test-report-integration test-semantic-authoring test-database-integration test-release-channels test-package test-lifecycle package release prerelease clean
+.PHONY: help check test test-agent-skills test-config-update test-import-release test-reason-empty test-equivalence-scope test-iri-scope test-report-integration test-semantic-authoring test-database-integration test-release-channels test-release-mapping test-package test-lifecycle package release prerelease clean
 
 help:
 	@echo "ANTONIA Toolbox"
@@ -25,6 +25,7 @@ help:
 	@echo "  test-semantic-authoring verify semantic skills and helper safety"
 	@echo "  test-database-integration verify PostgreSQL/MySQL sampling and Ontop bootstrap"
 	@echo "  test-release-channels verify stable and development publication guards"
+	@echo "  test-release-mapping verify separate RDF mapping publication"
 	@echo "  test-package       verify the distributable toolbox archive"
 	@echo "  test-lifecycle     verify bootstrap cleanup and in-toolbox updates"
 	@echo "  package            build Release assets (VERSION=<tag>)"
@@ -67,7 +68,7 @@ check:
 	@python3 -c 'import pathlib; [compile(p.read_text(), str(p), "exec") for p in pathlib.Path("toolbox").rglob("*.py")]'
 	@echo "ANTONIA checks: passed"
 
-test: check test-agent-skills test-config-update test-import-release test-reason-empty test-equivalence-scope test-iri-scope test-report-integration test-semantic-authoring test-release-channels test-lifecycle
+test: check test-agent-skills test-config-update test-import-release test-reason-empty test-equivalence-scope test-iri-scope test-report-integration test-semantic-authoring test-release-channels test-release-mapping test-lifecycle
 
 test-agent-skills:
 	@./tests/robot/agent-skills.test.sh
@@ -98,6 +99,9 @@ test-database-integration:
 
 test-release-channels:
 	@./tests/robot/release-channels.test.sh
+
+test-release-mapping:
+	@./tests/robot/release-mapping.test.sh
 
 test-package:
 	@./package-antonia.sh test-local

@@ -5,6 +5,7 @@
 The release process creates a **versioned package** of the ontology, including:
 - Classified ontology (`<name>.<format>`, with a compatibility `<name>.owl` copy)
 - Merged ontology (`<name>-merged.<format>`)
+- Configured RDF mapping ontology (`MAPPINGS`), under its original filename
 - QC and diff reports (if available)
 
 ---

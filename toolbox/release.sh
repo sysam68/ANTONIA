@@ -57,6 +57,9 @@ QC_TSV="$TARGET/qc_report.tsv"
 QC_HTML="$TARGET/qc_report.html"
 DIFF_HTML="$TARGET/diff.html"
 DIFF_OWL="$TARGET/diff.owl"
+MAPPING_NAME=""
+CUR_MAPPING=""
+ARC_MAPPING=""
 
 ONTO="${ONTOLOGY_NAME}"
 
@@ -126,9 +129,25 @@ ARC_OWL="$ARCHIVE_DIR/${ONTO}.owl"
 ARC_QC_TSV="$ARCHIVE_DIR/${ONTO}_qc_report.tsv"
 ARC_QC_HTML="$ARCHIVE_DIR/${ONTO}_qc_report.html"
 
+# Preserve the configured ontology-to-ontology mapping as a distinct Release
+# asset. Its basename and bytes are part of the publication contract.
+if [ -n "${MAPPINGS:-}" ]; then
+  [ -f "$MAPPINGS" ] || abort "Configured MAPPINGS file not found: ${MAPPINGS#$ROOT/}"
+  MAPPING_NAME="$(basename "$MAPPINGS")"
+  case "$MAPPING_NAME" in
+    "${ONTO}.${OUTPUT_FORMAT}"|"${ONTO}-merged.${OUTPUT_FORMAT}"|"${ONTO}.owl"|\
+    "${ONTO}_qc_report.tsv"|"${ONTO}_qc_report.html"|diff.html|diff.owl)
+      abort "MAPPINGS basename conflicts with a generated Release asset: $MAPPING_NAME"
+      ;;
+  esac
+  CUR_MAPPING="$CURRENT_DIR/$MAPPING_NAME"
+  ARC_MAPPING="$ARCHIVE_DIR/$MAPPING_NAME"
+fi
+
 # Copy CURRENT
 cp -f "$CLASSIFIED_ONTOLOGY" "$CUR_PRIMARY"
 cp -f "$MERGED_ONTOLOGY"     "$CUR_MERGED"
+[ -z "$CUR_MAPPING" ] || cp -f "$MAPPINGS" "$CUR_MAPPING"
 [ -f "$QC_TSV" ]   && cp -f "$QC_TSV"   "$CUR_QC_TSV"
 [ -f "$QC_HTML" ]  && cp -f "$QC_HTML"  "$CUR_QC_HTML"
 [ -f "$DIFF_HTML" ]&& cp -f "$DIFF_HTML" "$CURRENT_DIR/diff.html"
@@ -137,6 +156,7 @@ cp -f "$MERGED_ONTOLOGY"     "$CUR_MERGED"
 # Copy ARCHIVE snapshot
 cp -f "$CLASSIFIED_ONTOLOGY" "$ARC_PRIMARY"
 cp -f "$MERGED_ONTOLOGY"     "$ARC_MERGED"
+[ -z "$ARC_MAPPING" ] || cp -f "$MAPPINGS" "$ARC_MAPPING"
 [ -f "$QC_TSV" ]   && cp -f "$QC_TSV"   "$ARC_QC_TSV"
 [ -f "$QC_HTML" ]  && cp -f "$QC_HTML"  "$ARC_QC_HTML"
 [ -f "$DIFF_HTML" ]&& cp -f "$DIFF_HTML" "$ARCHIVE_DIR/diff.html"
@@ -238,6 +258,7 @@ elif [ "$BRANCH" = "$MAIN_BRANCH" ]; then
       ASSETS+=("$ARC_OWL")
     fi
     [ -f "$ARC_MERGED" ]   && ASSETS+=("$ARC_MERGED")
+    [ -z "$ARC_MAPPING" ] || ASSETS+=("$ARC_MAPPING")
     [ -f "$ARC_QC_TSV" ]   && ASSETS+=("$ARC_QC_TSV")
     [ -f "$ARC_QC_HTML" ]  && ASSETS+=("$ARC_QC_HTML")
     [ -f "$ARCHIVE_DIR/diff.html" ] && ASSETS+=("$ARCHIVE_DIR/diff.html")
