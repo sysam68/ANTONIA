@@ -27,8 +27,14 @@ SPARQL_CHECKS=custom/sparql/checks
 SPARQL_REPORTS=custom/sparql/reports
 TARGET=custom/output
 EOF
-printf '%s\n' $'ERROR\tmissing_label' > "$HOST_ROOT/custom/qc/robot-profile.txt"
+printf '%s\n' \
+  $'ERROR\texample-forbidden_iri\tproject-source' \
+  $'ERROR\tmissing_label' \
+  $'WARN\tproject_rule\tpost-reason' \
+  > "$HOST_ROOT/custom/qc/robot-profile.txt"
 printf '%s\n' '<rdf:RDF/>' > "$HOST_ROOT/custom/output/classified.rdf"
+cp "$ROOT/toolbox/checks/example-forbidden_iri.rq" \
+  "$HOST_ROOT/custom/sparql/checks/example-forbidden_iri.rq"
 
 cat > "$HOST_ROOT/custom/sparql/checks/project_rule.rq" <<'EOF'
 SELECT DISTINCT ?entity ?property ?value WHERE {
@@ -38,6 +44,8 @@ SELECT DISTINCT ?entity ?property ?value WHERE {
   FILTER(false)
 }
 EOF
+printf '%s\n' 'SELECT ?entity ?property ?value WHERE { FILTER(false) }' \
+  > "$HOST_ROOT/custom/sparql/checks/not_enabled.rq"
 printf '%s\n' 'SELECT (COUNT(*) AS ?count) WHERE { ?s ?p ?o }' \
   > "$HOST_ROOT/custom/sparql/reports/counts.rq"
 
@@ -115,10 +123,14 @@ fi
 
 EFFECTIVE_PROFILE="$TEMP_ROOT/captured/effective-profile.txt"
 grep -Fqx $'ERROR\tmissing_label' "$EFFECTIVE_PROFILE"
-grep -Eq $'^ERROR\tfile://.*/antonia-robot-report\.[^/]+/queries/project-project_rule\.rq$' \
+grep -Eq $'^WARN\tfile://.*/antonia-robot-report\.[^/]+/queries/project-project_rule\.rq$' \
   "$EFFECTIVE_PROFILE"
-if grep -Fq 'native-forbidden_iri.rq' "$EFFECTIVE_PROFILE"; then
-  echo "Error: forbidden_iri was applied to the classified merge" >&2
+if grep -Fq 'not_enabled' "$EFFECTIVE_PROFILE"; then
+  echo "Error: a SPARQL control absent from qc/profile.txt was enabled" >&2
+  exit 1
+fi
+if grep -Fq 'example-forbidden_iri' "$EFFECTIVE_PROFILE"; then
+  echo "Error: example-forbidden_iri was applied to the classified merge" >&2
   exit 1
 fi
 

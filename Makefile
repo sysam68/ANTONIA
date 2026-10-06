@@ -47,6 +47,8 @@ check:
 	@test -f toolbox/AGENTS.md
 	@test -f toolbox/.agents/.antonia-managed
 	@test -x toolbox/sync_agents.sh
+	@test -x toolbox/sync_checks.sh
+	@test -x toolbox/update_profile.sh
 	@while IFS= read -r line || [ -n "$$line" ]; do \
 		case "$$line" in \
 			skill=*) skill_path="$${line#skill=}"; \
@@ -54,8 +56,12 @@ check:
 		esac; \
 	done < toolbox/.agents/.antonia-managed
 	@test -f toolbox/templates/config/config.env
-	@test -f toolbox/checks/forbidden_iri.rq
-	@test -f toolbox/checks/forbidden_equivalence.rq
+	@test -f toolbox/checks/example-forbidden_iri.rq
+	@test -f toolbox/checks/example-forbidden_equivalence.rq
+	@if find toolbox/checks -type f ! -name 'example-*.rq' -print -quit | grep -q .; then \
+		echo "Error: every toolbox control example must match example-*.rq" >&2; \
+		exit 1; \
+	fi
 	@test -x toolbox/clean.sh
 	@if grep -Eq '^[[:space:]]*source .*common\.sh' toolbox/install_robot.sh; then \
 		echo "Error: install_robot.sh must not require common.sh before bootstrap" >&2; \
@@ -129,8 +135,8 @@ test-package:
 	@tar -xOf dist/antonia-toolbox.tar.gz toolbox/Makefile | grep -q '^update-antonia:'
 	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/update_config.sh$$'
 	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/templates/config/config.env$$'
-	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/checks/forbidden_iri.rq$$'
-	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/checks/forbidden_equivalence.rq$$'
+	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/checks/example-forbidden_iri.rq$$'
+	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/checks/example-forbidden_equivalence.rq$$'
 	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/clean.sh$$'
 	@for script in toolbox/*.sh; do \
 		script_name="$${script##*/}"; \

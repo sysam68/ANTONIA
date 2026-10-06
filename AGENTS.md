@@ -38,8 +38,9 @@ ANTONIA-maintenance targets or instructions in those distributed files.
   projects, including one guarded skill for every target defined by the
   ontology-project Makefile.
 - `toolbox/templates/config/` contains the expected project configuration.
-- `toolbox/checks/` contains native ROBOT report controls
-  rendered from project configuration.
+- `toolbox/checks/` contains every ROBOT control example distributed by
+  ANTONIA. These are examples, not an activation list: every control filename
+  in this ANTONIA development repository must start with `example-`.
 - `toolbox/docs/` contains documentation shipped with the toolbox.
 - `install-antonia.sh` installs a released toolbox and initializes a project.
 - `update-antonia.sh` is the source of the updater packaged under `toolbox/`.
@@ -60,8 +61,8 @@ must include at least:
 - `toolbox/Makefile` and `toolbox/AGENTS.md`;
 - every runtime shell script required by the ontology pipeline;
 - `toolbox/templates/config/config.env`;
-- `toolbox/checks/forbidden_iri.rq`;
-- `toolbox/checks/forbidden_equivalence.rq`;
+- every `toolbox/checks/example-*.rq` control example, with its filename
+  unchanged;
 - toolbox documentation;
 - `toolbox/.agents/.antonia-managed` and every declared repository skill;
 - `.antonia-managed`, recording the concrete Release version.
@@ -85,6 +86,9 @@ Installation and update must:
 - copy the released Makefile and AGENTS.md to the ontology root;
 - synchronize ANTONIA-managed skills into the ontology root `.agents/skills/`
   while preserving unrelated project skills;
+- copy every file from `toolbox/checks/` into the ontology project's configured
+  ROBOT-control directory, preserving each `example-*` filename exactly during
+  both installation and update;
 - refuse to overwrite a homonymous root skill unless the installed ANTONIA
   manifest already declares it as managed;
 - add missing `tmp/` and `.tools/` exclusions without replacing the host
@@ -95,6 +99,25 @@ Installation and update must:
   ROBOT installation;
 - preserve existing configuration values and obsolete variables;
 - append only configuration variables introduced by the new Release.
+
+## ROBOT control contract
+
+`toolbox/checks/` is the single source directory for all control examples
+shipped by ANTONIA. Within this `template-ontology` development repository,
+every control example must use an `example-` filename prefix. Installation,
+update, and packaging must copy these files without renaming them.
+
+The ontology project's `qc/profile.txt` is the sole configuration of which
+ROBOT controls execute and at which severity. Merely shipping or copying a
+query does not activate it. Do not introduce another activation list in
+`config.env`, a shell script, the Makefile, directory enumeration, or a package
+manifest. Runtime scripts may resolve a profile entry to the identically named
+query copied into the configured destination directory, but they must not add
+controls that are absent from `qc/profile.txt`.
+
+The profile's optional third tab-separated field carries execution scope:
+`project-source`, `non-mapping-source`, or `post-reason`; an omitted scope means
+`post-reason`.
 
 ## Development commands
 

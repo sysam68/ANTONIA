@@ -28,6 +28,7 @@ src/edit/templates/         TSV templates
 src/edit/annotations/       annotation modules
 src/shapes/shacl/           SHACL shapes
 src/sparql/checks/          ROBOT report queries (?entity ?property ?value)
+qc/profile.txt              tab-separated severity, control name, optional scope
 src/sparql/reports/         non-blocking queries
 docs/ontology-design.md     modeling evidence and decisions
 toolbox/                    managed ANTONIA runtime
@@ -54,7 +55,8 @@ The workflow follows these stages:
    - Run classification with ELK, HermiT, or JFact
 
 4. **Validation**
-   - project SPARQL controls via the canonical post-reasoning ROBOT report
+   - source controls selected and scoped by qc/profile.txt
+   - profile-enabled project controls via the post-reasoning ROBOT report
    - optional SHACL over the classified graph and optional ABox
    - OWL 2 DL compliance
    - non-blocking SPARQL analytics

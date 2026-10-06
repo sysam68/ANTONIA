@@ -6,7 +6,7 @@
 #
 # Steps:
 #   1) Ensure a classified ontology exists (runs reason.sh if needed)
-#   2) Render project SPARQL controls into a temporary ROBOT profile
+#   2) Resolve controls enabled by qc/profile.txt into a ROBOT profile
 #   3) Run `robot report` to produce the canonical QC TSV and HTML
 #   4) Run SHACL over the classified graph when shapes exist
 #   5) Run SPARQL analytics (non-blocking summaries under configured TARGET)
@@ -32,10 +32,11 @@ trap cleanup_robot_runtime EXIT
 append_robot_check() {
   local source="$1"
   local rendered_name="$2"
+  local severity="$3"
   local destination="$ROBOT_QUERY_DIR/$rendered_name"
 
   render_robot_query "$source" "$destination"
-  printf 'ERROR\tfile://%s\n' "$destination" >> "$ROBOT_PROFILE"
+  printf '%s\tfile://%s\n' "$severity" "$destination" >> "$ROBOT_PROFILE"
 }
 
 # -----------------------------------------------------------------------------
@@ -51,7 +52,7 @@ fi
 mkdir -p "$TARGET"
 
 # -----------------------------------------------------------------------------
-# 2) Effective ROBOT profile: built-in rules plus project SPARQL controls
+# 2) Effective ROBOT profile: exactly the controls selected by PROFILE
 # -----------------------------------------------------------------------------
 if ! declare -p BASE_IRI >/dev/null 2>&1 \
     || ! declare -p INSTANCE_BASE_IRI >/dev/null 2>&1; then
@@ -67,22 +68,56 @@ ROBOT_PROFILE="$ROBOT_RUNTIME_DIR/profile.txt"
 mkdir -p "$ROBOT_QUERY_DIR"
 : > "$ROBOT_PROFILE"
 
-if [ -n "${PROFILE:-}" ] && [ -f "$PROFILE" ]; then
-  cat "$PROFILE" > "$ROBOT_PROFILE"
-  if [ -s "$ROBOT_PROFILE" ] && [ -n "$(tail -c 1 "$ROBOT_PROFILE")" ]; then
-    printf '\n' >> "$ROBOT_PROFILE"
-  fi
+if [ ! -f "$PROFILE" ]; then
+  echo "✖ QC profile not found at: ${PROFILE#$ROOT/}" >&2
+  exit 1
 fi
 
-if [ -d "$SPARQL_CHECKS" ]; then
-  for rq in "$SPARQL_CHECKS"/*.rq; do
-    [ -f "$rq" ] || continue
-    append_robot_check "$rq" "project-$(basename "$rq")"
-  done
-fi
+while IFS= read -r profile_line || [ -n "$profile_line" ]; do
+  case "$profile_line" in
+    *$'\t'*)
+      severity="${profile_line%%$'\t'*}"
+      profile_rest="${profile_line#*$'\t'}"
+      rule_name="${profile_rest%%$'\t'*}"
+      if [ "$profile_rest" = "$rule_name" ]; then
+        control_scope=""
+      else
+        control_scope="${profile_rest#*$'\t'}"
+        control_scope="${control_scope%%$'\t'*}"
+      fi
+      ;;
+    *)
+      printf '%s\n' "$profile_line" >> "$ROBOT_PROFILE"
+      continue
+      ;;
+  esac
+
+  validate_control_scope "$control_scope"
+  if validate_control_name "$rule_name" >/dev/null 2>&1; then
+    rq="$(control_query_path "$rule_name")"
+    case "$control_scope" in
+      project-source|non-mapping-source)
+        if [ ! -f "$rq" ] \
+            && [ "${rule_name#example-}" != "$rule_name" ]; then
+          echo "✖ Enabled SPARQL control is missing: ${rq#$ROOT/}" >&2
+          exit 1
+        fi
+        continue
+        ;;
+    esac
+    if [ -f "$rq" ]; then
+      append_robot_check "$rq" "project-$rule_name.rq" "$severity"
+      continue
+    elif [ "${rule_name#example-}" != "$rule_name" ]; then
+        echo "✖ Enabled SPARQL control is missing: ${rq#$ROOT/}" >&2
+        exit 1
+    fi
+  fi
+  printf '%s\t%s\n' "$severity" "$rule_name" >> "$ROBOT_PROFILE"
+done < "$PROFILE"
 
 echo "▶ ROBOT controls"
-[ -n "${PROFILE:-}" ] && echo "  - Profile: ${PROFILE#$ROOT/}"
+echo "  - Profile: ${PROFILE#$ROOT/}"
 echo "  - Project checks: ${SPARQL_CHECKS#$ROOT/}"
 
 # -----------------------------------------------------------------------------

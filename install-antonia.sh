@@ -239,12 +239,20 @@ if [ ! -f "$CANDIDATE/.antonia-managed" ] \
     || [ ! -f "$CANDIDATE/install_semantic_tools.sh" ] \
     || [ ! -f "$CANDIDATE/common.sh" ] \
     || [ ! -f "$CANDIDATE/sync_agents.sh" ] \
+    || [ ! -f "$CANDIDATE/sync_checks.sh" ] \
+    || [ ! -f "$CANDIDATE/update_profile.sh" ] \
     || [ ! -f "$CANDIDATE/update_config.sh" ] \
     || [ ! -f "$CANDIDATE/.agents/.antonia-managed" ] \
     || [ ! -f "$CANDIDATE/templates/config/config.env" ] \
-    || [ ! -f "$CANDIDATE/checks/forbidden_iri.rq" ] \
-    || [ ! -f "$CANDIDATE/checks/forbidden_equivalence.rq" ]; then
+    || [ ! -f "$CANDIDATE/checks/example-forbidden_iri.rq" ] \
+    || [ ! -f "$CANDIDATE/checks/example-forbidden_equivalence.rq" ]; then
   echo "Error: incomplete or invalid ANTONIA toolbox release." >&2
+  exit 1
+fi
+
+if find "$CANDIDATE/checks" -type f ! -name 'example-*.rq' -print -quit \
+    | grep -q .; then
+  echo "Error: invalid ANTONIA control example filename." >&2
   exit 1
 fi
 
@@ -355,5 +363,7 @@ else
   echo "Ontology AGENTS.md updated from toolbox/AGENTS.md"
   bash "$DESTINATION/sync_agents.sh"
   bash "$DESTINATION/update_config.sh"
+  bash "$DESTINATION/update_profile.sh"
+  bash "$DESTINATION/sync_checks.sh"
   echo "ANTONIA toolbox updated: $CURRENT_VERSION -> $INSTALLED_VERSION"
 fi

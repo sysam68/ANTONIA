@@ -128,7 +128,7 @@ create_from_template \
 # -----------------------------------------------------------------------------
 make_dir "$HOST_ROOT/qc"
 
-create_file "$HOST_ROOT/qc/profile.txt" $'ERROR\tduplicate_label\nERROR\tmultiple_labels\nERROR\tlabel_formatting\nERROR\tlabel_whitespace\nERROR\tinvalid_entity_uri\nERROR\tmissing_label\n' "ROBOT QC severity profile"
+create_file "$HOST_ROOT/qc/profile.txt" $'ERROR\texample-forbidden_iri\tproject-source\nERROR\texample-forbidden_equivalence\tnon-mapping-source\nERROR\tduplicate_label\nERROR\tmultiple_labels\nERROR\tlabel_formatting\nERROR\tlabel_whitespace\nERROR\tinvalid_entity_uri\nERROR\tmissing_label\n' "ROBOT QC control profile"
 
 create_file "$HOST_ROOT/qc/allowlist.tsv" '' "QC allowlist (empty by default)"
 create_file "$HOST_ROOT/qc/obo-expected.tsv" '' "OBO expected terms (empty by default)"
@@ -195,7 +195,7 @@ make_dir "$HOST_ROOT/src/sparql/checks"
 make_dir "$HOST_ROOT/src/sparql/updates"
 make_dir "$HOST_ROOT/src/sparql/reports"
 
-create_file "$HOST_ROOT/src/sparql/checks/.gitkeep" '' "project ROBOT checks placeholder"
+bash "$TOOLBOX_DIR/sync_checks.sh"
 
 create_file "$HOST_ROOT/src/sparql/updates/project-ql.ru" '# SPARQL update: project ontology to OWL 2 QL for Ontop
 # This is a template - customize for your ontology

@@ -55,8 +55,11 @@ $antonia-release VERSION_TAG=2026-10-01
 ```
 
 Project controls under `src/sparql/checks/` must return exactly
-`?entity ?property ?value`; `make report` injects them into the effective ROBOT
-profile. `src/sparql/reports/` is reserved for non-blocking analytics. External
+`?entity ?property ?value`; `make report` injects only those named in
+`qc/profile.txt` into the effective ROBOT profile. The optional third profile
+field selects `project-source`, `non-mapping-source`, or `post-reason` scope;
+an omitted scope means `post-reason`. `src/sparql/reports/` is reserved for
+non-blocking analytics. External
 pySHACL validation runs only when SHACL shape files exist.
 
 Restart Codex if newly installed skills do not appear in `/skills` immediately.

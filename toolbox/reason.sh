@@ -5,7 +5,7 @@
 #
 # Steps:
 #   1) Generate RDF/XML modules from all TSV templates (classes, annotations, ABox)
-#   2) Validate project-owned IRIs and reject forbidden source equivalences
+#   2) Run the source controls configured by qc/profile.txt
 #   3) Merge TBox + (optional) ABox + mappings + imports + generated modules
 #   4) Classify with the selected reasoner (default: ELK)
 #
@@ -20,9 +20,6 @@
 set -euo pipefail
 source "$(dirname "$0")/common.sh"
 
-TOOLBOX_DIR="$(cd "$(dirname "$0")" && pwd -P)"
-EQUIVALENCE_CHECK="$TOOLBOX_DIR/checks/forbidden_equivalence.rq"
-IRI_CHECK="$TOOLBOX_DIR/checks/forbidden_iri.rq"
 REASON_RUNTIME_DIR=""
 
 cleanup_reason_runtime() {
@@ -55,11 +52,8 @@ if [ "${#MERGE_INPUTS[@]}" -eq 0 ]; then
   exit 0
 fi
 
-# Equivalence assertions are an ontology-alignment concern and are accepted
-# only from the configured mapping ontology. Validate every other source
-# individually before any merge so the offending source remains identifiable.
-# The final reasoning pass accepts asserted mapping equivalences while still
-# rejecting equivalences inferred by the selected reasoner.
+# qc/profile.txt is the sole control configuration. Its optional third column
+# assigns source controls to project-source or non-mapping-source scope.
 EQUIVALENCE_POLICY="none"
 NON_MAPPING_INPUTS=()
 while IFS= read -r arg; do
@@ -72,27 +66,62 @@ while IFS= read -r source_ontology; do
   PROJECT_SOURCES+=("$source_ontology")
 done < <(project_source_files)
 
+append_source_controls() {
+  local expected_scope="$1"
+  local destination="$2"
+  local profile_line=""
+  local profile_rest=""
+  local profile_scope=""
+  local control_name=""
+  local severity=""
+  local query=""
+  local rendered_query=""
+
+  while IFS= read -r profile_line || [ -n "$profile_line" ]; do
+    case "$profile_line" in
+      *$'\t'*)
+        severity="${profile_line%%$'\t'*}"
+        profile_rest="${profile_line#*$'\t'}"
+        control_name="${profile_rest%%$'\t'*}"
+        if [ "$profile_rest" = "$control_name" ]; then
+          profile_scope=""
+        else
+          profile_scope="${profile_rest#*$'\t'}"
+          profile_scope="${profile_scope%%$'\t'*}"
+        fi
+        ;;
+      *) continue ;;
+    esac
+    validate_control_scope "$profile_scope"
+    [ "$profile_scope" = "$expected_scope" ] || continue
+    validate_control_name "$control_name"
+    query="$(control_query_path "$control_name")"
+    if [ -f "$query" ]; then
+      rendered_query="$REASON_RUNTIME_DIR/$control_name.rq"
+      render_robot_query "$query" "$rendered_query"
+      printf '%s\tfile://%s\n' "$severity" "$rendered_query" >> "$destination"
+    elif [ "${control_name#example-}" != "$control_name" ]; then
+      echo "✖ Enabled SPARQL control is missing: ${query#$ROOT/}" >&2
+      return 1
+    else
+      printf '%s\t%s\n' "$severity" "$control_name" >> "$destination"
+    fi
+  done < "$PROFILE"
+}
+
 if [ "${#NON_MAPPING_INPUTS[@]}" -gt 0 ]; then
-  if [ ! -f "$EQUIVALENCE_CHECK" ]; then
-    echo "✖ Missing native ROBOT control: $EQUIVALENCE_CHECK" >&2
-    exit 1
-  fi
-  if [ "${#PROJECT_SOURCES[@]}" -gt 0 ] && [ ! -f "$IRI_CHECK" ]; then
-    echo "✖ Missing native ROBOT control: $IRI_CHECK" >&2
+  if [ ! -f "$PROFILE" ]; then
+    echo "✖ QC profile not found at: ${PROFILE#$ROOT/}" >&2
     exit 1
   fi
 
   REASON_RUNTIME_DIR="$(mktemp -d "${TMPDIR:-/tmp}/antonia-reason.XXXXXX")"
-  EQUIVALENCE_PROFILE="$REASON_RUNTIME_DIR/equivalence-profile.txt"
-  printf 'ERROR\tfile://%s\n' "$EQUIVALENCE_CHECK" > "$EQUIVALENCE_PROFILE"
+  NON_MAPPING_PROFILE="$REASON_RUNTIME_DIR/non-mapping-source-profile.txt"
+  : > "$NON_MAPPING_PROFILE"
+  append_source_controls "non-mapping-source" "$NON_MAPPING_PROFILE"
   PROJECT_SOURCE_PROFILE="$REASON_RUNTIME_DIR/project-source-profile.txt"
-  cp "$EQUIVALENCE_PROFILE" "$PROJECT_SOURCE_PROFILE"
-  if [ "${#PROJECT_SOURCES[@]}" -gt 0 ]; then
-    RENDERED_IRI_CHECK="$REASON_RUNTIME_DIR/native-forbidden_iri.rq"
-    render_robot_query "$IRI_CHECK" "$RENDERED_IRI_CHECK"
-    printf 'ERROR\tfile://%s\n' "$RENDERED_IRI_CHECK" \
-      >> "$PROJECT_SOURCE_PROFILE"
-  fi
+  cp "$NON_MAPPING_PROFILE" "$PROJECT_SOURCE_PROFILE"
+  append_source_controls "project-source" "$PROJECT_SOURCE_PROFILE"
   mapping_display="${MAPPINGS#$ROOT/}"
   [ -n "$mapping_display" ] || mapping_display="the configured MAPPINGS ontology"
   echo "▶ Validating ontology sources before merge"
@@ -102,7 +131,7 @@ if [ "${#NON_MAPPING_INPUTS[@]}" -gt 0 ]; then
     source_ontology="${NON_MAPPING_INPUTS[$input_index]}"
     source_output="$REASON_RUNTIME_DIR/source-$source_index.tsv"
     source_log="$REASON_RUNTIME_DIR/source-$source_index.log"
-    source_profile="$EQUIVALENCE_PROFILE"
+    source_profile="$NON_MAPPING_PROFILE"
     source_scope="external import"
     for project_source in "${PROJECT_SOURCES[@]}"; do
       if [ "$source_ontology" = "$project_source" ]; then
@@ -111,11 +140,16 @@ if [ "${#NON_MAPPING_INPUTS[@]}" -gt 0 ]; then
         break
       fi
     done
+    if [ ! -s "$source_profile" ]; then
+      source_index=$((source_index + 1))
+      input_index=$((input_index + 2))
+      continue
+    fi
     echo "  - ${source_ontology#$ROOT/} ($source_scope)"
     report_cmd=( robot report \
       --input "$source_ontology" \
       --profile "$source_profile" \
-      --fail-on ERROR \
+      --fail-on "$FAIL_ON" \
       --output "$source_output" )
     [ -f "$CATALOG" ] && report_cmd+=( --catalog "$CATALOG" )
     if ! "${report_cmd[@]}" > "$source_log" 2>&1; then
@@ -124,11 +158,11 @@ if [ "${#NON_MAPPING_INPUTS[@]}" -gt 0 ]; then
       echo "✖ Ontology source control failed before merge." >&2
       echo "  Source: ${source_ontology#$ROOT/}" >&2
       if [ "$source_scope" = "project-owned ontology" ] \
-          && { grep -Eq 'native-forbidden_iri|ENTITY_OUTSIDE_BASE_IRI|VERSIONED_ENTITY_IRI|INSTANCE_OUTSIDE_INSTANCE_BASE_IRI' \
+          && { grep -Eq 'example-forbidden_iri|ENTITY_OUTSIDE_BASE_IRI|VERSIONED_ENTITY_IRI|INSTANCE_OUTSIDE_INSTANCE_BASE_IRI' \
             "$source_log" "$source_output" 2>/dev/null; }; then
         echo "  IRI ownership applies only to project-owned sources, not imports or MAPPINGS." >&2
       fi
-      if grep -Eqi 'forbidden_equivalence|equivalentClass|class equivalence' \
+      if grep -Eqi 'example-forbidden_equivalence|equivalentClass|class equivalence' \
           "$source_log" "$source_output" 2>/dev/null; then
         echo "  Class equivalence is forbidden outside $mapping_display." >&2
       fi

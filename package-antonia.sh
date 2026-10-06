@@ -63,6 +63,8 @@ TOOLBOX_FILES=(
   report.sh
   run_ontogpt.sh
   sync_agents.sh
+  sync_checks.sh
+  update_profile.sh
   update_config.sh
   validate.sh
   validate_dl.sh
@@ -133,6 +135,11 @@ cp -R "$ROOT/toolbox/docs" "$TEMP_ROOT/toolbox/docs"
 
 if [ ! -d "$ROOT/toolbox/checks" ]; then
   echo "Error: missing native ROBOT controls: toolbox/checks" >&2
+  exit 1
+fi
+if find "$ROOT/toolbox/checks" -type f ! -name 'example-*.rq' -print -quit \
+    | grep -q .; then
+  echo "Error: every toolbox control example must match example-*.rq" >&2
   exit 1
 fi
 cp -R "$ROOT/toolbox/checks" "$TEMP_ROOT/toolbox/checks"

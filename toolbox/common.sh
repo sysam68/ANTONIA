@@ -67,6 +67,7 @@ require_config() {
 
 require_config \
   TBOX ABOX MAPPINGS OBDA ONTOP_PROPERTIES CATALOG QL_PROJECTION_UPDATE \
+  PROFILE ALLOWLIST EXPECTED FAIL_ON QC_STRICT \
   IMPORTS_DIR MODULES_DIR ANNOTATIONS_DIR TEMPLATE_DIRS \
   SHAPES_DIR SPARQL_CHECKS SPARQL_REPORTS ONTOLOGY_DESIGN_RECORD \
   TARGET RELEASES OUTPUT_FORMAT REASONER REFERENCE_PROFILE ONTOP_PROFILE JAVA_CONF \
@@ -90,6 +91,9 @@ OBDA="$(abspath "$OBDA")"
 ONTOP_PROPERTIES="$(abspath "$ONTOP_PROPERTIES")"
 CATALOG="$(abspath "$CATALOG")"
 QL_PROJECTION_UPDATE="$(abspath "$QL_PROJECTION_UPDATE")"
+PROFILE="$(abspath "$PROFILE")"
+ALLOWLIST="$(abspath "$ALLOWLIST")"
+EXPECTED="$(abspath "$EXPECTED")"
 IMPORTS_DIR="$(abspath "$IMPORTS_DIR")"
 MODULES_DIR="$(abspath "$MODULES_DIR")"
 ANNOT_DIR="$(abspath "$ANNOTATIONS_DIR")"
@@ -107,6 +111,39 @@ case "$OUTPUT_FORMAT" in
     exit 1
     ;;
 esac
+
+case "$FAIL_ON" in
+  NONE|INFO|WARN|ERROR) : ;;
+  *)
+    echo "✖ FAIL_ON must be NONE, INFO, WARN, or ERROR; got: $FAIL_ON" >&2
+    exit 1
+    ;;
+esac
+
+validate_control_name() {
+  case "$1" in
+    ''|.*|*/*|*..*|*[!A-Za-z0-9_-]*)
+      echo "✖ Invalid SPARQL control name in ${ENV_FILE#$ROOT/}: $1" >&2
+      return 1
+      ;;
+  esac
+}
+
+control_query_path() {
+  validate_control_name "$1"
+  printf '%s/%s.rq\n' "$SPARQL_CHECKS" "$1"
+}
+
+validate_control_scope() {
+  case "$1" in
+    ''|post-reason|project-source|non-mapping-source) : ;;
+    *)
+      echo "✖ Invalid ROBOT control scope in ${PROFILE#$ROOT/}: $1" >&2
+      echo "  Expected: post-reason, project-source, or non-mapping-source" >&2
+      return 1
+      ;;
+  esac
+}
 
 # Canonical build artifacts. Runtime scripts consume these variables instead
 # of reconstructing filenames independently, so a format change applies to the

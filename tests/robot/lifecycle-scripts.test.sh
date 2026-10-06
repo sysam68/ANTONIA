@@ -59,7 +59,7 @@ assert_qc_profile_uses_tabs() {
   local actual=""
   local expected=""
 
-  expected=$'ERROR\tduplicate_label\nERROR\tmultiple_labels\nERROR\tlabel_formatting\nERROR\tlabel_whitespace\nERROR\tinvalid_entity_uri\nERROR\tmissing_label'
+  expected=$'ERROR\texample-forbidden_iri\tproject-source\nERROR\texample-forbidden_equivalence\tnon-mapping-source\nERROR\tduplicate_label\nERROR\tmultiple_labels\nERROR\tlabel_formatting\nERROR\tlabel_whitespace\nERROR\tinvalid_entity_uri\nERROR\tmissing_label'
   actual="$(cat "$path")"
   if [ "$actual" != "$expected" ]; then
     echo "Error: initialized QC profile does not contain tab-separated rules: $path" >&2
@@ -102,9 +102,12 @@ test "$(grep -Fxc 'src/edit/*.properties' "$SUCCESS_ROOT/.gitignore")" -eq 1
 test -f "$SUCCESS_ROOT/src/edit/myOntology.properties.example"
 grep -Fq 'rdf:about="https://example.org/ontology/myOntology/ExampleClass"' \
   "$SUCCESS_ROOT/src/edit/myOntology-tbox.rdf"
-test -f "$SUCCESS_ROOT/toolbox/checks/forbidden_iri.rq"
-test -f "$SUCCESS_ROOT/toolbox/checks/forbidden_equivalence.rq"
-test -f "$SUCCESS_ROOT/src/sparql/checks/.gitkeep"
+test -f "$SUCCESS_ROOT/toolbox/checks/example-forbidden_iri.rq"
+test -f "$SUCCESS_ROOT/toolbox/checks/example-forbidden_equivalence.rq"
+cmp "$SUCCESS_ROOT/toolbox/checks/example-forbidden_iri.rq" \
+  "$SUCCESS_ROOT/src/sparql/checks/example-forbidden_iri.rq"
+cmp "$SUCCESS_ROOT/toolbox/checks/example-forbidden_equivalence.rq" \
+  "$SUCCESS_ROOT/src/sparql/checks/example-forbidden_equivalence.rq"
 test -f "$SUCCESS_ROOT/src/shapes/shacl/.gitkeep"
 test ! -e "$SUCCESS_ROOT/src/sparql/checks/example_check.rq"
 test ! -e "$SUCCESS_ROOT/src/shapes/shacl/ontology-shapes.ttl"
@@ -135,6 +138,8 @@ fi
 test -d "$SUCCESS_ROOT"
 grep -Fq 'Refusing unsafe TARGET path' "$SUCCESS_ROOT/unsafe-clean.log"
 printf 'TARGET=custom-build\n' >> "$SUCCESS_ROOT/config/config.env"
+printf 'SPARQL_CHECKS=custom/sparql/checks\n' \
+  >> "$SUCCESS_ROOT/config/config.env"
 
 bash "$SUCCESS_ROOT/toolbox/init_project.sh" > "$SUCCESS_ROOT/reinit.log"
 test "$(grep -Fxc 'tmp/' "$SUCCESS_ROOT/.gitignore")" -eq 1
@@ -142,10 +147,23 @@ test "$(grep -Fxc '.tools/' "$SUCCESS_ROOT/.gitignore")" -eq 1
 test "$(grep -Fxc 'src/edit/*.properties' "$SUCCESS_ROOT/.gitignore")" -eq 1
 
 mkdir -p "$SUCCESS_ROOT/.agents/skills/project-specific-skill"
+mkdir -p "$SUCCESS_ROOT/custom/sparql/checks"
 printf '%s\n' 'project-owned skill' \
   > "$SUCCESS_ROOT/.agents/skills/project-specific-skill/SKILL.md"
 printf '%s\n' 'locally modified managed skill' \
   > "$SUCCESS_ROOT/.agents/skills/antonia-ontology-workflow/SKILL.md"
+printf '%s\n' 'project-owned control' \
+  > "$SUCCESS_ROOT/custom/sparql/checks/project_owned.rq"
+printf '%s\n' 'stale managed control' \
+  > "$SUCCESS_ROOT/custom/sparql/checks/example-forbidden_iri.rq"
+
+# Simulate the profile created by the previous ANTONIA convention. Update must
+# preserve activation while moving the names and scopes into qc/profile.txt.
+printf '%s\n' \
+  $'ERROR\tforbidden_iri' \
+  $'WARN\tforbidden_equivalence' \
+  $'ERROR\tmissing_label' \
+  > "$SUCCESS_ROOT/qc/profile.txt"
 
 touch "$SUCCESS_ROOT/toolbox/stale-before-update"
 ANTONIA_RELEASE_BASE_URL="file://$RELEASE_ROOT" \
@@ -158,14 +176,32 @@ test -f "$SUCCESS_ROOT/.agents/skills/project-specific-skill/SKILL.md"
 grep -q '^name: antonia-ontology-workflow$' \
   "$SUCCESS_ROOT/.agents/skills/antonia-ontology-workflow/SKILL.md"
 assert_managed_skills_installed "$SUCCESS_ROOT"
+test -f "$SUCCESS_ROOT/custom/sparql/checks/project_owned.rq"
+cmp "$SUCCESS_ROOT/toolbox/checks/example-forbidden_iri.rq" \
+  "$SUCCESS_ROOT/custom/sparql/checks/example-forbidden_iri.rq"
+grep -Fqx $'ERROR\texample-forbidden_iri\tproject-source' \
+  "$SUCCESS_ROOT/qc/profile.txt"
+grep -Fqx $'WARN\texample-forbidden_equivalence\tnon-mapping-source' \
+  "$SUCCESS_ROOT/qc/profile.txt"
+if grep -Eq $'\t(forbidden_iri|forbidden_equivalence)(\t|$)' \
+    "$SUCCESS_ROOT/qc/profile.txt"; then
+  echo "Error: update preserved a legacy control profile name" >&2
+  exit 1
+fi
 grep -q 'ANTONIA toolbox updated:' "$SUCCESS_ROOT/update.log"
 
+cp "$SUCCESS_ROOT/qc/profile.txt" "$SUCCESS_ROOT/qc/profile.before-second-update"
 ANTONIA_RELEASE_BASE_URL="file://$RELEASE_ROOT" \
   "$SUCCESS_ROOT/toolbox/update-antonia.sh" > "$SUCCESS_ROOT/update-second.log"
 test -f "$SUCCESS_ROOT/.agents/skills/project-specific-skill/SKILL.md"
 grep -q '^name: antonia-ontology-workflow$' \
   "$SUCCESS_ROOT/.agents/skills/antonia-ontology-workflow/SKILL.md"
 assert_managed_skills_installed "$SUCCESS_ROOT"
+test -f "$SUCCESS_ROOT/custom/sparql/checks/project_owned.rq"
+cmp "$SUCCESS_ROOT/toolbox/checks/example-forbidden_iri.rq" \
+  "$SUCCESS_ROOT/custom/sparql/checks/example-forbidden_iri.rq"
+cmp "$SUCCESS_ROOT/qc/profile.txt" \
+  "$SUCCESS_ROOT/qc/profile.before-second-update"
 
 ANTONIA_RELEASE_BASE_URL="file://$RELEASE_ROOT" \
   "$SUCCESS_ROOT/toolbox/update-antonia.sh" -dev -version=test-dev.1 \

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Verify that forbidden_iri runs before merge only on project-owned ontology
+# Verify that example-forbidden_iri runs before merge only on project-owned ontology
 # sources, never on imported ontologies or the configured MAPPINGS ontology.
 
 set -euo pipefail
@@ -16,13 +16,20 @@ cleanup() {
 }
 trap cleanup EXIT
 
-mkdir -p "$HOST_ROOT/toolbox/checks" "$HOST_ROOT/config" \
+mkdir -p "$HOST_ROOT/toolbox/checks" "$HOST_ROOT/config" "$HOST_ROOT/qc" \
+  "$HOST_ROOT/src/sparql/checks" \
   "$HOST_ROOT/src/edit/imports" "$HOST_ROOT/src/edit/modules" \
   "$HOST_ROOT/src/edit/annotations" "$TEST_ROOT/captured" "$BIN"
 cp "$ROOT/toolbox/common.sh" "$HOST_ROOT/toolbox/common.sh"
 cp "$ROOT/toolbox/reason.sh" "$HOST_ROOT/toolbox/reason.sh"
-cp "$ROOT/toolbox/checks/forbidden_iri.rq" "$HOST_ROOT/toolbox/checks/"
-cp "$ROOT/toolbox/checks/forbidden_equivalence.rq" "$HOST_ROOT/toolbox/checks/"
+cp "$ROOT/toolbox/checks/example-forbidden_iri.rq" "$HOST_ROOT/toolbox/checks/"
+cp "$ROOT/toolbox/checks/example-forbidden_equivalence.rq" "$HOST_ROOT/toolbox/checks/"
+cp "$ROOT/toolbox/checks/example-forbidden_iri.rq" "$HOST_ROOT/src/sparql/checks/"
+cp "$ROOT/toolbox/checks/example-forbidden_equivalence.rq" "$HOST_ROOT/src/sparql/checks/"
+printf '%s\n' \
+  $'ERROR\texample-forbidden_iri\tproject-source' \
+  $'ERROR\texample-forbidden_equivalence\tnon-mapping-source' \
+  > "$HOST_ROOT/qc/profile.txt"
 
 cat > "$HOST_ROOT/config/config.env" <<'EOF'
 TBOX=src/edit/tbox.ttl
@@ -32,6 +39,11 @@ OBDA=src/edit/ontology.obda
 ONTOP_PROPERTIES=src/edit/ontology.properties
 CATALOG=src/edit/catalog-v001.xml
 QL_PROJECTION_UPDATE=src/sparql/updates/project-ql.ru
+PROFILE=qc/profile.txt
+ALLOWLIST=qc/allowlist.tsv
+EXPECTED=qc/obo-expected.tsv
+FAIL_ON=ERROR
+QC_STRICT=1
 IMPORTS_DIR=src/edit/imports
 MODULES_DIR=src/edit/modules
 ANNOTATIONS_DIR=src/edit/annotations
@@ -80,9 +92,9 @@ case "$command" in
     iri_control=0
     while IFS=$'\t' read -r severity rule; do
       case "$rule" in
-        *native-forbidden_iri.rq)
+        *example-forbidden_iri.rq)
           iri_control=1
-          cp "${rule#file://}" "$ROBOT_CAPTURE_DIR/native-forbidden_iri.rq"
+          cp "${rule#file://}" "$ROBOT_CAPTURE_DIR/example-forbidden_iri.rq"
           ;;
       esac
     done < "$profile"
@@ -90,7 +102,7 @@ case "$command" in
     if [ "$iri_control" -eq 1 ] \
         && grep -Fq 'https://foreign.example/BadClass' "$input"; then
       printf '%s\n' $'Level\tRule Name\tSubject\tProperty\tValue' \
-        $'ERROR\tnative-forbidden_iri\thttps://foreign.example/BadClass\turn:antonia:qc:ENTITY_OUTSIDE_BASE_IRI\tbad namespace' \
+        $'ERROR\tnative-example-forbidden_iri\thttps://foreign.example/BadClass\turn:antonia:qc:ENTITY_OUTSIDE_BASE_IRI\tbad namespace' \
         > "$output"
       exit 42
     fi
@@ -163,10 +175,10 @@ first_report_line="$(grep -n '^report ' "$TEST_ROOT/robot.log" | head -n 1 | cut
 merge_line="$(grep -n '^merge$' "$TEST_ROOT/robot.log" | cut -d: -f1)"
 test "$first_report_line" -lt "$merge_line"
 grep -Fq '<https://example.org/ontology/project/>' \
-  "$TEST_ROOT/captured/native-forbidden_iri.rq"
+  "$TEST_ROOT/captured/example-forbidden_iri.rq"
 grep -Fq '<https://example.org/id/project/>' \
-  "$TEST_ROOT/captured/native-forbidden_iri.rq"
-if grep -Fq '<urn:antonia:config:' "$TEST_ROOT/captured/native-forbidden_iri.rq"; then
+  "$TEST_ROOT/captured/example-forbidden_iri.rq"
+if grep -Fq '<urn:antonia:config:' "$TEST_ROOT/captured/example-forbidden_iri.rq"; then
   echo "Error: native IRI query contains an unresolved configuration sentinel" >&2
   exit 1
 fi
@@ -184,29 +196,51 @@ if (
     ROBOT_CAPTURE_DIR="$TEST_ROOT/captured" SKIP_TEMPLATES=1 \
     ./toolbox/reason.sh > "$TEST_ROOT/local-rejected.log" 2>&1
 ); then
-  echo "Error: forbidden_iri accepted an invalid project-owned IRI" >&2
+  echo "Error: example-forbidden_iri accepted an invalid project-owned IRI" >&2
   exit 1
 fi
-grep -Fq 'native-forbidden_iri' "$TEST_ROOT/local-rejected.log"
+grep -Fq 'native-example-forbidden_iri' "$TEST_ROOT/local-rejected.log"
 grep -Fq 'Source: src/edit/tbox.ttl' "$TEST_ROOT/local-rejected.log"
 if grep -q '^merge$' "$TEST_ROOT/robot.log"; then
   echo "Error: ontology was merged before owned IRI validation" >&2
   exit 1
 fi
 
+# Removing the rule from qc/profile.txt disables it without changing the query
+# file or its source-scope assignment in config.env.
+printf '%s\n' $'ERROR\texample-forbidden_equivalence\tnon-mapping-source' \
+  > "$HOST_ROOT/qc/profile.txt"
+: > "$TEST_ROOT/robot.log"
+(
+  cd "$HOST_ROOT"
+  PATH="$BIN:$PATH" ROBOT_LOG="$TEST_ROOT/robot.log" \
+    ROBOT_CAPTURE_DIR="$TEST_ROOT/captured" SKIP_TEMPLATES=1 \
+    ./toolbox/reason.sh > "$TEST_ROOT/local-control-disabled.log"
+)
+grep -Eq '^report input=.*/src/edit/tbox\.ttl iri=0$' "$TEST_ROOT/robot.log"
+grep -q '^merge$' "$TEST_ROOT/robot.log"
+printf '%s\n' \
+  $'ERROR\texample-forbidden_iri\tproject-source' \
+  $'ERROR\texample-forbidden_equivalence\tnon-mapping-source' \
+  > "$HOST_ROOT/qc/profile.txt"
+
 # Exercise the exact scope with the pinned ROBOT runtime when available: a
 # foreign entity declaration in an import is accepted, while the same
 # declaration in the project TBox is rejected before merge.
 if [ -x "$ROOT/.tools/bin/robot" ] && [ -x "$ROOT/.tools/bin/java" ]; then
   REAL_ROOT="$TEST_ROOT/real-host"
-  mkdir -p "$REAL_ROOT/toolbox/checks" "$REAL_ROOT/config" \
+  mkdir -p "$REAL_ROOT/toolbox/checks" "$REAL_ROOT/config" "$REAL_ROOT/qc" \
+    "$REAL_ROOT/src/sparql/checks" \
     "$REAL_ROOT/src/edit/imports" "$REAL_ROOT/src/edit/modules" \
     "$REAL_ROOT/src/edit/annotations"
   cp "$ROOT/toolbox/common.sh" "$REAL_ROOT/toolbox/common.sh"
   cp "$ROOT/toolbox/reason.sh" "$REAL_ROOT/toolbox/reason.sh"
-  cp "$ROOT/toolbox/checks/forbidden_iri.rq" "$REAL_ROOT/toolbox/checks/"
-  cp "$ROOT/toolbox/checks/forbidden_equivalence.rq" "$REAL_ROOT/toolbox/checks/"
+  cp "$ROOT/toolbox/checks/example-forbidden_iri.rq" "$REAL_ROOT/toolbox/checks/"
+  cp "$ROOT/toolbox/checks/example-forbidden_equivalence.rq" "$REAL_ROOT/toolbox/checks/"
+  cp "$ROOT/toolbox/checks/example-forbidden_iri.rq" "$REAL_ROOT/src/sparql/checks/"
+  cp "$ROOT/toolbox/checks/example-forbidden_equivalence.rq" "$REAL_ROOT/src/sparql/checks/"
   cp "$HOST_ROOT/config/config.env" "$REAL_ROOT/config/config.env"
+  cp "$HOST_ROOT/qc/profile.txt" "$REAL_ROOT/qc/profile.txt"
   cat > "$REAL_ROOT/src/edit/tbox.ttl" <<'EOF'
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 <https://example.org/ontology/project/> a owl:Ontology .

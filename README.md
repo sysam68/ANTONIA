@@ -58,7 +58,8 @@ the skills declared by `toolbox/.agents/.antonia-managed` into the root
 `.agents/skills/` directory. ANTONIA replaces only its declared skills during
 updates and preserves unrelated project skills. Installation refuses to
 overwrite an existing homonymous skill that is not already marked as managed
-by ANTONIA. This keeps the usual
+by ANTONIA. Installation also copies the distributed ROBOT controls from
+`toolbox/checks/` into the path configured by `SPARQL_CHECKS`. This keeps the usual
 `make <target>` commands, ontology-agent instructions, and Codex workflows while
 their authoritative versions remain part of the versioned toolbox. Existing
 `.gitignore` content is preserved, while missing `tmp/` and `.tools/` rules are
@@ -108,7 +109,8 @@ introduced by the Release, and variables that are no longer expected. Only new
 assignments are appended with their default value; existing and obsolete
 assignments are preserved unchanged. The root ontology `Makefile`, `AGENTS.md`,
 and ANTONIA-managed skills are replaced by the corresponding files supplied by
-the new Release.
+the new Release. Distributed controls are refreshed in `SPARQL_CHECKS` while
+unrelated project controls are preserved.
 
 For stable-channel installation or update, set `ANTONIA_VERSION=<tag>` to use a
 specific immutable Release. For the development channel, prefer the explicit
@@ -201,8 +203,9 @@ packages and ontology Releases. Do not put API keys or database credentials in
 
 `$antonia-onto-steward` turns reviewed requirements into ROBOT rules or, only
 when shape semantics are required, SHACL shapes. Project SPARQL controls must
-return exactly `?entity ?property ?value`; `make report` renders their
-configuration sentinels and injects them into the canonical ROBOT profile.
+return exactly `?entity ?property ?value`; `make report` renders the controls
+whose file-base names are enabled in `qc/profile.txt` and injects them into the
+canonical ROBOT profile.
 Every control should have a stable identifier, rationale, target, severity,
 message, and positive and negative examples.
 
@@ -218,16 +221,18 @@ invoked when no shape exists. Project SPARQL controls appear in the canonical
 ROBOT TSV/HTML report. Native source-scope controls run through `robot report`
 before merge so a failure identifies the responsible source file.
 
-ANTONIA always includes the native `forbidden_iri` ROBOT rule. Before any
-merge, it renders `BASE_IRI` and `INSTANCE_BASE_IRI` from `config/config.env`
+ANTONIA distributes the `example-forbidden_iri` ROBOT control. When its profile
+entry uses the `project-source` scope, it renders
+`BASE_IRI` and `INSTANCE_BASE_IRI` from `config/config.env` before any merge
 and applies them only to project-owned ontology sources: TBox, ABox, generated
 modules, and annotations. Imported ontologies and the alignment ontology
 configured by `MAPPINGS` retain their publishers' namespaces and are excluded
 from this ownership rule. The rule rejects versioned schema IRIs and keeps
 ontology-entity and named-individual namespaces separate.
 
-The native `forbidden_equivalence` rule runs through `robot report` on every
-ontology source before fusion, except the RDF alignment ontology configured by
+When its profile entry uses the `non-mapping-source` scope, the distributed
+`example-forbidden_equivalence` control runs through `robot report` on every ontology
+source before fusion, except the RDF alignment ontology configured by
 `MAPPINGS`. The complete graph then uses ROBOT's `asserted-only` reasoning
 policy: asserted mapping equivalences are accepted, while newly inferred class
 equivalences remain blocking.

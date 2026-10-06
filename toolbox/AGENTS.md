@@ -18,9 +18,23 @@ Keep generated ontology modules in the configured modules directory, optional
 SHACL constraints under `src/shapes/`, and SPARQL checks, analytics, and updates
 under `src/sparql/`. Blocking SPARQL checks must be ROBOT report queries that
 return exactly `?entity ?property ?value`; do not execute them as separate
-`robot query` gates. Transient build artifacts belong under the configured
-`TARGET` (`tmp/` by default); distributable current and dated packages belong
-in `releases/`.
+`robot query` gates.
+
+All ROBOT-control activation and severity configuration belongs exclusively in
+`qc/profile.txt`. A control runs only when its exact file base name appears as
+the second tab-separated field in that profile. The presence of an `.rq` file
+does not activate it, and no control activation list belongs in `config.env`, a
+Makefile, or a runtime script.
+
+The optional third profile field defines execution scope: `project-source`,
+`non-mapping-source`, or `post-reason`. An omitted scope means `post-reason`.
+
+Every control example distributed by ANTONIA lives under `toolbox/checks/` and
+keeps its `example-` filename. Installation and update copy every example into
+the directory configured by `SPARQL_CHECKS` without renaming it, while
+preserving unrelated project controls. Transient build artifacts belong under
+the configured `TARGET` (`tmp/` by default); distributable current and dated
+packages belong in `releases/`.
 
 The root `Makefile` and `AGENTS.md` are managed copies of `toolbox/Makefile` and
 `toolbox/AGENTS.md`. Repository skills declared by
@@ -83,8 +97,8 @@ Run commands from the ontology repository root:
 - `make import` refreshes configured external ontology Release assets.
 - `make install-semantic-tools` installs the local OntoGPT/Ontop/SHACL tools.
 - `make generate` expands TSV templates into RDF/XML modules.
-- `make reason` validates IRI ownership on project-owned sources and equivalence
-  scope source by source before fusion, merges the complete import closure into
+- `make reason` runs the source controls selected by `qc/profile.txt` source by
+  source before fusion, merges the complete import closure into
   `TARGET/merged.<format>`, and classifies the OWL 2 DL reference ontology into
   `TARGET/classified.<format>`. In a newly initialized project with no ontology
   files yet, it reports the absence of merge inputs and exits successfully
@@ -92,8 +106,9 @@ Run commands from the ontology repository root:
 - `REASONER=hermit make reason` overrides the configured reasoner.
 - `make project-ql` derives `TARGET/ontop-ql.<format>` for Ontop from the merged
   ontology without weakening the expressive reference ontology.
-- `make report` injects project SPARQL controls into the canonical post-reasoning
-  ROBOT TSV/HTML report. It runs external SHACL validation only when shapes
+- `make report` resolves the non-source SPARQL controls selected by
+  `qc/profile.txt` into the canonical post-reasoning ROBOT TSV/HTML report. It
+  runs external SHACL validation only when shapes
   exist; use `FAIL_ON=WARN` for ROBOT warnings and `SHACL_FAIL_ON` for SHACL
   severity.
 - `make validate` validates the classified reference as OWL 2 DL and the Ontop
@@ -134,8 +149,9 @@ document to the required `.rdf` delivery name, then remove the intermediate
 file. Do not pass a `.rdf` output path directly to ROBOT even with an explicit
 format.
 
-Preserve the ontology IRIs configured in `config/config.env`. Before merge, the
-native `forbidden_iri` ROBOT rule enforces unversioned schema IRIs under
+Preserve the ontology IRIs configured in `config/config.env`. When enabled in
+`qc/profile.txt`, the distributed `example-forbidden_iri` ROBOT rule enforces
+unversioned schema IRIs under
 `BASE_IRI` and named-individual IRIs under `INSTANCE_BASE_IRI` only in the
 project-owned TBox, ABox, generated modules, and annotations. Do not apply this
 ownership rule to imported ontologies or the alignment ontology configured by
@@ -144,8 +160,9 @@ under `TARGET`. Name project checks descriptively with snake_case and return
 exactly `?entity ?property ?value`.
 
 Class equivalence assertions are allowed only in the ontology-to-ontology file
-configured by `MAPPINGS`. `toolbox/reason.sh` validates every other source with
-ROBOT before any merge, then uses `asserted-only` for the complete graph so
+configured by `MAPPINGS`. When `example-forbidden_equivalence` is enabled in
+`qc/profile.txt`, `toolbox/reason.sh` validates every other source with ROBOT
+before any merge, then uses `asserted-only` for the complete graph so
 newly inferred class equivalences remain blocking. Do not declare
 `owl:equivalentClass` in the TBox, ABox, imports, generated modules, or
 annotations.

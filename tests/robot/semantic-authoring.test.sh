@@ -28,8 +28,8 @@ grep -Fq 'must return exactly `?entity ?property ?value`' \
   "$ROOT/toolbox/.agents/skills/antonia-onto-steward/SKILL.md"
 grep -Fq 'Never implement a blocking SPARQL control as a separate `robot query` gate.' \
   "$ROOT/toolbox/.agents/skills/antonia-onto-steward/SKILL.md"
-test -f "$ROOT/toolbox/checks/forbidden_iri.rq"
-test -f "$ROOT/toolbox/checks/forbidden_equivalence.rq"
+test -f "$ROOT/toolbox/checks/example-forbidden_iri.rq"
+test -f "$ROOT/toolbox/checks/example-forbidden_equivalence.rq"
 
 printf 'A domain statement.\n' > "$TEMP_ROOT/source.md"
 python3 "$ROOT/toolbox/.agents/skills/antonia-ontologist/scripts/normalize_document.py" \
@@ -190,11 +190,12 @@ PY
   echo "SHACL violation rejection: passed"
 
   REPORT_ROOT="$TEMP_ROOT/report-host"
-  mkdir -p "$REPORT_ROOT/config" "$REPORT_ROOT/.tools/bin" \
+  mkdir -p "$REPORT_ROOT/config" "$REPORT_ROOT/qc" "$REPORT_ROOT/.tools/bin" \
     "$REPORT_ROOT/.tools/semantic/bin" "$REPORT_ROOT/tmp" \
     "$REPORT_ROOT/src/shapes/shacl"
   cp -R "$ROOT/toolbox" "$REPORT_ROOT/toolbox"
   cp "$ROOT/toolbox/templates/config/config.env" "$REPORT_ROOT/config/config.env"
+  : > "$REPORT_ROOT/qc/profile.txt"
   cp "$ROOT/tests/data/shacl/shapes/class-label.ttl" \
     "$REPORT_ROOT/src/shapes/shacl/class-label.ttl"
   printf '%s\n' '#!/usr/bin/env bash' 'exit 0' > "$REPORT_ROOT/.tools/bin/java"

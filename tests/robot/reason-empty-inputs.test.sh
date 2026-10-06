@@ -15,12 +15,19 @@ cleanup() {
 }
 trap cleanup EXIT
 
-mkdir -p "$WORK/toolbox/checks" "$WORK/config" "$BIN"
+mkdir -p "$WORK/toolbox/checks" "$WORK/config" "$WORK/qc" \
+  "$WORK/src/sparql/checks" "$BIN"
 cp "$ROOT/toolbox/common.sh" "$WORK/toolbox/common.sh"
 cp "$ROOT/toolbox/reason.sh" "$WORK/toolbox/reason.sh"
 cp "$ROOT/toolbox/project_ql.sh" "$WORK/toolbox/project_ql.sh"
-cp "$ROOT/toolbox/checks/forbidden_equivalence.rq" "$WORK/toolbox/checks/"
-cp "$ROOT/toolbox/checks/forbidden_iri.rq" "$WORK/toolbox/checks/"
+cp "$ROOT/toolbox/checks/example-forbidden_equivalence.rq" "$WORK/toolbox/checks/"
+cp "$ROOT/toolbox/checks/example-forbidden_iri.rq" "$WORK/toolbox/checks/"
+cp "$ROOT/toolbox/checks/example-forbidden_equivalence.rq" "$WORK/src/sparql/checks/"
+cp "$ROOT/toolbox/checks/example-forbidden_iri.rq" "$WORK/src/sparql/checks/"
+printf '%s\n' \
+  $'ERROR\texample-forbidden_iri\tproject-source' \
+  $'ERROR\texample-forbidden_equivalence\tnon-mapping-source' \
+  > "$WORK/qc/profile.txt"
 
 cat > "$WORK/config/config.env" <<'EOF'
 TBOX=src/edit/myOntology-tbox.rdf
@@ -30,6 +37,11 @@ OBDA=src/edit/myOntology-tbox.obda
 ONTOP_PROPERTIES=src/edit/myOntology.properties
 CATALOG=src/edit/catalog-v001.xml
 QL_PROJECTION_UPDATE=src/sparql/updates/project-ql.ru
+PROFILE=qc/profile.txt
+ALLOWLIST=qc/allowlist.tsv
+EXPECTED=qc/obo-expected.tsv
+FAIL_ON=ERROR
+QC_STRICT=1
 IMPORTS_DIR=src/edit/imports
 MODULES_DIR=src/edit/modules
 ANNOTATIONS_DIR=src/edit/annotations

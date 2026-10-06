@@ -9,8 +9,9 @@
 - **ABox instances**:
 `<INSTANCE_BASE_IRI>SD_AccountManagement`
 
-Before merge, the native `forbidden_iri` ROBOT report rule enforces these
-configured bases on the project-owned TBox, ABox, generated modules, and
+When selected with the `project-source` scope in `qc/profile.txt`, the
+distributed `example-forbidden_iri` ROBOT report rule enforces these configured bases before
+merge on the project-owned TBox, ABox, generated modules, and
 annotations, and rejects version segments in schema entity IRIs. Imported
 ontologies and the ontology configured by `MAPPINGS` are excluded because their
 entity namespaces are externally owned.

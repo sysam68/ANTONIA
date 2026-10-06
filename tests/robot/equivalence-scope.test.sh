@@ -16,13 +16,20 @@ cleanup() {
 }
 trap cleanup EXIT
 
-mkdir -p "$HOST_ROOT/toolbox/checks" "$HOST_ROOT/config" "$HOST_ROOT/src/edit" \
+mkdir -p "$HOST_ROOT/toolbox/checks" "$HOST_ROOT/config" "$HOST_ROOT/qc" \
+  "$HOST_ROOT/src/sparql/checks" "$HOST_ROOT/src/edit" \
   "$HOST_ROOT/src/edit/imports" "$HOST_ROOT/src/edit/modules" \
   "$HOST_ROOT/src/edit/annotations" "$BIN"
 cp "$ROOT/toolbox/common.sh" "$HOST_ROOT/toolbox/common.sh"
 cp "$ROOT/toolbox/reason.sh" "$HOST_ROOT/toolbox/reason.sh"
-cp "$ROOT/toolbox/checks/forbidden_equivalence.rq" "$HOST_ROOT/toolbox/checks/"
-cp "$ROOT/toolbox/checks/forbidden_iri.rq" "$HOST_ROOT/toolbox/checks/"
+cp "$ROOT/toolbox/checks/example-forbidden_equivalence.rq" "$HOST_ROOT/toolbox/checks/"
+cp "$ROOT/toolbox/checks/example-forbidden_iri.rq" "$HOST_ROOT/toolbox/checks/"
+cp "$ROOT/toolbox/checks/example-forbidden_equivalence.rq" "$HOST_ROOT/src/sparql/checks/"
+cp "$ROOT/toolbox/checks/example-forbidden_iri.rq" "$HOST_ROOT/src/sparql/checks/"
+printf '%s\n' \
+  $'ERROR\texample-forbidden_iri\tproject-source' \
+  $'ERROR\texample-forbidden_equivalence\tnon-mapping-source' \
+  > "$HOST_ROOT/qc/profile.txt"
 
 cat > "$HOST_ROOT/config/config.env" <<'EOF'
 TBOX=src/edit/tbox.ttl
@@ -32,6 +39,11 @@ OBDA=src/edit/ontology.obda
 ONTOP_PROPERTIES=src/edit/ontology.properties
 CATALOG=src/edit/catalog-v001.xml
 QL_PROJECTION_UPDATE=src/sparql/updates/project-ql.ru
+PROFILE=qc/profile.txt
+ALLOWLIST=qc/allowlist.tsv
+EXPECTED=qc/obo-expected.tsv
+FAIL_ON=ERROR
+QC_STRICT=1
 IMPORTS_DIR=src/edit/imports
 MODULES_DIR=src/edit/modules
 ANNOTATIONS_DIR=src/edit/annotations
@@ -218,7 +230,7 @@ ex:A a owl:Class ;
 ex:B a owl:Class .
 ex:p a owl:ObjectProperty .
 EOF
-  printf 'ERROR\tfile://%s\n' "$ROOT/toolbox/checks/forbidden_equivalence.rq" \
+  printf 'ERROR\tfile://%s\n' "$ROOT/toolbox/checks/example-forbidden_equivalence.rq" \
     > "$TEST_ROOT/equivalence-profile.txt"
   if PATH="$ROOT/.tools/bin:$PATH" "$ROOT/.tools/bin/robot" report \
       --input "$TEST_ROOT/anonymous-equivalence.ttl" \

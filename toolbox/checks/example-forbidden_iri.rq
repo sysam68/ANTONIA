@@ -1,7 +1,7 @@
 PREFIX owl:  <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
-# Native blocking rule executed on project-owned ontology sources before merge.
+# Example blocking rule executed on project-owned ontology sources before merge.
 # Imported ontologies and the configured MAPPINGS ontology are out of scope.
 #
 # The urn:antonia:config:* sentinels are rendered from config/config.env by

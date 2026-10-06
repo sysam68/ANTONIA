@@ -39,10 +39,11 @@ every Release.
 `$antonia-onto-steward` maintains ROBOT report rules and optional SHACL shapes.
 Every project SPARQL control must return exactly
 `?entity ?property ?value`; `make report` renders configuration sentinels and
-injects project controls into a temporary effective profile before producing
+injects only the project controls named in `qc/profile.txt` into a temporary effective profile before producing
 the canonical ROBOT TSV/HTML report under the configured `TARGET`. The native
 IRI ownership control runs through `robot report` on project-owned sources
-before merge. Temporary profiles are removed after execution. Blocking SPARQL
+before merge when enabled with the `project-source` scope in the profile.
+Temporary profiles are removed after execution. Blocking SPARQL
 controls are not executed separately with `robot query`.
 
 When shape files exist, `make report` also evaluates SHACL against the

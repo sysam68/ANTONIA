@@ -35,6 +35,11 @@ grep -q '^ONTOGPT_ALLOW_EXTERNAL_LLM=0$' "$TEMP_ROOT/config/config.env"
 grep -q '^DB_SAMPLE_TO_LLM=0$' "$TEMP_ROOT/config/config.env"
 grep -q '^SHACL_FAIL_ON=VIOLATION$' "$TEMP_ROOT/config/config.env"
 grep -q '^OUTPUT_FORMAT=rdf' "$TEMP_ROOT/config/config.env"
+if grep -Eq '^(PROJECT_SOURCE_CHECKS|NON_MAPPING_SOURCE_CHECKS)=' \
+    "$TEMP_ROOT/config/config.env"; then
+  echo "Error: control activation leaked into config.env" >&2
+  exit 1
+fi
 grep -q 'Existing variables: TBOX, REASONER, USE_GH' "$FIRST_OUTPUT"
 grep -q 'No longer expected: LEGACY_ONLY' "$FIRST_OUTPUT"
 

@@ -1,6 +1,6 @@
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 
-# Source-scope rule executed by toolbox/reason.sh before any merge.
+# Example source-scope rule executed by toolbox/reason.sh before any merge.
 # The configured MAPPINGS ontology is deliberately excluded from this check.
 
 SELECT DISTINCT ?entity ?property ?value
