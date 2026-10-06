@@ -144,6 +144,14 @@ if find "$ROOT/toolbox/checks" -type f ! -name 'example-*.rq' -print -quit \
 fi
 cp -R "$ROOT/toolbox/checks" "$TEMP_ROOT/toolbox/checks"
 
+# rc11 and earlier updaters validate these historical filenames before they
+# replace the installed toolbox. Keep byte-identical aliases in the Release
+# archive only; sync_checks.sh deliberately copies example-*.rq files only.
+cp "$TEMP_ROOT/toolbox/checks/example-forbidden_iri.rq" \
+  "$TEMP_ROOT/toolbox/checks/forbidden_iri.rq"
+cp "$TEMP_ROOT/toolbox/checks/example-forbidden_equivalence.rq" \
+  "$TEMP_ROOT/toolbox/checks/forbidden_equivalence.rq"
+
 if [ ! -d "$ROOT/toolbox/templates" ]; then
   echo "Error: missing toolbox templates: toolbox/templates" >&2
   exit 1

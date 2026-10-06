@@ -108,6 +108,8 @@ cmp "$SUCCESS_ROOT/toolbox/checks/example-forbidden_iri.rq" \
   "$SUCCESS_ROOT/src/sparql/checks/example-forbidden_iri.rq"
 cmp "$SUCCESS_ROOT/toolbox/checks/example-forbidden_equivalence.rq" \
   "$SUCCESS_ROOT/src/sparql/checks/example-forbidden_equivalence.rq"
+test ! -e "$SUCCESS_ROOT/src/sparql/checks/forbidden_iri.rq"
+test ! -e "$SUCCESS_ROOT/src/sparql/checks/forbidden_equivalence.rq"
 test -f "$SUCCESS_ROOT/src/shapes/shacl/.gitkeep"
 test ! -e "$SUCCESS_ROOT/src/sparql/checks/example_check.rq"
 test ! -e "$SUCCESS_ROOT/src/shapes/shacl/ontology-shapes.ttl"
@@ -179,6 +181,8 @@ assert_managed_skills_installed "$SUCCESS_ROOT"
 test -f "$SUCCESS_ROOT/custom/sparql/checks/project_owned.rq"
 cmp "$SUCCESS_ROOT/toolbox/checks/example-forbidden_iri.rq" \
   "$SUCCESS_ROOT/custom/sparql/checks/example-forbidden_iri.rq"
+test ! -e "$SUCCESS_ROOT/custom/sparql/checks/forbidden_iri.rq"
+test ! -e "$SUCCESS_ROOT/custom/sparql/checks/forbidden_equivalence.rq"
 grep -Fqx $'ERROR\texample-forbidden_iri\tproject-source' \
   "$SUCCESS_ROOT/qc/profile.txt"
 grep -Fqx $'WARN\texample-forbidden_equivalence\tnon-mapping-source' \

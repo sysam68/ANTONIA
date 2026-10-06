@@ -137,6 +137,12 @@ test-package:
 	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/templates/config/config.env$$'
 	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/checks/example-forbidden_iri.rq$$'
 	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/checks/example-forbidden_equivalence.rq$$'
+	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/checks/forbidden_iri.rq$$'
+	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/checks/forbidden_equivalence.rq$$'
+	@cmp <(tar -xOf dist/antonia-toolbox.tar.gz toolbox/checks/example-forbidden_iri.rq) \
+		<(tar -xOf dist/antonia-toolbox.tar.gz toolbox/checks/forbidden_iri.rq)
+	@cmp <(tar -xOf dist/antonia-toolbox.tar.gz toolbox/checks/example-forbidden_equivalence.rq) \
+		<(tar -xOf dist/antonia-toolbox.tar.gz toolbox/checks/forbidden_equivalence.rq)
 	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/clean.sh$$'
 	@for script in toolbox/*.sh; do \
 		script_name="$${script##*/}"; \

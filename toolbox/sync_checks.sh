@@ -54,7 +54,7 @@ case "$DESTINATION" in
     ;;
 esac
 copied=0
-for source in "$SOURCE_DIR"/*.rq; do
+for source in "$SOURCE_DIR"/example-*.rq; do
   [ -f "$source" ] || continue
   cp "$source" "$DESTINATION/$(basename "$source")"
   copied=$((copied + 1))

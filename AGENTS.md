@@ -63,6 +63,10 @@ must include at least:
 - `toolbox/templates/config/config.env`;
 - every `toolbox/checks/example-*.rq` control example, with its filename
   unchanged;
+- transitional, byte-identical `forbidden_iri.rq` and
+  `forbidden_equivalence.rq` archive aliases required only by pre-rc12
+  updaters; these aliases do not exist in the source `toolbox/checks/` and are
+  never copied to an ontology project's configured control directory;
 - toolbox documentation;
 - `toolbox/.agents/.antonia-managed` and every declared repository skill;
 - `.antonia-managed`, recording the concrete Release version.
@@ -86,9 +90,10 @@ Installation and update must:
 - copy the released Makefile and AGENTS.md to the ontology root;
 - synchronize ANTONIA-managed skills into the ontology root `.agents/skills/`
   while preserving unrelated project skills;
-- copy every file from `toolbox/checks/` into the ontology project's configured
-  ROBOT-control directory, preserving each `example-*` filename exactly during
-  both installation and update;
+- copy every `example-*.rq` file from `toolbox/checks/` into the ontology
+  project's configured ROBOT-control directory, preserving each filename
+  exactly during both installation and update; never copy transitional archive
+  aliases;
 - refuse to overwrite a homonymous root skill unless the installed ANTONIA
   manifest already declares it as managed;
 - add missing `tmp/` and `.tools/` exclusions without replacing the host
@@ -106,6 +111,11 @@ Installation and update must:
 shipped by ANTONIA. Within this `template-ontology` development repository,
 every control example must use an `example-` filename prefix. Installation,
 update, and packaging must copy these files without renaming them.
+
+Release archives may temporarily add byte-identical legacy aliases solely so
+older installed updaters can accept the archive. These aliases are packaging
+compatibility metadata, not control examples or activation entries, and
+`sync_checks.sh` must exclude them from ontology projects.
 
 The ontology project's `qc/profile.txt` is the sole configuration of which
 ROBOT controls execute and at which severity. Merely shipping or copying a

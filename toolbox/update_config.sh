@@ -112,3 +112,9 @@ for template in "${TEMPLATES[@]}"; do
     echo "    Result: no change."
   fi
 done
+
+# Older ANTONIA updaters invoke only the candidate release's update_config.sh
+# after swapping toolboxes. Keep the profile migration and control copy behind
+# that stable lifecycle hook so upgrades from those releases remain complete.
+bash "$TOOLBOX_DIR/update_profile.sh"
+bash "$TOOLBOX_DIR/sync_checks.sh"

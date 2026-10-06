@@ -250,10 +250,29 @@ if [ ! -f "$CANDIDATE/.antonia-managed" ] \
   exit 1
 fi
 
-if find "$CANDIDATE/checks" -type f ! -name 'example-*.rq' -print -quit \
-    | grep -q .; then
+if find "$CANDIDATE/checks" -type f \
+    ! -name 'example-*.rq' \
+    ! -name 'forbidden_iri.rq' \
+    ! -name 'forbidden_equivalence.rq' \
+    -print -quit | grep -q .; then
   echo "Error: invalid ANTONIA control example filename." >&2
   exit 1
+fi
+
+# Transitional Release archives may carry these two aliases so an updater
+# installed by rc11 can validate and enter the new lifecycle. They are not
+# project examples and must remain exact copies of the canonical files.
+if [ -e "$CANDIDATE/checks/forbidden_iri.rq" ] \
+    || [ -e "$CANDIDATE/checks/forbidden_equivalence.rq" ]; then
+  if [ ! -f "$CANDIDATE/checks/forbidden_iri.rq" ] \
+      || [ ! -f "$CANDIDATE/checks/forbidden_equivalence.rq" ] \
+      || ! cmp -s "$CANDIDATE/checks/example-forbidden_iri.rq" \
+        "$CANDIDATE/checks/forbidden_iri.rq" \
+      || ! cmp -s "$CANDIDATE/checks/example-forbidden_equivalence.rq" \
+        "$CANDIDATE/checks/forbidden_equivalence.rq"; then
+    echo "Error: invalid ANTONIA legacy control aliases." >&2
+    exit 1
+  fi
 fi
 
 if find "$CANDIDATE" -type l -print -quit | grep -q .; then
@@ -363,7 +382,5 @@ else
   echo "Ontology AGENTS.md updated from toolbox/AGENTS.md"
   bash "$DESTINATION/sync_agents.sh"
   bash "$DESTINATION/update_config.sh"
-  bash "$DESTINATION/update_profile.sh"
-  bash "$DESTINATION/sync_checks.sh"
   echo "ANTONIA toolbox updated: $CURRENT_VERSION -> $INSTALLED_VERSION"
 fi

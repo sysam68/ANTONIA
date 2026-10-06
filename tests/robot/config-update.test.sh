@@ -13,10 +13,15 @@ cleanup() {
 }
 trap cleanup EXIT
 
-mkdir -p "$TEMP_ROOT/toolbox" "$TEMP_ROOT/config"
+mkdir -p "$TEMP_ROOT/toolbox" "$TEMP_ROOT/config" "$TEMP_ROOT/qc"
 cp -R "$ROOT/toolbox/." "$TEMP_ROOT/toolbox/"
 cp "$ROOT/tests/data/config-update-existing.env" "$TEMP_ROOT/config/config.env"
 cp "$TEMP_ROOT/config/config.env" "$TEMP_ROOT/config/config.env.before"
+printf '%s\n' \
+  $'ERROR\tforbidden_iri' \
+  $'WARN\tforbidden_equivalence' \
+  $'ERROR\tproject_owned' \
+  > "$TEMP_ROOT/qc/profile.txt"
 
 FIRST_OUTPUT="$TEMP_ROOT/first-update.log"
 bash "$TEMP_ROOT/toolbox/update_config.sh" > "$FIRST_OUTPUT"
@@ -42,10 +47,23 @@ if grep -Eq '^(PROJECT_SOURCE_CHECKS|NON_MAPPING_SOURCE_CHECKS)=' \
 fi
 grep -q 'Existing variables: TBOX, REASONER, USE_GH' "$FIRST_OUTPUT"
 grep -q 'No longer expected: LEGACY_ONLY' "$FIRST_OUTPUT"
+grep -Fqx $'ERROR\texample-forbidden_iri\tproject-source' \
+  "$TEMP_ROOT/qc/profile.txt"
+grep -Fqx $'WARN\texample-forbidden_equivalence\tnon-mapping-source' \
+  "$TEMP_ROOT/qc/profile.txt"
+grep -Fqx $'ERROR\tproject_owned' "$TEMP_ROOT/qc/profile.txt"
+cmp "$TEMP_ROOT/toolbox/checks/example-forbidden_iri.rq" \
+  "$TEMP_ROOT/src/sparql/checks/example-forbidden_iri.rq"
+cmp "$TEMP_ROOT/toolbox/checks/example-forbidden_equivalence.rq" \
+  "$TEMP_ROOT/src/sparql/checks/example-forbidden_equivalence.rq"
+test ! -e "$TEMP_ROOT/src/sparql/checks/forbidden_iri.rq"
+test ! -e "$TEMP_ROOT/src/sparql/checks/forbidden_equivalence.rq"
 
 cp "$TEMP_ROOT/config/config.env" "$TEMP_ROOT/config/config.env.after-first-update"
+cp "$TEMP_ROOT/qc/profile.txt" "$TEMP_ROOT/qc/profile.after-first-update"
 bash "$TEMP_ROOT/toolbox/update_config.sh" > "$TEMP_ROOT/second-update.log"
 cmp "$TEMP_ROOT/config/config.env" "$TEMP_ROOT/config/config.env.after-first-update"
+cmp "$TEMP_ROOT/qc/profile.txt" "$TEMP_ROOT/qc/profile.after-first-update"
 grep -q 'New variables:      none' "$TEMP_ROOT/second-update.log"
 
 echo "config update test: passed"
