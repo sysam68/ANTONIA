@@ -144,6 +144,10 @@ cat > "$HOST_ROOT/src/edit/mapping.ttl" <<'EOF'
 <https://example.org/mapping/> a owl:Ontology .
 ex:A owl:equivalentClass ex:B .
 EOF
+printf '%s\n' \
+  '<?xml version="1.0" encoding="UTF-8"?>' \
+  '<catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog"/>' \
+  > "$HOST_ROOT/src/edit/catalog-v001.xml"
 
 : > "$TEST_ROOT/robot.log"
 (
@@ -162,6 +166,9 @@ if grep '^report ' "$TEST_ROOT/robot.log" | grep -Fq '/mapping.ttl'; then
   exit 1
 fi
 grep -Fq 'Equivalent classes allowed: asserted-only' "$TEST_ROOT/mapping-allowed.log"
+grep '^merge ' "$TEST_ROOT/robot.log" \
+  | grep -F -- '--catalog ' \
+  | grep -Fq '/src/edit/catalog-v001.xml'
 test -f "$HOST_ROOT/build/classified.ttl"
 
 cat > "$HOST_ROOT/src/edit/tbox.ttl" <<'EOF'

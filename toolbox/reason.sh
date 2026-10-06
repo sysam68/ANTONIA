@@ -180,7 +180,10 @@ fi
 # 2a) Merge
 MERGED_ROBOT_OUTPUT="$(robot_output_path "$MERGED_ONTOLOGY")"
 echo "▶ Merging ontologies → ${MERGED_ONTOLOGY#$ROOT/}"
-robot merge "${MERGE_INPUTS[@]}" --output "$MERGED_ROBOT_OUTPUT"
+merge_cmd=( robot merge "${MERGE_INPUTS[@]}" )
+[ -f "$CATALOG" ] && merge_cmd+=( --catalog "$CATALOG" )
+merge_cmd+=( --output "$MERGED_ROBOT_OUTPUT" )
+"${merge_cmd[@]}"
 finalize_robot_output "$MERGED_ONTOLOGY" "$MERGED_ROBOT_OUTPUT"
 
 # 3) Reason
