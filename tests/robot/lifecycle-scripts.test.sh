@@ -91,6 +91,8 @@ ANTONIA_RELEASE_BASE_URL="file://$RELEASE_ROOT" \
 test ! -e "$SUCCESS_ROOT/install-antonia.sh"
 test -x "$SUCCESS_ROOT/toolbox/install-antonia.sh"
 test -x "$SUCCESS_ROOT/toolbox/update-antonia.sh"
+cmp "$ROOT/toolbox/qc/example-profile.txt" \
+  "$SUCCESS_ROOT/toolbox/qc/example-profile.txt"
 assert_managed_skills_installed "$SUCCESS_ROOT"
 test -f "$SUCCESS_ROOT/.tools/install-robot-invoked"
 test ! -e "$SUCCESS_ROOT/.tools/semantic"
@@ -168,12 +170,16 @@ printf '%s\n' \
   > "$SUCCESS_ROOT/qc/profile.txt"
 
 touch "$SUCCESS_ROOT/toolbox/stale-before-update"
+printf '%s\n' 'stale QC example profile' \
+  > "$SUCCESS_ROOT/toolbox/qc/example-profile.txt"
 ANTONIA_RELEASE_BASE_URL="file://$RELEASE_ROOT" \
   "$SUCCESS_ROOT/toolbox/update-antonia.sh" > "$SUCCESS_ROOT/update.log"
 
 test ! -e "$SUCCESS_ROOT/toolbox/stale-before-update"
 test -x "$SUCCESS_ROOT/toolbox/install-antonia.sh"
 test -x "$SUCCESS_ROOT/toolbox/update-antonia.sh"
+cmp "$ROOT/toolbox/qc/example-profile.txt" \
+  "$SUCCESS_ROOT/toolbox/qc/example-profile.txt"
 test -f "$SUCCESS_ROOT/.agents/skills/project-specific-skill/SKILL.md"
 grep -q '^name: antonia-ontology-workflow$' \
   "$SUCCESS_ROOT/.agents/skills/antonia-ontology-workflow/SKILL.md"

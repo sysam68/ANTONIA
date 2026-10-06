@@ -144,6 +144,14 @@ if find "$ROOT/toolbox/checks" -type f ! -name 'example-*.rq' -print -quit \
 fi
 cp -R "$ROOT/toolbox/checks" "$TEMP_ROOT/toolbox/checks"
 
+if [ ! -f "$ROOT/toolbox/qc/example-profile.txt" ]; then
+  echo "Error: missing QC example profile: toolbox/qc/example-profile.txt" >&2
+  exit 1
+fi
+mkdir -p "$TEMP_ROOT/toolbox/qc"
+cp "$ROOT/toolbox/qc/example-profile.txt" \
+  "$TEMP_ROOT/toolbox/qc/example-profile.txt"
+
 # rc11 and earlier updaters validate these historical filenames before they
 # replace the installed toolbox. Keep byte-identical aliases in the Release
 # archive only; sync_checks.sh deliberately copies example-*.rq files only.

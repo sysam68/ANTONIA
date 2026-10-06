@@ -209,6 +209,11 @@ canonical ROBOT profile.
 Every control should have a stable identifier, rationale, target, severity,
 message, and positive and negative examples.
 
+`toolbox/qc/example-profile.txt` contains every native ROBOT report control and
+the two ANTONIA source controls. It is installed and updated with the managed
+toolbox but does not replace or activate entries in the project's
+`qc/profile.txt`.
+
 When SHACL shapes exist, `make report` evaluates them against the classified
 graph and writes:
 

@@ -15,16 +15,9 @@ if [ ! -f "$CLASSIFIED_ONTOLOGY" ]; then
   "$(dirname "$0")/reason.sh"
 fi
 
-DL_ROBOT_OUTPUT="$(robot_output_path "$DL_VIEW_ONTOLOGY")"
-robot query \
-  --input "$CLASSIFIED_ONTOLOGY" \
-  --update "$ROOT/src/sparql/updates/fix-dl-profile.ru" \
-  --output "$DL_ROBOT_OUTPUT"
-finalize_robot_output "$DL_VIEW_ONTOLOGY" "$DL_ROBOT_OUTPUT"
-
 echo "▶ Validating expressive reference ontology (OWL 2 DL)"
 robot validate-profile \
-  --input "$DL_VIEW_ONTOLOGY" \
+  --input "$CLASSIFIED_ONTOLOGY" \
   --profile DL \
   --output "$OUTFILE"
 

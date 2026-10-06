@@ -244,6 +244,7 @@ if [ ! -f "$CANDIDATE/.antonia-managed" ] \
     || [ ! -f "$CANDIDATE/update_config.sh" ] \
     || [ ! -f "$CANDIDATE/.agents/.antonia-managed" ] \
     || [ ! -f "$CANDIDATE/templates/config/config.env" ] \
+    || [ ! -f "$CANDIDATE/qc/example-profile.txt" ] \
     || [ ! -f "$CANDIDATE/checks/example-forbidden_iri.rq" ] \
     || [ ! -f "$CANDIDATE/checks/example-forbidden_equivalence.rq" ]; then
   echo "Error: incomplete or invalid ANTONIA toolbox release." >&2

@@ -41,6 +41,10 @@ ANTONIA-maintenance targets or instructions in those distributed files.
 - `toolbox/checks/` contains every ROBOT control example distributed by
   ANTONIA. These are examples, not an activation list: every control filename
   in this ANTONIA development repository must start with `example-`.
+- `toolbox/qc/example-profile.txt` is the distributed example containing every
+  native ROBOT report control plus the two ANTONIA source controls. Its entries
+  demonstrate optional ANTONIA scopes; it is not copied over a project's active
+  `qc/profile.txt`.
 - `toolbox/docs/` contains documentation shipped with the toolbox.
 - `install-antonia.sh` installs a released toolbox and initializes a project.
 - `update-antonia.sh` is the source of the updater packaged under `toolbox/`.
@@ -63,6 +67,7 @@ must include at least:
 - `toolbox/templates/config/config.env`;
 - every `toolbox/checks/example-*.rq` control example, with its filename
   unchanged;
+- `toolbox/qc/example-profile.txt`;
 - transitional, byte-identical `forbidden_iri.rq` and
   `forbidden_equivalence.rq` archive aliases required only by pre-rc12
   updaters; these aliases do not exist in the source `toolbox/checks/` and are

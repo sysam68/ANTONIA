@@ -20,6 +20,7 @@ mkdir -p "$WORK/toolbox/checks" "$WORK/config" "$WORK/qc" \
 cp "$ROOT/toolbox/common.sh" "$WORK/toolbox/common.sh"
 cp "$ROOT/toolbox/reason.sh" "$WORK/toolbox/reason.sh"
 cp "$ROOT/toolbox/project_ql.sh" "$WORK/toolbox/project_ql.sh"
+cp "$ROOT/toolbox/validate_dl.sh" "$WORK/toolbox/validate_dl.sh"
 cp "$ROOT/toolbox/checks/example-forbidden_equivalence.rq" "$WORK/toolbox/checks/"
 cp "$ROOT/toolbox/checks/example-forbidden_iri.rq" "$WORK/toolbox/checks/"
 cp "$ROOT/toolbox/checks/example-forbidden_equivalence.rq" "$WORK/src/sparql/checks/"
@@ -91,7 +92,7 @@ cat > "$BIN/java" <<'EOF'
 exit 0
 EOF
 chmod +x "$BIN/robot" "$BIN/java" "$WORK/toolbox/reason.sh" \
-  "$WORK/toolbox/project_ql.sh"
+  "$WORK/toolbox/project_ql.sh" "$WORK/toolbox/validate_dl.sh"
 
 (
   cd "$WORK"
@@ -135,6 +136,24 @@ if grep -Fq 'no import or files to merge' "$TEST_ROOT/tbox-only.log"; then
   cat "$TEST_ROOT/tbox-only.log" >&2
   exit 1
 fi
+
+# OWL 2 DL validation applies directly to the classified reference ontology.
+# It must not depend on an undeclared project-specific SPARQL update.
+: > "$TEST_ROOT/robot.log"
+(
+  cd "$WORK"
+  PATH="$BIN:$PATH" ROBOT_LOG="$TEST_ROOT/robot.log" \
+    ./toolbox/validate_dl.sh
+) > "$TEST_ROOT/validate-dl.log" 2>&1
+
+test -f "$WORK/tmp/dl-profile-validation.txt"
+grep -Eq 'validate-profile --input .*/tmp/classified\.rdf' \
+  "$TEST_ROOT/robot.log"
+if grep -Fq 'query ' "$TEST_ROOT/robot.log"; then
+  echo "Error: OWL 2 DL validation transformed the classified ontology" >&2
+  exit 1
+fi
+test ! -e "$WORK/tmp/classified-dl-view.rdf"
 
 # The QL projection must consume the RDF/XML merge artifact produced above;
 # this guards against the former merged.ttl/merged.rdf handoff mismatch.

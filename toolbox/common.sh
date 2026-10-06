@@ -155,7 +155,6 @@ ontology_output_path() {
 MERGED_ONTOLOGY="$(ontology_output_path merged)"
 CLASSIFIED_ONTOLOGY="$(ontology_output_path classified)"
 ONTOP_QL_ONTOLOGY="$(ontology_output_path ontop-ql)"
-DL_VIEW_ONTOLOGY="$(ontology_output_path classified-dl-view)"
 
 # Validate the configured ontology namespaces before interpolating them into a
 # SPARQL query. These helpers are shared by pre-merge source controls and the

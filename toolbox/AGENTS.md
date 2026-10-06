@@ -28,6 +28,9 @@ Makefile, or a runtime script.
 
 The optional third profile field defines execution scope: `project-source`,
 `non-mapping-source`, or `post-reason`. An omitted scope means `post-reason`.
+The distributed `toolbox/qc/example-profile.txt` lists every native ROBOT
+report control plus the two ANTONIA source controls as a reference. It does not
+activate controls in the project's `qc/profile.txt`.
 
 Every control example distributed by ANTONIA lives under `toolbox/checks/` and
 keeps its `example-` filename. Installation and update copy every example into

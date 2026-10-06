@@ -56,6 +56,14 @@ check:
 		esac; \
 	done < toolbox/.agents/.antonia-managed
 	@test -f toolbox/templates/config/config.env
+	@test -f toolbox/qc/example-profile.txt
+	@awk -F '\t' '\
+		NF < 2 || NF > 3 { print "Error: invalid QC example profile field count at line " NR > "/dev/stderr"; exit 1 } \
+		$$1 !~ /^(ERROR|WARN|INFO)$$/ { print "Error: invalid QC severity at line " NR > "/dev/stderr"; exit 1 } \
+		$$2 !~ /^[A-Za-z0-9_-]+$$/ { print "Error: invalid QC control name at line " NR > "/dev/stderr"; exit 1 } \
+		NF == 3 && $$3 !~ /^(project-source|non-mapping-source|post-reason)$$/ { print "Error: invalid QC scope at line " NR > "/dev/stderr"; exit 1 } \
+		seen[$$2]++ { print "Error: duplicate QC control " $$2 > "/dev/stderr"; exit 1 } \
+	' toolbox/qc/example-profile.txt
 	@test -f toolbox/checks/example-forbidden_iri.rq
 	@test -f toolbox/checks/example-forbidden_equivalence.rq
 	@if find toolbox/checks -type f ! -name 'example-*.rq' -print -quit | grep -q .; then \
@@ -135,6 +143,9 @@ test-package:
 	@tar -xOf dist/antonia-toolbox.tar.gz toolbox/Makefile | grep -q '^update-antonia:'
 	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/update_config.sh$$'
 	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/templates/config/config.env$$'
+	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/qc/example-profile.txt$$'
+	@cmp toolbox/qc/example-profile.txt \
+		<(tar -xOf dist/antonia-toolbox.tar.gz toolbox/qc/example-profile.txt)
 	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/checks/example-forbidden_iri.rq$$'
 	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/checks/example-forbidden_equivalence.rq$$'
 	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/checks/forbidden_iri.rq$$'
