@@ -40,6 +40,8 @@ grep -q '^ONTOGPT_ALLOW_EXTERNAL_LLM=0$' "$TEMP_ROOT/config/config.env"
 grep -q '^DB_SAMPLE_TO_LLM=0$' "$TEMP_ROOT/config/config.env"
 grep -q '^SHACL_FAIL_ON=VIOLATION$' "$TEMP_ROOT/config/config.env"
 grep -q '^OUTPUT_FORMAT=rdf' "$TEMP_ROOT/config/config.env"
+grep -q '^MAPPINGS_DIR=src/edit/mappings$' "$TEMP_ROOT/config/config.env"
+grep -q '^SERVICES_DIR=src/edit/services$' "$TEMP_ROOT/config/config.env"
 if grep -Eq '^(PROJECT_SOURCE_CHECKS|NON_MAPPING_SOURCE_CHECKS)=' \
     "$TEMP_ROOT/config/config.env"; then
   echo "Error: control activation leaked into config.env" >&2
@@ -58,12 +60,18 @@ cmp "$TEMP_ROOT/toolbox/checks/example-forbidden_equivalence.rq" \
   "$TEMP_ROOT/src/sparql/checks/example-forbidden_equivalence.rq"
 test ! -e "$TEMP_ROOT/src/sparql/checks/forbidden_iri.rq"
 test ! -e "$TEMP_ROOT/src/sparql/checks/forbidden_equivalence.rq"
+test -d "$TEMP_ROOT/src/edit/mappings"
+test -d "$TEMP_ROOT/src/edit/services"
+test "$(grep -Fxc 'src/edit/**/*.properties' "$TEMP_ROOT/.gitignore")" -eq 1
 
 cp "$TEMP_ROOT/config/config.env" "$TEMP_ROOT/config/config.env.after-first-update"
 cp "$TEMP_ROOT/qc/profile.txt" "$TEMP_ROOT/qc/profile.after-first-update"
 bash "$TEMP_ROOT/toolbox/update_config.sh" > "$TEMP_ROOT/second-update.log"
 cmp "$TEMP_ROOT/config/config.env" "$TEMP_ROOT/config/config.env.after-first-update"
 cmp "$TEMP_ROOT/qc/profile.txt" "$TEMP_ROOT/qc/profile.after-first-update"
+test -d "$TEMP_ROOT/src/edit/mappings"
+test -d "$TEMP_ROOT/src/edit/services"
+test "$(grep -Fxc 'src/edit/**/*.properties' "$TEMP_ROOT/.gitignore")" -eq 1
 grep -q 'New variables:      none' "$TEMP_ROOT/second-update.log"
 
 echo "config update test: passed"

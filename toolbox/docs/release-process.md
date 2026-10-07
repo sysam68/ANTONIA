@@ -3,10 +3,20 @@
 ## 1. Overview
 
 The release process creates a **versioned package** of the ontology, including:
-- Classified ontology (`<name>.<format>`, with a compatibility `<name>.owl` copy)
+- Base ontology from `TBOX` (`<name>.<format>`, with a compatibility
+  `<name>.owl` copy)
 - Merged ontology (`<name>-merged.<format>`)
-- Configured RDF mapping ontology (`MAPPINGS`), under its original filename
+- Every RDF/Turtle mapping under `MAPPINGS_DIR`, with a `mapping-` asset prefix
+- Every RDF/Turtle service catalog under `SERVICES_DIR`, with a `service-`
+  asset prefix
 - QC and diff reports (if available)
+
+The configured directories default to `src/edit/mappings/` and
+`src/edit/services/`. Their direct `.rdf` and `.ttl` files are Release inputs.
+An existing `mapping-` or `service-` filename prefix is preserved; otherwise
+the corresponding prefix is added only to the Release asset. Other extensions,
+including `.properties`, are never selected, and `.properties` files are
+rejected from Release trees.
 
 ---
 

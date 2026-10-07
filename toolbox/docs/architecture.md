@@ -24,6 +24,8 @@ The goal is to **separate concerns** while enabling automated builds and version
 
 ```text
 src/edit/                   authoritative TBox, optional ABox and OBDA
+src/edit/mappings/          ontology-to-ontology alignment sources
+src/edit/services/          standalone service-catalog sources
 src/edit/templates/         TSV templates
 src/edit/annotations/       annotation modules
 src/shapes/shacl/           SHACL shapes

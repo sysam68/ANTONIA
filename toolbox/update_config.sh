@@ -57,6 +57,19 @@ print_names() {
   ' "$1"
 }
 
+ensure_gitignore_entry() {
+  local path="$1"
+  local entry="$2"
+
+  if [ -f "$path" ] && grep -Fqx "$entry" "$path"; then
+    return 0
+  fi
+  if [ -s "$path" ] && [ -n "$(tail -c 1 "$path")" ]; then
+    printf '\n' >> "$path"
+  fi
+  printf '%s\n' "$entry" >> "$path"
+}
+
 shopt -s nullglob
 TEMPLATES=("$TEMPLATE_DIR"/*.env)
 shopt -u nullglob
@@ -112,6 +125,14 @@ for template in "${TEMPLATES[@]}"; do
     echo "    Result: no change."
   fi
 done
+
+# Keep the source layout introduced by newer ANTONIA releases additive during
+# upgrades. These directories are project-owned: never move, replace, or
+# remove their existing contents.
+mkdir -p \
+  "$HOST_ROOT/src/edit/mappings" \
+  "$HOST_ROOT/src/edit/services"
+ensure_gitignore_entry "$HOST_ROOT/.gitignore" "src/edit/**/*.properties"
 
 # Older ANTONIA updaters invoke only the candidate release's update_config.sh
 # after swapping toolboxes. Keep the profile migration and control copy behind

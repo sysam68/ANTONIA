@@ -177,7 +177,7 @@ The ontology products have distinct content:
 - `ontop-ql.<format>`: conservative OWL 2 QL projection for Ontop.
 
 The release may retain `<name>.owl` as a compatibility reserialization of the
-same classified graph as `<name>.<format>`; it is not another semantic product.
+same base `TBOX` graph as `<name>.<format>`; it is not another semantic product.
 
 ## Testing and validation
 
@@ -206,14 +206,21 @@ Run `make all` and the focused tests before `make release`. The ontology release
 script packages existing artifacts and does not rebuild them. A release may
 contain:
 
-- `<name>.<format>` and, when needed, its retained `<name>.owl` compatibility copy;
+- the configured base ontology `TBOX` as `<name>.<format>` and, when needed,
+  its retained `<name>.owl` compatibility copy;
 - `<name>-merged.<format>`;
 - `<name>-ql.<format>`;
-- the configured RDF mapping ontology, byte-for-byte, when present;
+- every RDF/Turtle mapping in `MAPPINGS_DIR`, byte-for-byte with a `mapping-`
+  Release prefix;
+- every RDF/Turtle service catalog in `SERVICES_DIR`, byte-for-byte with a
+  `service-` Release prefix and outside the merged/classified ontology;
 - `<name>.obda` when the configured source exists;
 - available QC, profile-validation, and diff reports.
 
-Do not release datasource `.properties` files. The release
+Do not release datasource or service connection `.properties` files. Release
+enumeration is limited to direct `.rdf`/`.ttl` files in `MAPPINGS_DIR` and
+`SERVICES_DIR`; preserve an existing `mapping-` or `service-` prefix and add it
+to the Release filename only when absent. The release
 script performs Git commits, branch/tag operations, pushes, and optional GitHub
 Release creation; do not invoke it merely to test packaging.
 

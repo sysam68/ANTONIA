@@ -19,9 +19,12 @@ runtime scripts and their documentation; it is not a Git submodule.
 
 `TARGET` is configured in `config/config.env` and defaults to `tmp/`.
 - Releases use `<name>.<format>` and retain an `.owl` compatibility copy when
-  the configured primary format is not already `owl`.
+  the configured primary format is not already `owl`; this asset is built from
+  the base ontology configured by `TBOX`, not from the classified graph.
 - An OBDA mapping is released when present; datasource `.properties` files are
   never packaged.
+- Every `.rdf`/`.ttl` file in `MAPPINGS_DIR` or `SERVICES_DIR` is published
+  byte-for-byte with a normalized `mapping-` or `service-` asset prefix.
 - Class equivalence assertions are accepted only from the RDF ontology mapping
   configured by `MAPPINGS`; all other sources are checked before fusion.
 - Interactive skills derive reviewed ontology candidates from documents or
@@ -195,7 +198,7 @@ Copy the generated example and keep credentials local:
 cp src/edit/myOntology.properties.example src/edit/myOntology.properties
 ```
 
-Real `src/edit/*.properties` files are Git-ignored and excluded from ANTONIA
+Real `.properties` files anywhere below `src/edit/` are Git-ignored and excluded from ANTONIA
 packages and ontology Releases. Do not put API keys or database credentials in
 `config.env`, an OBDA file, or an ontology design record.
 

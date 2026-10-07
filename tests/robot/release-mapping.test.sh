@@ -16,7 +16,8 @@ cleanup() {
 }
 trap cleanup EXIT
 
-mkdir -p "$WORK/toolbox" "$WORK/config" "$WORK/src/edit" "$WORK/tmp" "$FAKE_BIN"
+mkdir -p "$WORK/toolbox" "$WORK/config" "$WORK/src/edit/mappings" \
+  "$WORK/src/edit/services" "$WORK/tmp" "$FAKE_BIN"
 git init -q --bare "$ORIGIN"
 git -C "$WORK" init -q
 git -C "$WORK" checkout -q -b main
@@ -28,7 +29,7 @@ cp "$ROOT/toolbox/release.sh" "$WORK/toolbox/release.sh"
 cp "$ROOT/toolbox/common.sh" "$WORK/toolbox/common.sh"
 cp "$ROOT/toolbox/templates/config/config.env" "$WORK/config/config.env"
 sed -i.bak \
-  -e 's|^MAPPINGS=.*|MAPPINGS=src/edit/source-to-target.rdf|' \
+  -e 's|^MAPPINGS=.*|MAPPINGS=src/edit/mappings/source-to-target.rdf|' \
   -e 's|^ONTOLOGY_NAME=.*|ONTOLOGY_NAME=test-ontology|' \
   -e 's|^RELEASE_TAG_PREFIX=.*|RELEASE_TAG_PREFIX=test-v|' \
   "$WORK/config/config.env"
@@ -36,9 +37,14 @@ rm "$WORK/config/config.env.bak"
 
 printf '%s\n' 'classified ontology' > "$WORK/tmp/classified.rdf"
 printf '%s\n' 'merged ontology' > "$WORK/tmp/merged.rdf"
+printf '%s\n' 'base ontology' > "$WORK/src/edit/myOntology-tbox.rdf"
 printf '%s\n' 'mapping ontology with exact bytes' \
-  > "$WORK/src/edit/source-to-target.rdf"
-printf '%s\n' 'tmp/' > "$WORK/.gitignore"
+  > "$WORK/src/edit/mappings/source-to-target.rdf"
+printf '%s\n' 'already prefixed mapping with exact bytes' \
+  > "$WORK/src/edit/mappings/mapping-reviewed.ttl"
+printf '%s\n' 'password=must-never-be-published' \
+  > "$WORK/src/edit/mappings/mapping-secret.properties"
+printf '%s\n' 'tmp/' 'src/edit/**/*.properties' > "$WORK/.gitignore"
 
 cat > "$FAKE_BIN/robot" <<'EOF'
 #!/usr/bin/env bash
@@ -72,10 +78,35 @@ git -C "$WORK" push -q -u origin main
     ./toolbox/release.sh > "$TEMP_ROOT/release.log"
 )
 
-CURRENT_MAPPING="$WORK/releases/source-to-target.rdf"
-ARCHIVE_MAPPING="$WORK/releases/archive/2026-10-05/source-to-target.rdf"
-cmp "$WORK/src/edit/source-to-target.rdf" "$CURRENT_MAPPING"
-cmp "$WORK/src/edit/source-to-target.rdf" "$ARCHIVE_MAPPING"
+CURRENT_MAPPING="$WORK/releases/mapping-source-to-target.rdf"
+ARCHIVE_MAPPING="$WORK/releases/archive/2026-10-05/mapping-source-to-target.rdf"
+cmp "$WORK/src/edit/mappings/source-to-target.rdf" "$CURRENT_MAPPING"
+cmp "$WORK/src/edit/mappings/source-to-target.rdf" "$ARCHIVE_MAPPING"
 grep -Fq "$ARCHIVE_MAPPING" "$GH_LOG"
+
+CURRENT_PREFIXED="$WORK/releases/mapping-reviewed.ttl"
+ARCHIVE_PREFIXED="$WORK/releases/archive/2026-10-05/mapping-reviewed.ttl"
+cmp "$WORK/src/edit/mappings/mapping-reviewed.ttl" "$CURRENT_PREFIXED"
+cmp "$WORK/src/edit/mappings/mapping-reviewed.ttl" "$ARCHIVE_PREFIXED"
+grep -Fq "$ARCHIVE_PREFIXED" "$GH_LOG"
+
+cmp "$WORK/src/edit/myOntology-tbox.rdf" "$WORK/releases/test-ontology.rdf"
+cmp "$WORK/src/edit/myOntology-tbox.rdf" \
+  "$WORK/releases/archive/2026-10-05/test-ontology.rdf"
+cmp "$WORK/tmp/merged.rdf" "$WORK/releases/test-ontology-merged.rdf"
+cmp "$WORK/tmp/merged.rdf" \
+  "$WORK/releases/archive/2026-10-05/test-ontology-merged.rdf"
+if cmp -s "$WORK/tmp/classified.rdf" "$WORK/releases/test-ontology.rdf"; then
+  echo "Error: the classified graph was published as the base ontology" >&2
+  exit 1
+fi
+
+test ! -e "$WORK/releases/source-to-target.rdf"
+test ! -e "$WORK/releases/mapping-mapping-reviewed.ttl"
+test ! -e "$WORK/releases/mapping-secret.properties"
+if grep -Fq 'mapping-secret.properties' "$GH_LOG"; then
+  echo "Error: mapping properties file was attached to the GitHub Release" >&2
+  exit 1
+fi
 
 echo "release mapping test: passed"

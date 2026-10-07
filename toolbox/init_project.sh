@@ -16,7 +16,7 @@
 #   .gitignore        extended with ANTONIA build/toolchain exclusions
 #   config/           with template config.env and import.env
 #   qc/               with example QC files
-#   src/edit/         with myOntology-tbox.rdf and mapping example
+#   src/edit/         with myOntology-tbox.rdf and dedicated source folders
 #   src/sparql/       with ROBOT checks, updates, and analytics directories
 #   src/shapes/       with an optional SHACL directory
 #   tmp/              for build artifacts (git-ignored)
@@ -107,6 +107,7 @@ bash "$TOOLBOX_DIR/sync_agents.sh"
 ensure_gitignore_entry "$HOST_ROOT/.gitignore" "tmp/"
 ensure_gitignore_entry "$HOST_ROOT/.gitignore" ".tools/"
 ensure_gitignore_entry "$HOST_ROOT/.gitignore" "src/edit/*.properties"
+ensure_gitignore_entry "$HOST_ROOT/.gitignore" "src/edit/**/*.properties"
 
 # -----------------------------------------------------------------------------
 # 2. config/
@@ -141,6 +142,8 @@ make_dir "$HOST_ROOT/src/edit/imports"
 make_dir "$HOST_ROOT/src/edit/modules"
 make_dir "$HOST_ROOT/src/edit/annotations"
 make_dir "$HOST_ROOT/src/edit/metadata"
+make_dir "$HOST_ROOT/src/edit/mappings"
+make_dir "$HOST_ROOT/src/edit/services"
 
 create_from_template \
   "$HOST_ROOT/src/edit/myOntology.properties.example" \
@@ -171,7 +174,7 @@ create_file "$HOST_ROOT/src/edit/myOntology-tbox.rdf" '<?xml version="1.0"?>
 </rdf:RDF>
 ' "TBox ontology (RDF/XML)"
 
-create_file "$HOST_ROOT/src/edit/mapping-sourceIOnto-TargetOnto.rdf" '<?xml version="1.0"?>
+create_file "$HOST_ROOT/src/edit/mappings/mapping-sourceIOnto-TargetOnto.rdf" '<?xml version="1.0"?>
 <rdf:RDF xmlns="https://example.org/mapping/source-to-target#"
      xml:base="https://example.org/mapping/source-to-target/"
      xmlns:owl="http://www.w3.org/2002/07/owl#"

@@ -52,14 +52,14 @@ CURRENT_DIR="$RELEASES"                      # releases/
 ARCHIVE_DIR="$RELEASES/archive/$VERSION_TAG" # releases/archive/<date>/
 REL_BRANCH="build-$(timestamp_ms)"   # e.g. build-20240826-153012-123
 
-# Inputs from TARGET (must already exist)
+# Build inputs and evidence (must already exist)
 QC_TSV="$TARGET/qc_report.tsv"
 QC_HTML="$TARGET/qc_report.html"
 DIFF_HTML="$TARGET/diff.html"
 DIFF_OWL="$TARGET/diff.owl"
-MAPPING_NAME=""
-CUR_MAPPING=""
-ARC_MAPPING=""
+RELEASE_SOURCE_FILES=()
+RELEASE_ASSET_NAMES=()
+ARC_DIRECTORY_ASSETS=()
 
 ONTO="${ONTOLOGY_NAME}"
 
@@ -96,6 +96,82 @@ open_pr_url_fallback() {
   (command -v open >/dev/null 2>&1 && open "$url") || true
 }
 
+register_directory_asset() {
+  local source_file="$1"
+  local asset_prefix="$2"
+  local source_name=""
+  local asset_name=""
+  local existing_index=""
+
+  [ -f "$source_file" ] \
+    || abort "Release source file not found: ${source_file#$ROOT/}"
+  [ ! -L "$source_file" ] \
+    || abort "Release source file must not be a symbolic link: ${source_file#$ROOT/}"
+  source_file="$(cd "$(dirname "$source_file")" && pwd -P)/$(basename "$source_file")"
+  source_name="$(basename "$source_file")"
+  case "$source_name" in
+    *.rdf|*.ttl) ;;
+    *) abort "Release source must use .rdf or .ttl: $source_name" ;;
+  esac
+
+  case "$source_name" in
+    "$asset_prefix"-*) asset_name="$source_name" ;;
+    *) asset_name="$asset_prefix-$source_name" ;;
+  esac
+  case "$asset_name" in
+    "${ONTO}.${OUTPUT_FORMAT}"|"${ONTO}-merged.${OUTPUT_FORMAT}"|"${ONTO}.owl"|\
+    "${ONTO}_qc_report.tsv"|"${ONTO}_qc_report.html"|diff.html|diff.owl)
+      abort "Release asset name conflicts with a generated artifact: $asset_name"
+      ;;
+  esac
+
+  if [ "${#RELEASE_SOURCE_FILES[@]}" -gt 0 ]; then
+    for existing_index in "${!RELEASE_SOURCE_FILES[@]}"; do
+      if [ "$source_file" = "${RELEASE_SOURCE_FILES[$existing_index]}" ]; then
+        return 0
+      fi
+      [ "$asset_name" != "${RELEASE_ASSET_NAMES[$existing_index]}" ] \
+        || abort "Multiple RDF/Turtle sources resolve to Release asset: $asset_name"
+    done
+  fi
+
+  RELEASE_SOURCE_FILES+=("$source_file")
+  RELEASE_ASSET_NAMES+=("$asset_name")
+}
+
+collect_directory_assets() {
+  local source_dir="$1"
+  local asset_prefix="$2"
+  local source_file=""
+  local -a directory_files
+  directory_files=()
+
+  [ -d "$source_dir" ] \
+    || abort "Configured ${asset_prefix} directory not found: ${source_dir#$ROOT/}"
+  shopt -s nullglob
+  directory_files=("$source_dir"/*.rdf "$source_dir"/*.ttl)
+  shopt -u nullglob
+  if [ "${#directory_files[@]}" -gt 0 ]; then
+    for source_file in "${directory_files[@]}"; do
+      register_directory_asset "$source_file" "$asset_prefix"
+    done
+  fi
+}
+
+publish_base_ontology() {
+  local destination="$1"
+  local robot_destination=""
+
+  case "$TBOX" in
+    *."$OUTPUT_FORMAT") cp -f "$TBOX" "$destination" ;;
+    *)
+      robot_destination="$(robot_output_path "$destination")"
+      robot convert --input "$TBOX" --output "$robot_destination"
+      finalize_robot_output "$destination" "$robot_destination"
+      ;;
+  esac
+}
+
 # ---- Pre-flight ----
 command -v git   >/dev/null 2>&1 || abort "git not found"
 command -v robot >/dev/null 2>&1 || abort "robot not found (needed for convert)"
@@ -108,12 +184,19 @@ echo "▶ Version tag:    $VERSION_TAG"
 echo "▶ Release tag:    $RELEASE_TAG"
 
 # Ensure required build artifacts exist
+[ -f "$TBOX" ]                || abort "Missing base ontology: ${TBOX#$ROOT/}"
 [ -f "$CLASSIFIED_ONTOLOGY" ] || abort "Missing $CLASSIFIED_ONTOLOGY (build your ontology first)."
 [ -f "$MERGED_ONTOLOGY" ]     || abort "Missing $MERGED_ONTOLOGY (build your ontology first)."
 
 # ---- 1) Prepare CURRENT (releases/) and ARCHIVE (releases/archive/<date>/) ----
 echo "▶ Preparing CURRENT and ARCHIVE trees"
 mkdir -p "$CURRENT_DIR" "$ARCHIVE_DIR"
+
+# Release trees must never contain datasource or connection property files,
+# including files left by an older or manual release process.
+if find "$CURRENT_DIR" -type f -name '*.properties' -print -quit | grep -q .; then
+  abort "Release tree contains a forbidden .properties file under: ${CURRENT_DIR#$ROOT/}"
+fi
 
 # Fixed names for CURRENT
 CUR_PRIMARY="$CURRENT_DIR/${ONTO}.${OUTPUT_FORMAT}"
@@ -129,38 +212,40 @@ ARC_OWL="$ARCHIVE_DIR/${ONTO}.owl"
 ARC_QC_TSV="$ARCHIVE_DIR/${ONTO}_qc_report.tsv"
 ARC_QC_HTML="$ARCHIVE_DIR/${ONTO}_qc_report.html"
 
-# Preserve the configured ontology-to-ontology mapping as a distinct Release
-# asset. Its basename and bytes are part of the publication contract.
+# Preserve an explicitly configured mapping even when an older project keeps it
+# outside MAPPINGS_DIR, then collect every RDF/Turtle source in both managed
+# publication directories. register_directory_asset removes source duplicates.
 if [ -n "${MAPPINGS:-}" ]; then
   [ -f "$MAPPINGS" ] || abort "Configured MAPPINGS file not found: ${MAPPINGS#$ROOT/}"
-  MAPPING_NAME="$(basename "$MAPPINGS")"
-  case "$MAPPING_NAME" in
-    "${ONTO}.${OUTPUT_FORMAT}"|"${ONTO}-merged.${OUTPUT_FORMAT}"|"${ONTO}.owl"|\
-    "${ONTO}_qc_report.tsv"|"${ONTO}_qc_report.html"|diff.html|diff.owl)
-      abort "MAPPINGS basename conflicts with a generated Release asset: $MAPPING_NAME"
-      ;;
-  esac
-  CUR_MAPPING="$CURRENT_DIR/$MAPPING_NAME"
-  ARC_MAPPING="$ARCHIVE_DIR/$MAPPING_NAME"
+  register_directory_asset "$MAPPINGS" "mapping"
 fi
+collect_directory_assets "$MAPPINGS_DIR" "mapping"
+collect_directory_assets "$SERVICES_DIR" "service"
 
 # Copy CURRENT
-cp -f "$CLASSIFIED_ONTOLOGY" "$CUR_PRIMARY"
+publish_base_ontology "$CUR_PRIMARY"
 cp -f "$MERGED_ONTOLOGY"     "$CUR_MERGED"
-[ -z "$CUR_MAPPING" ] || cp -f "$MAPPINGS" "$CUR_MAPPING"
 [ -f "$QC_TSV" ]   && cp -f "$QC_TSV"   "$CUR_QC_TSV"
 [ -f "$QC_HTML" ]  && cp -f "$QC_HTML"  "$CUR_QC_HTML"
 [ -f "$DIFF_HTML" ]&& cp -f "$DIFF_HTML" "$CURRENT_DIR/diff.html"
 [ -f "$DIFF_OWL" ] && cp -f "$DIFF_OWL"  "$CURRENT_DIR/diff.owl"
+for source_index in "${!RELEASE_SOURCE_FILES[@]}"; do
+  cp -f "${RELEASE_SOURCE_FILES[$source_index]}" \
+    "$CURRENT_DIR/${RELEASE_ASSET_NAMES[$source_index]}"
+done
 
 # Copy ARCHIVE snapshot
-cp -f "$CLASSIFIED_ONTOLOGY" "$ARC_PRIMARY"
+publish_base_ontology "$ARC_PRIMARY"
 cp -f "$MERGED_ONTOLOGY"     "$ARC_MERGED"
-[ -z "$ARC_MAPPING" ] || cp -f "$MAPPINGS" "$ARC_MAPPING"
 [ -f "$QC_TSV" ]   && cp -f "$QC_TSV"   "$ARC_QC_TSV"
 [ -f "$QC_HTML" ]  && cp -f "$QC_HTML"  "$ARC_QC_HTML"
 [ -f "$DIFF_HTML" ]&& cp -f "$DIFF_HTML" "$ARCHIVE_DIR/diff.html"
 [ -f "$DIFF_OWL" ] && cp -f "$DIFF_OWL"  "$ARCHIVE_DIR/diff.owl"
+for source_index in "${!RELEASE_SOURCE_FILES[@]}"; do
+  directory_asset="$ARCHIVE_DIR/${RELEASE_ASSET_NAMES[$source_index]}"
+  cp -f "${RELEASE_SOURCE_FILES[$source_index]}" "$directory_asset"
+  ARC_DIRECTORY_ASSETS+=("$directory_asset")
+done
 
 # Produce OWL (RDF/XML) for both CURRENT and ARCHIVE
 if [ "$CUR_PRIMARY" != "$CUR_OWL" ]; then
@@ -258,7 +343,11 @@ elif [ "$BRANCH" = "$MAIN_BRANCH" ]; then
       ASSETS+=("$ARC_OWL")
     fi
     [ -f "$ARC_MERGED" ]   && ASSETS+=("$ARC_MERGED")
-    [ -z "$ARC_MAPPING" ] || ASSETS+=("$ARC_MAPPING")
+    if [ "${#ARC_DIRECTORY_ASSETS[@]}" -gt 0 ]; then
+      for directory_asset in "${ARC_DIRECTORY_ASSETS[@]}"; do
+        ASSETS+=("$directory_asset")
+      done
+    fi
     [ -f "$ARC_QC_TSV" ]   && ASSETS+=("$ARC_QC_TSV")
     [ -f "$ARC_QC_HTML" ]  && ASSETS+=("$ARC_QC_HTML")
     [ -f "$ARCHIVE_DIR/diff.html" ] && ASSETS+=("$ARCHIVE_DIR/diff.html")

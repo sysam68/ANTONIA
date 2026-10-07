@@ -101,7 +101,10 @@ grep -Fqx 'project-specific-rule' "$SUCCESS_ROOT/.gitignore"
 test "$(grep -Fxc 'tmp/' "$SUCCESS_ROOT/.gitignore")" -eq 1
 test "$(grep -Fxc '.tools/' "$SUCCESS_ROOT/.gitignore")" -eq 1
 test "$(grep -Fxc 'src/edit/*.properties' "$SUCCESS_ROOT/.gitignore")" -eq 1
+test "$(grep -Fxc 'src/edit/**/*.properties' "$SUCCESS_ROOT/.gitignore")" -eq 1
 test -f "$SUCCESS_ROOT/src/edit/myOntology.properties.example"
+test -d "$SUCCESS_ROOT/src/edit/mappings"
+test -d "$SUCCESS_ROOT/src/edit/services"
 grep -Fq 'rdf:about="https://example.org/ontology/myOntology/ExampleClass"' \
   "$SUCCESS_ROOT/src/edit/myOntology-tbox.rdf"
 test -f "$SUCCESS_ROOT/toolbox/checks/example-forbidden_iri.rq"
@@ -118,7 +121,7 @@ test ! -e "$SUCCESS_ROOT/src/shapes/shacl/ontology-shapes.ttl"
 for initialized_file in \
   "$SUCCESS_ROOT/qc/profile.txt" \
   "$SUCCESS_ROOT/src/edit/myOntology-tbox.rdf" \
-  "$SUCCESS_ROOT/src/edit/mapping-sourceIOnto-TargetOnto.rdf" \
+  "$SUCCESS_ROOT/src/edit/mappings/mapping-sourceIOnto-TargetOnto.rdf" \
   "$SUCCESS_ROOT/src/sparql/updates/project-ql.ru"; do
   assert_not_starting_with_backslash "$initialized_file"
 done
@@ -149,6 +152,7 @@ bash "$SUCCESS_ROOT/toolbox/init_project.sh" > "$SUCCESS_ROOT/reinit.log"
 test "$(grep -Fxc 'tmp/' "$SUCCESS_ROOT/.gitignore")" -eq 1
 test "$(grep -Fxc '.tools/' "$SUCCESS_ROOT/.gitignore")" -eq 1
 test "$(grep -Fxc 'src/edit/*.properties' "$SUCCESS_ROOT/.gitignore")" -eq 1
+test "$(grep -Fxc 'src/edit/**/*.properties' "$SUCCESS_ROOT/.gitignore")" -eq 1
 
 mkdir -p "$SUCCESS_ROOT/.agents/skills/project-specific-skill"
 mkdir -p "$SUCCESS_ROOT/custom/sparql/checks"
@@ -160,6 +164,12 @@ printf '%s\n' 'project-owned control' \
   > "$SUCCESS_ROOT/custom/sparql/checks/project_owned.rq"
 printf '%s\n' 'stale managed control' \
   > "$SUCCESS_ROOT/custom/sparql/checks/example-forbidden_iri.rq"
+
+# Simulate a project installed before these source directories were managed.
+# Update must add the missing layout without touching project-owned sources.
+rmdir "$SUCCESS_ROOT/src/edit/services"
+printf '%s\n' 'project-owned mapping' \
+  > "$SUCCESS_ROOT/src/edit/mappings/project-owned.rdf"
 
 # Simulate the profile created by the previous ANTONIA convention. Update must
 # preserve activation while moving the names and scopes into qc/profile.txt.
@@ -189,6 +199,9 @@ cmp "$SUCCESS_ROOT/toolbox/checks/example-forbidden_iri.rq" \
   "$SUCCESS_ROOT/custom/sparql/checks/example-forbidden_iri.rq"
 test ! -e "$SUCCESS_ROOT/custom/sparql/checks/forbidden_iri.rq"
 test ! -e "$SUCCESS_ROOT/custom/sparql/checks/forbidden_equivalence.rq"
+test -d "$SUCCESS_ROOT/src/edit/services"
+grep -Fqx 'project-owned mapping' \
+  "$SUCCESS_ROOT/src/edit/mappings/project-owned.rdf"
 grep -Fqx $'ERROR\texample-forbidden_iri\tproject-source' \
   "$SUCCESS_ROOT/qc/profile.txt"
 grep -Fqx $'WARN\texample-forbidden_equivalence\tnon-mapping-source' \
@@ -212,6 +225,9 @@ cmp "$SUCCESS_ROOT/toolbox/checks/example-forbidden_iri.rq" \
   "$SUCCESS_ROOT/custom/sparql/checks/example-forbidden_iri.rq"
 cmp "$SUCCESS_ROOT/qc/profile.txt" \
   "$SUCCESS_ROOT/qc/profile.before-second-update"
+test -d "$SUCCESS_ROOT/src/edit/services"
+grep -Fqx 'project-owned mapping' \
+  "$SUCCESS_ROOT/src/edit/mappings/project-owned.rdf"
 
 ANTONIA_RELEASE_BASE_URL="file://$RELEASE_ROOT" \
   "$SUCCESS_ROOT/toolbox/update-antonia.sh" -dev -version=test-dev.1 \
