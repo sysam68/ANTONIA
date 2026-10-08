@@ -2,10 +2,10 @@
 # -----------------------------------------------------------------------------
 # release.sh
 # Prepare current release files at releases/ (flat, fixed names)
-# AND archive the same files under releases/archive/<DATE>/.
+# AND archive the same files under releases/archive/<VERSION>/.
 # Git-only flow:
-#   - On DEV: create/push 'release/<DATE>' and (optionally) open PR to MAIN
-#   - On MAIN: create and push annotated tag '<PREFIX><DATE>' (+ optional GH Release)
+#   - On DEV: create/push a timestamped build branch and optionally open a PR
+#   - On MAIN: create and push annotated tag '<PREFIX><VERSION>' (+ optional GH Release)
 #
 # No pipeline here (no reason/report/validate). Artifacts must already exist in TARGET.
 # -----------------------------------------------------------------------------
@@ -44,12 +44,12 @@ GH_RELEASE_DRAFT="${GH_RELEASE_DRAFT:-0}"
 GH_RELEASE_PRERELEASE="${GH_RELEASE_PRERELEASE:-0}"
 GH_RELEASE_NOTES_FILE="${GH_RELEASE_NOTES_FILE:-}"
 
-VERSION_TAG="${VERSION_TAG:-$(date +%F)}"
-RELEASE_TAG="${TAG_PREFIX}${VERSION_TAG}"
+VERSION_TAG="${VERSION_TAG:-}"
+RELEASE_TAG=""
 
 # Paths
 CURRENT_DIR="$RELEASES"                      # releases/
-ARCHIVE_DIR="$RELEASES/archive/$VERSION_TAG" # releases/archive/<date>/
+ARCHIVE_DIR=""
 REL_BRANCH="build-$(timestamp_ms)"   # e.g. build-20240826-153012-123
 
 # Build inputs and evidence (must already exist)
@@ -83,6 +83,28 @@ tag_exists_remote() {
 # Return 0 if tag exists locally or remotely
 tag_exists_any() {
   tag_exists_local "$1" || tag_exists_remote "$1"
+}
+
+next_daily_version() {
+  local version_base="$1"
+  local version_index=0
+  local version_suffix=""
+  local candidate=""
+
+  # A legacy unsuffixed daily tag represents the historical first release.
+  if tag_exists_any "${TAG_PREFIX}${version_base}"; then
+    version_index=1
+  fi
+
+  while :; do
+    version_suffix="$(printf '%03d' "$version_index")"
+    candidate="${version_base}.${version_suffix}"
+    if ! tag_exists_any "${TAG_PREFIX}${candidate}"; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+    version_index=$((version_index + 1))
+  done
 }
 
 # GitHub PR URL opener (if gh missing)
@@ -218,6 +240,12 @@ command -v git   >/dev/null 2>&1 || abort "git not found"
 command -v robot >/dev/null 2>&1 || abort "robot not found (needed for convert)"
 git rev-parse --git-dir >/dev/null 2>&1 || abort "Not a git repository"
 require_clean_git
+
+if [ -z "$VERSION_TAG" ]; then
+  VERSION_TAG="$(next_daily_version "$(date +%F)")"
+fi
+RELEASE_TAG="${TAG_PREFIX}${VERSION_TAG}"
+ARCHIVE_DIR="$RELEASES/archive/$VERSION_TAG"
 
 BRANCH="$(current_branch)"
 echo "▶ Current branch: $BRANCH"
@@ -391,16 +419,15 @@ elif [ "$BRANCH" = "$MAIN_BRANCH" ]; then
   if tag_exists_any "$RELEASE_TAG"; then
     if [ "$AUTO_BUMP" -eq 1 ]; then
       echo "ℹ Tag '${RELEASE_TAG}' exists (not on HEAD). Auto-bumping…"
-      base="${VERSION_TAG%%.*}"   # ex: 2025-08-26
-      idx=1
-      while tag_exists_any "${TAG_PREFIX}${base}.${idx}"; do
-        idx=$((idx+1))
-      done
-      VERSION_TAG="${base}.${idx}"
+      case "$VERSION_TAG" in
+        ????-??-??.*) base="${VERSION_TAG%.*}" ;;
+        *) base="$VERSION_TAG" ;;
+      esac
+      VERSION_TAG="$(next_daily_version "$base")"
       RELEASE_TAG="${TAG_PREFIX}${VERSION_TAG}"
       echo "→ Using bumped tag: ${RELEASE_TAG}"
     else
-      echo "✖ Tag '${RELEASE_TAG}' already exists. Use VERSION_TAG=YYYY-MM-DD(.N) or set AUTO_BUMP=1."
+      echo "✖ Tag '${RELEASE_TAG}' already exists. Use another explicit VERSION_TAG or set AUTO_BUMP=1."
       exit 1
     fi
   fi

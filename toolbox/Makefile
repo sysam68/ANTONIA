@@ -33,7 +33,7 @@ help:
 	@echo "  test-profiles: execute the DL and QL profile tests"
 	@echo "  test-equivalences: execute ontology equivalence contracts"
 	@echo "  test-release: verify resumable ontology release publication"
-	@echo "  release     : package the ontology release (VERSION_TAG=YYYY-MM-DD)"
+	@echo "  release     : publish the next YYYY-MM-DD.NNN version (or explicit VERSION_TAG)"
 	@echo "  diff        : ROBOT diff (requires OLD=... and NEW=...)"
 	@echo "  clean       : remove the build directory configured by TARGET"
 	@echo
@@ -45,9 +45,10 @@ help:
 	@echo "Examples:"
 	@echo "  REASONER=hermit make reason"
 	@echo "  FAIL_ON=WARN make report"
-	@echo "  VERSION_TAG=2025-08-15 make release"
+	@echo "  make release  # automatically selects today's .000, .001, ... version"
+	@echo "  VERSION_TAG=2025-08-15.007 make release  # explicit immutable version"
 	@echo "  make diff OLD=releases/old.<format> NEW=<TARGET>/classified.<format>"
-	@echo '  $$antonia-release VERSION_TAG=2025-08-15'
+	@echo '  $$antonia-release'
 
 init-x:
 	@chmod +x toolbox/*.sh || true

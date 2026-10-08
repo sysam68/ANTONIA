@@ -28,30 +28,56 @@ property names followed by `=`; source values and comments are discarded.
 ## 2. Script Sequence
 
 1. **Generate from templates**  
+
    ```bash
    ./toolbox/generate_from_templates.sh
+   ```
+
 2. **Run reasoning**
+
    ```bash
    ./toolbox/reason.sh
+   ```
+
 3. **Generate the OWL 2 QL projection**
+
    ```bash
    ./toolbox/project_ql.sh
+   ```
+
 4. **Run QC reports**
+
    ```bash
    ./toolbox/report.sh
+   ```
+
 5. **Validate ontology**
+
    ```bash
    ./toolbox/validate.sh
+   ```
+
 6. **Create release package**
+
    ```bash
    ./toolbox/release.sh
+   ```
 
 ## 3. Versioning
-Releases are stored under releases/YYYY-MM-DD/
-Git tags are created automatically if the repository is under Git control
+
+Without `VERSION_TAG`, the first release of a day uses `YYYY-MM-DD.000`; each
+subsequent invocation selects the next available zero-padded suffix (`.001`,
+`.002`, and so on). A legacy unsuffixed daily tag counts as the historical first
+release, so automatic numbering resumes at `.001`. An explicit immutable value
+remains available with `VERSION_TAG=YYYY-MM-DD.NNN`.
+
+Releases are stored under `releases/archive/YYYY-MM-DD.NNN/`. Git tags are
+created automatically if the repository is under Git control.
+
 Example:
-```swift
-releases/2025-08-13/
+
+```text
+releases/archive/2025-08-13.000/
   ontology.<format>
   ontology.owl
   ontology-merged.<format>
@@ -60,9 +86,11 @@ releases/2025-08-13/
   ontology.properties.example
   diff.html
   qc_report.tsv
+```
 
 ## 4. Best Practices
-Always commit before creating a release
-Tag releases for reproducibility
-Keep TBox and ABox changes in separate commits when possible
-Update documentation when modeling rules change
+
+- Always commit before creating a release.
+- Tag releases for reproducibility.
+- Keep TBox and ABox changes in separate commits when possible.
+- Update documentation when modeling rules change.

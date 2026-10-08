@@ -204,7 +204,9 @@ validation as successful when only shell, XML, or dry-run checks ran.
 ## Release contract
 
 Run `make all` and the focused tests before `make release`. The ontology release
-script packages existing artifacts and does not rebuild them. A release may
+script packages existing artifacts and does not rebuild them. Without an
+explicit `VERSION_TAG`, it selects `YYYY-MM-DD.000` for the first daily release
+and increments the zero-padded suffix for subsequent releases. A release may
 contain:
 
 - the configured base ontology `TBOX` as `<name>.<format>` and, when needed,

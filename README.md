@@ -275,6 +275,9 @@ make release
 The release command performs Git branch, tag, and optional GitHub release
 operations; review the
 [release process](toolbox/docs/release-process.md) first.
+When `VERSION_TAG` is omitted, it selects the next daily version automatically:
+`YYYY-MM-DD.000`, then `.001`, `.002`, and so on. An exact immutable version can
+still be requested with `make release VERSION_TAG=YYYY-MM-DD.NNN`.
 
 ## Publishing ANTONIA
 

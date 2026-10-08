@@ -118,6 +118,7 @@ test-release-channels:
 test-release-mapping:
 	@./tests/robot/release-mapping.test.sh
 	@./tests/robot/release-services.test.sh
+	@./tests/robot/release-versioning.test.sh
 
 test-package:
 	@./package-antonia.sh test-local

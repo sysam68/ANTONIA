@@ -25,7 +25,7 @@ ANTONIA uses the supported skill invocation syntax instead.
 | `$antonia-test-release` | `make test-release` | Never publishes |
 | `$antonia-diff` | `make diff` | Requires `OLD` and `NEW` |
 | `$antonia-clean` | `make clean` | Removes the configured `TARGET` |
-| `$antonia-release` | `make release` | Explicit publication request and `VERSION_TAG` |
+| `$antonia-release` | `make release` | Explicit publication request; automatic daily `.NNN` or optional exact `VERSION_TAG` |
 
 Interactive skills do not correspond to a single Make target:
 
@@ -49,7 +49,7 @@ $antonia-install-semantic-tools
 $antonia-ontologist
 $antonia-onto-steward REASONER=hermit FAIL_ON=WARN SHACL_FAIL_ON=VIOLATION
 $antonia-diff OLD=releases/old.<format> NEW=<TARGET>/classified.<format>
-$antonia-release VERSION_TAG=2026-10-01
+$antonia-release
 ```
 
 Project controls under the directory configured by `SPARQL_CHECKS` must return
