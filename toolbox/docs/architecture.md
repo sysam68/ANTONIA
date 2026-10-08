@@ -64,5 +64,6 @@ The workflow follows these stages:
    - non-blocking SPARQL analytics
 
 5. **Release**
-   - Package merged and classified ontologies
+   - Package the base ontology, merged graph, and generated QL projection
+   - Include the optional OBDA mapping and a value-free properties example
    - Optional diffs against last release

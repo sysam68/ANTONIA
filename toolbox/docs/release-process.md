@@ -6,6 +6,10 @@ The release process creates a **versioned package** of the ontology, including:
 - Base ontology from `TBOX` (`<name>.<format>`, with a compatibility
   `<name>.owl` copy)
 - Merged ontology (`<name>-merged.<format>`)
+- Generated Ontop projection (`<name>-ql.<format>`)
+- Configured OBDA mapping when present (`<name>.obda`)
+- Value-free Ontop connection template (`<name>.properties.example`) when the
+  configured properties file or its `.example` companion exists
 - Every RDF/Turtle mapping under `MAPPINGS_DIR`, with a `mapping-` asset prefix
 - Every RDF/Turtle service catalog under `SERVICES_DIR`, with a `service-`
   asset prefix
@@ -16,7 +20,8 @@ The configured directories default to `src/edit/mappings/` and
 An existing `mapping-` or `service-` filename prefix is preserved; otherwise
 the corresponding prefix is added only to the Release asset. Other extensions,
 including `.properties`, are never selected, and `.properties` files are
-rejected from Release trees.
+rejected from Release trees. The generated `.properties.example` contains only
+property names followed by `=`; source values and comments are discarded.
 
 ---
 
@@ -28,13 +33,16 @@ rejected from Release trees.
 2. **Run reasoning**
    ```bash
    ./toolbox/reason.sh
-3. **Run QC reports**
+3. **Generate the OWL 2 QL projection**
+   ```bash
+   ./toolbox/project_ql.sh
+4. **Run QC reports**
    ```bash
    ./toolbox/report.sh
-4. **Validate ontology**
+5. **Validate ontology**
    ```bash
    ./toolbox/validate.sh
-5. **Create release package**
+6. **Create release package**
    ```bash
    ./toolbox/release.sh
 
@@ -47,6 +55,9 @@ releases/2025-08-13/
   ontology.<format>
   ontology.owl
   ontology-merged.<format>
+  ontology-ql.<format>
+  ontology.obda
+  ontology.properties.example
   diff.html
   qc_report.tsv
 

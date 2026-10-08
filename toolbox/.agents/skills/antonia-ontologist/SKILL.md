@@ -49,5 +49,7 @@ an LLM unless `DB_SAMPLE_TO_LLM=1`.
   `assets/ontology-design-template.md`, recording accepted and rejected
   candidates, source evidence, assumptions, and unresolved boundaries.
 
-Run the relevant ANTONIA build and profile checks. Finish with the complete Git
-diff and validation evidence. Do not commit, push, merge, or publish.
+Do not run `make all` or any of its individual pipeline stages. Finish with the
+complete Git diff and the evidence needed for review, then hand the reviewed
+ontology changes to `$antonia-onto-steward` for the complete build and quality
+pipeline. Do not commit, push, merge, or publish.

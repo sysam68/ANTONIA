@@ -21,8 +21,11 @@ runtime scripts and their documentation; it is not a Git submodule.
 - Releases use `<name>.<format>` and retain an `.owl` compatibility copy when
   the configured primary format is not already `owl`; this asset is built from
   the base ontology configured by `TBOX`, not from the classified graph.
-- An OBDA mapping is released when present; datasource `.properties` files are
-  never packaged.
+- The generated QL projection is released as `<name>-ql.<format>`, and an OBDA
+  mapping is released as `<name>.obda` when present.
+- Real datasource `.properties` files are never packaged. When the configured
+  file or its `.example` companion exists, the Release contains
+  `<name>.properties.example` with property names only and empty values.
 - Every `.rdf`/`.ttl` file in `MAPPINGS_DIR` or `SERVICES_DIR` is published
   byte-for-byte with a normalized `mapping-` or `service-` asset prefix.
 - Class equivalence assertions are accepted only from the RDF ontology mapping
@@ -74,15 +77,17 @@ installation and update scripts remain under `toolbox/`.
 
 In Codex CLI or the IDE, use `/skills` to browse the installed ANTONIA commands
 or invoke one directly, for example `$antonia-init-project`,
-`$antonia-reason REASONER=hermit`, or
+`$antonia-onto-steward REASONER=hermit FAIL_ON=WARN`, or
 `$antonia-release VERSION_TAG=2026-10-01`. Repository skills cannot define new
 top-level `/antonia-*` slash commands; the supported distributed form is
 `$antonia-*`. See [the complete skill mapping](toolbox/docs/agent-skills.md).
 
 The semantic-authoring workflows are `$antonia-ontologist`,
 `$antonia-ontop-mapping`, and `$antonia-onto-steward`. They require a clean
-worktree, work on a dedicated branch, leave the result uncommitted for review,
-and keep raw evidence under the configured `TARGET`. See
+worktree before writing, work on a dedicated branch, leave the result
+uncommitted for review, and keep raw evidence under the configured `TARGET`.
+The steward may run the complete validation chain over reviewed uncommitted
+changes already present on that branch. See
 [semantic authoring](toolbox/docs/semantic-authoring.md).
 
 To update only the managed toolbox files to the latest release:
@@ -145,9 +150,9 @@ Then invoke the required skill from Codex:
 
 | Skill | Purpose | Main result |
 | --- | --- | --- |
-| `$antonia-ontologist` | Create or enrich an ontology from documents or an authorized PostgreSQL/MySQL source | Reviewed RDF/XML TBox and ontology design record |
+| `$antonia-ontologist` | Create or enrich an ontology from documents or an authorized PostgreSQL/MySQL source; no build-pipeline operations | Reviewed RDF/XML TBox and ontology design record |
 | `$antonia-ontop-mapping` | Align a relational schema with the existing ontology | Validated OBDA mapping |
-| `$antonia-onto-steward` | Define executable ontology and graph quality gates | ROBOT-integrated rules and optional SHACL shapes |
+| `$antonia-onto-steward` | Define executable quality gates and pilot the complete `make all` chain | Verified DL/QL build, ROBOT reports, and optional SHACL reports |
 
 Each skill first establishes the scope with the user. It requires a clean Git
 worktree, uses a dedicated branch, presents the resulting diff, and leaves the
@@ -204,18 +209,20 @@ packages and ontology Releases. Do not put API keys or database credentials in
 
 ### Stewardship and quality gates
 
-`$antonia-onto-steward` turns reviewed requirements into ROBOT rules or, only
-when shape semantics are required, SHACL shapes. Project SPARQL controls must
+`$antonia-onto-steward` is the sole skill responsible for the complete
+`make all` chain: generate, reason, project-ql, report, and validate. It also
+turns reviewed requirements into ROBOT rules or, only when shape semantics are
+required, SHACL shapes. Project SPARQL controls must
 return exactly `?entity ?property ?value`; `make report` renders the controls
-whose file-base names are enabled in `qc/profile.txt` and injects them into the
-canonical ROBOT profile.
+whose file-base names are enabled in the configured `PROFILE` and injects them
+into the canonical ROBOT profile.
 Every control should have a stable identifier, rationale, target, severity,
 message, and positive and negative examples.
 
 `toolbox/qc/example-profile.txt` contains every native ROBOT report control and
 the two ANTONIA source controls. It is installed and updated with the managed
 toolbox but does not replace or activate entries in the project's
-`qc/profile.txt`.
+configured `PROFILE`.
 
 When SHACL shapes exist, `make report` evaluates them against the classified
 graph and writes:

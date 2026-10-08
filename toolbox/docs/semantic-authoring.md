@@ -10,7 +10,8 @@ TXT, Markdown, text-based PDF, or DOCX sources, and uses OntoGPT with a
 domain-neutral LinkML template. It may also inspect PostgreSQL/MySQL metadata
 and bounded allowlisted samples. OntoGPT output is candidate evidence; the
 skill is responsible for a reviewed RDF/XML TBox and a versioned ontology
-design record.
+design record. It does not run `make all` or any individual stage of that
+pipeline; reviewed changes are handed to the steward.
 
 Set `ONTOGPT_MODEL` to a provider-qualified LiteLLM model. Non-local document
 processing is forbidden unless `ONTOGPT_ALLOW_EXTERNAL_LLM=1`. Database values
@@ -36,13 +37,16 @@ every Release.
 
 ## Stewardship
 
-`$antonia-onto-steward` maintains ROBOT report rules and optional SHACL shapes.
+`$antonia-onto-steward` is the sole pilot of the complete `make all` chain
+(`generate`, `reason`, `project-ql`, `report`, and `validate`). It also
+maintains ROBOT report rules and optional SHACL shapes.
 Every project SPARQL control must return exactly
 `?entity ?property ?value`; `make report` renders configuration sentinels and
-injects only the project controls named in `qc/profile.txt` into a temporary effective profile before producing
-the canonical ROBOT TSV/HTML report under the configured `TARGET`. The native
-IRI ownership control runs through `robot report` on project-owned sources
-before merge when enabled with the `project-source` scope in the profile.
+injects only the project controls named in the configured `PROFILE` into a
+temporary effective profile before producing the canonical ROBOT TSV/HTML
+report under the configured `TARGET`. The native IRI ownership control runs
+through `robot report` on project-owned sources before merge when enabled with
+the `project-source` scope in the profile.
 Temporary profiles are removed after execution. Blocking SPARQL
 controls are not executed separately with `robot query`.
 
@@ -54,7 +58,8 @@ severities remain visible.
 
 ## Shared workflow
 
-All three skills require a clean worktree and propose a dedicated
-`antonia/<skill>-<date>` branch. They write changes and show the diff, but never
-commit, merge, push, or publish. Raw documents, samples, extraction results,
-and bootstrap files remain under the configured `TARGET`.
+All three skills propose a dedicated `antonia/<skill>-<date>` branch and require
+a clean worktree before writing. The steward may validate reviewed uncommitted
+changes already present on that branch. They show the diff but never commit,
+merge, push, or publish. Raw documents, samples, extraction results, and
+bootstrap files remain under the configured `TARGET`.

@@ -15,12 +15,13 @@ cannot be replaced without losing SHACL semantics. If no `.ttl`, `.rdf`, or
 `.owl` shape exists under the configured shapes directory, pySHACL must not be
 required or invoked.
 
-The toolbox-native `forbidden_iri` query is always injected into the effective
-ROBOT profile. `toolbox/report.sh` renders its `BASE_IRI` and
-`INSTANCE_BASE_IRI` sentinels from `config/config.env`; projects must not copy,
-shadow, or duplicate this managed rule.
+The toolbox-native `example-forbidden_iri` query runs only when its exact file
+base name is enabled in the configured `PROFILE`. `toolbox/reason.sh` renders
+its `BASE_IRI` and `INSTANCE_BASE_IRI` sentinels from `config/config.env` for
+the `project-source` scope; projects must not copy, shadow, or duplicate this
+managed rule.
 
-The toolbox-native `forbidden_equivalence` query is a source-scope exception:
+The toolbox-native `example-forbidden_equivalence` query is a source-scope exception:
 `toolbox/reason.sh` executes it with `robot report` on each ontology source
 before fusion and excludes only the RDF alignment ontology configured by
 `MAPPINGS`. This preserves source provenance while keeping ROBOT as the control

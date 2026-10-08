@@ -16,4 +16,7 @@ make release VERSION_TAG=<user-supplied-version>
 ```
 
 Do not invent or silently change the version. Verify the resulting commit, tag,
-remote publication, assets, and reports before claiming success.
+remote publication, assets, and reports before claiming success. In particular,
+verify the base, merged, QL, optional OBDA, and value-free
+`.properties.example` assets, and confirm that no real `.properties` file or
+credential value was published.

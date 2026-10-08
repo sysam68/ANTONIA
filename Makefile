@@ -25,7 +25,7 @@ help:
 	@echo "  test-semantic-authoring verify semantic skills and helper safety"
 	@echo "  test-database-integration verify PostgreSQL/MySQL sampling and Ontop bootstrap"
 	@echo "  test-release-channels verify stable and development publication guards"
-	@echo "  test-release-mapping verify mapping and service-catalog publication"
+	@echo "  test-release-mapping verify QL, OBDA, safe properties, mapping, and service assets"
 	@echo "  test-package       verify the distributable toolbox archive"
 	@echo "  test-lifecycle     verify bootstrap cleanup and in-toolbox updates"
 	@echo "  package            build Release assets (VERSION=<tag>)"
@@ -49,6 +49,7 @@ check:
 	@test -x toolbox/sync_agents.sh
 	@test -x toolbox/sync_checks.sh
 	@test -x toolbox/update_profile.sh
+	@test -x toolbox/.agents/skills/antonia-onto-steward/scripts/install_control.py
 	@while IFS= read -r line || [ -n "$$line" ]; do \
 		case "$$line" in \
 			skill=*) skill_path="$${line#skill=}"; \
@@ -140,6 +141,7 @@ test-package:
 	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/run_ontogpt.sh$$'
 	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/templates/config/ontop.properties.example$$'
 	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/.agents/skills/antonia-ontologist/assets/antonia_ontology_candidates.yaml$$'
+	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/.agents/skills/antonia-onto-steward/scripts/install_control.py$$'
 	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/sync_agents.sh$$'
 	@tar -xOf dist/antonia-toolbox.tar.gz toolbox/Makefile | grep -q '^update-antonia:'
 	@tar -tzf dist/antonia-toolbox.tar.gz | grep -q '^toolbox/update_config.sh$$'

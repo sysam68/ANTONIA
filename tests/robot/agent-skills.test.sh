@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Verify that every ontology-project Make target has a distributed ANTONIA skill.
+# Verify Make targets and the intentionally consolidated ANTONIA skill set.
 
 set -euo pipefail
 
@@ -56,16 +56,10 @@ while IFS=' ' read -r target skill_name; do
   grep -Fq "make $target" "$skill_file"
 done <<'EOF'
 help antonia-help
-all antonia-all
 import antonia-import
 install-robot antonia-install-robot
 install-semantic-tools antonia-install-semantic-tools
 update-antonia antonia-update
-generate antonia-generate
-reason antonia-reason
-project-ql antonia-project-ql
-report antonia-report
-validate antonia-validate
 test-imports antonia-test-imports
 test-qc antonia-test-qc
 test-profiles antonia-test-profiles
@@ -75,9 +69,42 @@ release antonia-release
 diff antonia-diff
 clean antonia-clean
 init-x antonia-init-x
-progress antonia-progress
 java-conf antonia-java-conf
 init-project antonia-init-project
+EOF
+
+STEWARD_PATH="skills/antonia-onto-steward"
+STEWARD_FILE="$AGENT_ROOT/$STEWARD_PATH/SKILL.md"
+grep -Fqx "skill=$STEWARD_PATH" "$MANIFEST"
+test -f "$STEWARD_FILE"
+grep -Fqx 'name: antonia-onto-steward' "$STEWARD_FILE"
+grep -Fq 'single skill responsible for the complete `make all`' "$STEWARD_FILE"
+for stage in generate reason project-ql report validate; do
+  grep -Fq "\`$stage\`" "$STEWARD_FILE"
+done
+
+grep -Fq 'Do not run `make all` or any of its individual pipeline stages.' \
+  "$AGENT_ROOT/skills/antonia-ontologist/SKILL.md"
+
+while IFS= read -r removed_skill; do
+  [ -n "$removed_skill" ] || continue
+  if grep -Fqx "skill=skills/$removed_skill" "$MANIFEST"; then
+    echo "Error: redundant pipeline skill remains managed: $removed_skill" >&2
+    exit 1
+  fi
+  if [ -e "$AGENT_ROOT/skills/$removed_skill" ]; then
+    echo "Error: redundant pipeline skill directory remains: $removed_skill" >&2
+    exit 1
+  fi
+done <<'EOF'
+antonia-ontology-workflow
+antonia-all
+antonia-generate
+antonia-reason
+antonia-project-ql
+antonia-report
+antonia-validate
+antonia-progress
 EOF
 
 while IFS= read -r line || [ -n "$line" ]; do

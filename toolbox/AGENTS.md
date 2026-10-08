@@ -14,23 +14,23 @@ the configured XML catalog. Selectors may be immutable Release tags or
 import. Treat imported ontology files as versioned source dependencies, not as
 build outputs.
 
-Keep generated ontology modules in the configured modules directory, optional
-SHACL constraints under `src/shapes/`, and SPARQL checks, analytics, and updates
-under `src/sparql/`. Blocking SPARQL checks must be ROBOT report queries that
-return exactly `?entity ?property ?value`; do not execute them as separate
-`robot query` gates.
+Keep generated ontology modules in the configured modules directory. Store
+optional SHACL constraints under `SHAPES_DIR`, blocking SPARQL controls under
+`SPARQL_CHECKS`, and non-blocking analytics under `SPARQL_REPORTS`. Blocking
+SPARQL checks must be ROBOT report queries that return exactly
+`?entity ?property ?value`; do not execute them as separate `robot query` gates.
 
 All ROBOT-control activation and severity configuration belongs exclusively in
-`qc/profile.txt`. A control runs only when its exact file base name appears as
-the second tab-separated field in that profile. The presence of an `.rq` file
-does not activate it, and no control activation list belongs in `config.env`, a
-Makefile, or a runtime script.
+the file configured by `PROFILE`. A control runs only when its exact file base
+name appears as the second tab-separated field in that profile. The presence of
+an `.rq` file does not activate it, and no control activation list belongs in
+`config.env`, a Makefile, or a runtime script.
 
 The optional third profile field defines execution scope: `project-source`,
 `non-mapping-source`, or `post-reason`. An omitted scope means `post-reason`.
 The distributed `toolbox/qc/example-profile.txt` lists every native ROBOT
 report control plus the two ANTONIA source controls as a reference. It does not
-activate controls in the project's `qc/profile.txt`.
+activate controls in the project's configured `PROFILE`.
 
 Every control example distributed by ANTONIA lives under `toolbox/checks/` and
 keeps its `example-` filename. Installation and update copy every example into
@@ -53,17 +53,18 @@ The default updater follows stable Releases. Use
 published from ANTONIA's `dev` branch, or add `-version=<tag>` to select an
 explicit immutable development version.
 
-Use `/skills` in Codex to browse the installed ANTONIA workflows, or invoke a
-Make target skill directly with `$antonia-<command>`. For example,
-`$antonia-init-project` runs the managed `make init-project` workflow and
-`$antonia-release VERSION_TAG=<version>` runs the guarded release workflow.
-See `toolbox/docs/agent-skills.md` for the complete mapping.
+Use `/skills` in Codex to browse the installed ANTONIA workflows.
+`$antonia-onto-steward` is the sole skill that pilots the complete `make all`
+chain; import, focused tests, lifecycle operations, and release retain their
+dedicated skills. See `toolbox/docs/agent-skills.md` for the complete mapping.
 
 The interactive responsibilities are separate: `$antonia-ontologist` creates
-or enriches the conceptual model, `$antonia-ontop-mapping` aligns relational
-sources with that model, and `$antonia-onto-steward` maintains executable
-quality controls. Raw extraction, sampling, and bootstrap evidence belongs
-under the configured `TARGET`, never in ontology sources or Releases.
+or enriches the conceptual model but performs no `make all` operation;
+`$antonia-ontop-mapping` aligns relational sources with that model; and
+`$antonia-onto-steward` maintains executable quality controls and owns the
+complete generate, reason, project-ql, report, and validate sequence. Raw
+extraction, sampling, and bootstrap evidence belongs under the configured
+`TARGET`, never in ontology sources or Releases.
 
 ## Local toolchain
 
@@ -100,7 +101,7 @@ Run commands from the ontology repository root:
 - `make import` refreshes configured external ontology Release assets.
 - `make install-semantic-tools` installs the local OntoGPT/Ontop/SHACL tools.
 - `make generate` expands TSV templates into RDF/XML modules.
-- `make reason` runs the source controls selected by `qc/profile.txt` source by
+- `make reason` runs the source controls selected by `PROFILE` source by
   source before fusion, merges the complete import closure into
   `TARGET/merged.<format>`, and classifies the OWL 2 DL reference ontology into
   `TARGET/classified.<format>`. In a newly initialized project with no ontology
@@ -110,7 +111,7 @@ Run commands from the ontology repository root:
 - `make project-ql` derives `TARGET/ontop-ql.<format>` for Ontop from the merged
   ontology without weakening the expressive reference ontology.
 - `make report` resolves the non-source SPARQL controls selected by
-  `qc/profile.txt` into the canonical post-reasoning ROBOT TSV/HTML report. It
+  `PROFILE` into the canonical post-reasoning ROBOT TSV/HTML report. It
   runs external SHACL validation only when shapes
   exist; use `FAIL_ON=WARN` for ROBOT warnings and `SHACL_FAIL_ON` for SHACL
   severity.
@@ -153,8 +154,8 @@ file. Do not pass a `.rdf` output path directly to ROBOT even with an explicit
 format.
 
 Preserve the ontology IRIs configured in `config/config.env`. When enabled in
-`qc/profile.txt`, the distributed `example-forbidden_iri` ROBOT rule enforces
-unversioned schema IRIs under
+the configured `PROFILE`, the distributed `example-forbidden_iri` ROBOT rule
+enforces unversioned schema IRIs under
 `BASE_IRI` and named-individual IRIs under `INSTANCE_BASE_IRI` only in the
 project-owned TBox, ABox, generated modules, and annotations. Do not apply this
 ownership rule to imported ontologies or the alignment ontology configured by
@@ -164,7 +165,7 @@ exactly `?entity ?property ?value`.
 
 Class equivalence assertions are allowed only in the ontology-to-ontology file
 configured by `MAPPINGS`. When `example-forbidden_equivalence` is enabled in
-`qc/profile.txt`, `toolbox/reason.sh` validates every other source with ROBOT
+the configured `PROFILE`, `toolbox/reason.sh` validates every other source with ROBOT
 before any merge, then uses `asserted-only` for the complete graph so
 newly inferred class equivalences remain blocking. Do not declare
 `owl:equivalentClass` in the TBox, ABox, imports, generated modules, or
@@ -215,9 +216,13 @@ contain:
 - every RDF/Turtle service catalog in `SERVICES_DIR`, byte-for-byte with a
   `service-` Release prefix and outside the merged/classified ontology;
 - `<name>.obda` when the configured source exists;
+- `<name>.properties.example`, generated only from the configured Ontop
+  property names with every value and comment removed;
 - available QC, profile-validation, and diff reports.
 
-Do not release datasource or service connection `.properties` files. Release
+Do not release datasource or service connection `.properties` files. The
+generated `.properties.example` is the only permitted connection template and
+must contain empty values exclusively. Release
 enumeration is limited to direct `.rdf`/`.ttl` files in `MAPPINGS_DIR` and
 `SERVICES_DIR`; preserve an existing `mapping-` or `service-` prefix and add it
 to the Release filename only when absent. The release

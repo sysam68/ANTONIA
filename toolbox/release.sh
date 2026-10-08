@@ -119,7 +119,9 @@ register_directory_asset() {
     *) asset_name="$asset_prefix-$source_name" ;;
   esac
   case "$asset_name" in
-    "${ONTO}.${OUTPUT_FORMAT}"|"${ONTO}-merged.${OUTPUT_FORMAT}"|"${ONTO}.owl"|\
+    "${ONTO}.${OUTPUT_FORMAT}"|"${ONTO}-merged.${OUTPUT_FORMAT}"|\
+    "${ONTO}-ql.${OUTPUT_FORMAT}"|"${ONTO}.owl"|"${ONTO}.obda"|\
+    "${ONTO}.properties.example"|\
     "${ONTO}_qc_report.tsv"|"${ONTO}_qc_report.html"|diff.html|diff.owl)
       abort "Release asset name conflicts with a generated artifact: $asset_name"
       ;;
@@ -137,6 +139,45 @@ register_directory_asset() {
 
   RELEASE_SOURCE_FILES+=("$source_file")
   RELEASE_ASSET_NAMES+=("$asset_name")
+}
+
+sanitize_properties_template() {
+  local source_file="$1"
+  local destination="$2"
+  local temporary=""
+
+  [ -f "$source_file" ] \
+    || abort "Ontop properties source not found: ${source_file#$ROOT/}"
+  [ ! -L "$source_file" ] \
+    || abort "Ontop properties source must not be a symbolic link: ${source_file#$ROOT/}"
+  mkdir -p "$(dirname "$destination")"
+  temporary="$(mktemp "${destination}.tmp.XXXXXX")"
+
+  if ! awk '
+    BEGIN { count = 0; invalid = 0 }
+    {
+      line = $0
+      sub(/^[[:space:]]+/, "", line)
+      if (line == "" || line ~ /^[#!]/) next
+      if (match(line, /^[A-Za-z_][A-Za-z0-9_.-]*[[:space:]]*[:=]/)) {
+        key = substr(line, RSTART, RLENGTH)
+        sub(/[[:space:]]*[:=]$/, "", key)
+        if (!seen[key]++) print key "="
+        count++
+        next
+      }
+      printf "Unsupported properties syntax at line %d.\n", NR > "/dev/stderr"
+      invalid = 1
+    }
+    END {
+      if (invalid || count == 0) exit 1
+    }
+  ' "$source_file" > "$temporary"; then
+    rm -f -- "$temporary"
+    abort "Cannot create a value-free Ontop properties example from: ${source_file#$ROOT/}"
+  fi
+
+  mv -f -- "$temporary" "$destination"
 }
 
 collect_directory_assets() {
@@ -187,6 +228,19 @@ echo "▶ Release tag:    $RELEASE_TAG"
 [ -f "$TBOX" ]                || abort "Missing base ontology: ${TBOX#$ROOT/}"
 [ -f "$CLASSIFIED_ONTOLOGY" ] || abort "Missing $CLASSIFIED_ONTOLOGY (build your ontology first)."
 [ -f "$MERGED_ONTOLOGY" ]     || abort "Missing $MERGED_ONTOLOGY (build your ontology first)."
+[ -f "$ONTOP_QL_ONTOLOGY" ]   || abort "Missing $ONTOP_QL_ONTOLOGY (run make all first)."
+
+ONTOP_PROPERTIES_SOURCE=""
+if [ -f "$ONTOP_PROPERTIES" ]; then
+  ONTOP_PROPERTIES_SOURCE="$ONTOP_PROPERTIES"
+elif [ -f "${ONTOP_PROPERTIES}.example" ]; then
+  ONTOP_PROPERTIES_SOURCE="${ONTOP_PROPERTIES}.example"
+fi
+if [ -f "$OBDA" ]; then
+  [ ! -L "$OBDA" ] || abort "OBDA source must not be a symbolic link: ${OBDA#$ROOT/}"
+  [ -n "$ONTOP_PROPERTIES_SOURCE" ] \
+    || abort "OBDA publication requires $ONTOP_PROPERTIES or ${ONTOP_PROPERTIES}.example"
+fi
 
 # ---- 1) Prepare CURRENT (releases/) and ARCHIVE (releases/archive/<date>/) ----
 echo "▶ Preparing CURRENT and ARCHIVE trees"
@@ -201,16 +255,27 @@ fi
 # Fixed names for CURRENT
 CUR_PRIMARY="$CURRENT_DIR/${ONTO}.${OUTPUT_FORMAT}"
 CUR_MERGED="$CURRENT_DIR/${ONTO}-merged.${OUTPUT_FORMAT}"
+CUR_QL="$CURRENT_DIR/${ONTO}-ql.${OUTPUT_FORMAT}"
 CUR_OWL="$CURRENT_DIR/${ONTO}.owl"
+CUR_OBDA="$CURRENT_DIR/${ONTO}.obda"
+CUR_PROPERTIES_EXAMPLE="$CURRENT_DIR/${ONTO}.properties.example"
 CUR_QC_TSV="$CURRENT_DIR/${ONTO}_qc_report.tsv"
 CUR_QC_HTML="$CURRENT_DIR/${ONTO}_qc_report.html"
 
 # Fixed names for ARCHIVE snapshot
 ARC_PRIMARY="$ARCHIVE_DIR/${ONTO}.${OUTPUT_FORMAT}"
 ARC_MERGED="$ARCHIVE_DIR/${ONTO}-merged.${OUTPUT_FORMAT}"
+ARC_QL="$ARCHIVE_DIR/${ONTO}-ql.${OUTPUT_FORMAT}"
 ARC_OWL="$ARCHIVE_DIR/${ONTO}.owl"
+ARC_OBDA="$ARCHIVE_DIR/${ONTO}.obda"
+ARC_PROPERTIES_EXAMPLE="$ARCHIVE_DIR/${ONTO}.properties.example"
 ARC_QC_TSV="$ARCHIVE_DIR/${ONTO}_qc_report.tsv"
 ARC_QC_HTML="$ARCHIVE_DIR/${ONTO}_qc_report.html"
+
+# Do not retain optional Ontop assets from an older CURRENT snapshot when their
+# configured sources no longer exist.
+rm -f -- "$CUR_OBDA" "$CUR_PROPERTIES_EXAMPLE" \
+  "$ARC_OBDA" "$ARC_PROPERTIES_EXAMPLE"
 
 # Preserve an explicitly configured mapping even when an older project keeps it
 # outside MAPPINGS_DIR, then collect every RDF/Turtle source in both managed
@@ -225,6 +290,11 @@ collect_directory_assets "$SERVICES_DIR" "service"
 # Copy CURRENT
 publish_base_ontology "$CUR_PRIMARY"
 cp -f "$MERGED_ONTOLOGY"     "$CUR_MERGED"
+cp -f "$ONTOP_QL_ONTOLOGY"   "$CUR_QL"
+[ -f "$OBDA" ] && cp -f "$OBDA" "$CUR_OBDA"
+if [ -n "$ONTOP_PROPERTIES_SOURCE" ]; then
+  sanitize_properties_template "$ONTOP_PROPERTIES_SOURCE" "$CUR_PROPERTIES_EXAMPLE"
+fi
 [ -f "$QC_TSV" ]   && cp -f "$QC_TSV"   "$CUR_QC_TSV"
 [ -f "$QC_HTML" ]  && cp -f "$QC_HTML"  "$CUR_QC_HTML"
 [ -f "$DIFF_HTML" ]&& cp -f "$DIFF_HTML" "$CURRENT_DIR/diff.html"
@@ -237,6 +307,10 @@ done
 # Copy ARCHIVE snapshot
 publish_base_ontology "$ARC_PRIMARY"
 cp -f "$MERGED_ONTOLOGY"     "$ARC_MERGED"
+cp -f "$ONTOP_QL_ONTOLOGY"   "$ARC_QL"
+[ -f "$OBDA" ] && cp -f "$OBDA" "$ARC_OBDA"
+[ -f "$CUR_PROPERTIES_EXAMPLE" ] \
+  && cp -f "$CUR_PROPERTIES_EXAMPLE" "$ARC_PROPERTIES_EXAMPLE"
 [ -f "$QC_TSV" ]   && cp -f "$QC_TSV"   "$ARC_QC_TSV"
 [ -f "$QC_HTML" ]  && cp -f "$QC_HTML"  "$ARC_QC_HTML"
 [ -f "$DIFF_HTML" ]&& cp -f "$DIFF_HTML" "$ARCHIVE_DIR/diff.html"
@@ -343,6 +417,10 @@ elif [ "$BRANCH" = "$MAIN_BRANCH" ]; then
       ASSETS+=("$ARC_OWL")
     fi
     [ -f "$ARC_MERGED" ]   && ASSETS+=("$ARC_MERGED")
+    [ -f "$ARC_QL" ]       && ASSETS+=("$ARC_QL")
+    [ -f "$ARC_OBDA" ]     && ASSETS+=("$ARC_OBDA")
+    [ -f "$ARC_PROPERTIES_EXAMPLE" ] \
+      && ASSETS+=("$ARC_PROPERTIES_EXAMPLE")
     if [ "${#ARC_DIRECTORY_ASSETS[@]}" -gt 0 ]; then
       for directory_asset in "${ARC_DIRECTORY_ASSETS[@]}"; do
         ASSETS+=("$directory_asset")

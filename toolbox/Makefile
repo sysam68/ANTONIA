@@ -39,7 +39,8 @@ help:
 	@echo
 	@echo "Codex skills:"
 	@echo "  /skills     : browse installed ANTONIA skills"
-	@echo '  $$antonia-<command>: invoke the corresponding guarded Make workflow'
+	@echo '  $$antonia-onto-steward: run and verify the complete make all pipeline'
+	@echo '  Other $$antonia-* skills cover import, focused tests, and lifecycle tasks'
 	@echo
 	@echo "Examples:"
 	@echo "  REASONER=hermit make reason"

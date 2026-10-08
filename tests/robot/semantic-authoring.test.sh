@@ -28,8 +28,80 @@ grep -Fq 'must return exactly `?entity ?property ?value`' \
   "$ROOT/toolbox/.agents/skills/antonia-onto-steward/SKILL.md"
 grep -Fq 'Never implement a blocking SPARQL control as a separate `robot query` gate.' \
   "$ROOT/toolbox/.agents/skills/antonia-onto-steward/SKILL.md"
+grep -Fq '`SPARQL_CHECKS` for blocking project `.rq` controls' \
+  "$ROOT/toolbox/.agents/skills/antonia-onto-steward/SKILL.md"
+grep -Fq '`PROFILE` for the tab-separated control activation profile' \
+  "$ROOT/toolbox/.agents/skills/antonia-onto-steward/SKILL.md"
+grep -Fq 'Store those shapes under the configured' \
+  "$ROOT/toolbox/.agents/skills/antonia-onto-steward/SKILL.md"
+grep -Fq 'the file configured by `PROFILE`' "$ROOT/toolbox/AGENTS.md"
+grep -Fq 'blocking SPARQL controls under' "$ROOT/toolbox/AGENTS.md"
 test -f "$ROOT/toolbox/checks/example-forbidden_iri.rq"
 test -f "$ROOT/toolbox/checks/example-forbidden_equivalence.rq"
+
+STEWARD_INSTALLER="$ROOT/toolbox/.agents/skills/antonia-onto-steward/scripts/install_control.py"
+test -f "$STEWARD_INSTALLER"
+CONTROL_ROOT="$TEMP_ROOT/control-host"
+mkdir -p "$CONTROL_ROOT/config" "$CONTROL_ROOT/input" "$CONTROL_ROOT/custom/qc"
+printf '%s\n' \
+  'PROFILE=custom/qc/controls.tsv' \
+  'SPARQL_CHECKS=custom/robot/checks' \
+  'SPARQL_REPORTS=custom/analytics' \
+  'SHAPES_DIR=custom/shapes' \
+  'TARGET=custom/target' \
+  > "$CONTROL_ROOT/config/config.env"
+printf '%s\n' '# preserved project row' $'WARN\texisting_rule\tpost-reason' \
+  > "$CONTROL_ROOT/custom/qc/controls.tsv"
+printf '%s\n' \
+  'SELECT ?entity ?property ?value' \
+  'WHERE {' \
+  '  ?entity a <https://example.org/InvalidClass> .' \
+  '  BIND(<https://example.org/rule/customer_rule> AS ?property)' \
+  '  BIND("Actionable finding" AS ?value)' \
+  '}' \
+  > "$CONTROL_ROOT/input/customer_rule.rq"
+
+python3 "$STEWARD_INSTALLER" \
+  --config "$CONTROL_ROOT/config/config.env" \
+  --name customer_rule --severity WARN --scope project-source \
+  --query "$CONTROL_ROOT/input/customer_rule.rq" \
+  > "$TEMP_ROOT/install-control.log"
+cmp "$CONTROL_ROOT/input/customer_rule.rq" \
+  "$CONTROL_ROOT/custom/robot/checks/customer_rule.rq"
+grep -Fqx $'WARN\tcustomer_rule\tproject-source' \
+  "$CONTROL_ROOT/custom/qc/controls.tsv"
+grep -Fqx $'WARN\texisting_rule\tpost-reason' \
+  "$CONTROL_ROOT/custom/qc/controls.tsv"
+test ! -e "$CONTROL_ROOT/src/sparql/checks/customer_rule.rq"
+test ! -e "$CONTROL_ROOT/qc/profile.txt"
+
+python3 "$STEWARD_INSTALLER" \
+  --config "$CONTROL_ROOT/config/config.env" \
+  --name customer_rule --severity ERROR --scope post-reason \
+  --query "$CONTROL_ROOT/custom/robot/checks/customer_rule.rq" \
+  > "$TEMP_ROOT/update-control.log"
+test "$(grep -Fxc $'ERROR\tcustomer_rule\tpost-reason' \
+  "$CONTROL_ROOT/custom/qc/controls.tsv")" -eq 1
+test "$(grep -c $'\tcustomer_rule\t' \
+  "$CONTROL_ROOT/custom/qc/controls.tsv")" -eq 1
+
+printf '%s\n' 'SELECT ?entity ?value WHERE { ?entity ?p ?value }' \
+  > "$CONTROL_ROOT/input/invalid_rule.rq"
+if python3 "$STEWARD_INSTALLER" \
+    --config "$CONTROL_ROOT/config/config.env" \
+    --name invalid_rule --severity ERROR --scope post-reason \
+    --query "$CONTROL_ROOT/input/invalid_rule.rq" \
+    > "$TEMP_ROOT/invalid-control.log" 2>&1; then
+  echo "Error: steward installer accepted an invalid ROBOT projection" >&2
+  exit 1
+fi
+grep -Fq 'query must project exactly ?entity ?property ?value' \
+  "$TEMP_ROOT/invalid-control.log"
+test ! -e "$CONTROL_ROOT/custom/robot/checks/invalid_rule.rq"
+if grep -Fq $'\tinvalid_rule\t' "$CONTROL_ROOT/custom/qc/controls.tsv"; then
+  echo "Error: invalid control was activated" >&2
+  exit 1
+fi
 
 printf 'A domain statement.\n' > "$TEMP_ROOT/source.md"
 python3 "$ROOT/toolbox/.agents/skills/antonia-ontologist/scripts/normalize_document.py" \

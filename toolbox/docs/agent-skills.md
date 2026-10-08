@@ -18,13 +18,6 @@ ANTONIA uses the supported skill invocation syntax instead.
 | `$antonia-update` | `make update-antonia` | Stable by default; script supports `-dev` and `-version=<tag>` |
 | `$antonia-java-conf` | `make java-conf` | Generates ignored local config |
 | `$antonia-import` | `make import` | Uses `config/import.env` |
-| `$antonia-generate` | `make generate` | Uses configured TSV templates |
-| `$antonia-reason` | `make reason` | Optional `REASONER` |
-| `$antonia-project-ql` | `make project-ql` | Requires merged ontology |
-| `$antonia-report` | `make report` | ROBOT-integrated controls; optional `FAIL_ON` and SHACL |
-| `$antonia-validate` | `make validate` | Validates DL and QL outputs |
-| `$antonia-all` | `make all` | Complete non-import pipeline |
-| `$antonia-progress` | `make progress` | Same pipeline with progress |
 | `$antonia-test-imports` | `make test-imports` | Import and closure tests |
 | `$antonia-test-qc` | `make test-qc` | QC regression tests |
 | `$antonia-test-profiles` | `make test-profiles` | DL and QL profile tests |
@@ -38,9 +31,15 @@ Interactive skills do not correspond to a single Make target:
 
 | Skill invocation | Responsibility | Required boundary |
 | --- | --- | --- |
-| `$antonia-ontologist` | Create or enrich the TBox from documents or PostgreSQL/MySQL | Clean dedicated branch; external-LLM consent |
+| `$antonia-ontologist` | Create or enrich the TBox from documents or PostgreSQL/MySQL; never runs build stages | Clean dedicated branch; external-LLM consent |
 | `$antonia-ontop-mapping` | Align a JDBC datasource with the existing ontology in OBDA | Ignored `.properties`; explicit identity rules |
-| `$antonia-onto-steward` | Author ROBOT-integrated controls and optional SHACL shapes | Positive/negative examples and severity |
+| `$antonia-onto-steward` | Author controls and exclusively pilot `make all` | Preserves Make assignments; verifies every completed stage |
+
+`$antonia-onto-steward` owns the complete non-import chain: `generate`,
+`reason`, `project-ql`, `report`, and `validate`. The former workflow, all,
+progress, and per-stage skills were removed because they duplicated this single
+responsibility. The underlying Make targets remain available for direct
+diagnosis, but agents must use the steward for the complete chain.
 
 Examples:
 
@@ -48,18 +47,18 @@ Examples:
 $antonia-init-project
 $antonia-install-semantic-tools
 $antonia-ontologist
-$antonia-reason REASONER=hermit
-$antonia-report FAIL_ON=WARN
+$antonia-onto-steward REASONER=hermit FAIL_ON=WARN SHACL_FAIL_ON=VIOLATION
 $antonia-diff OLD=releases/old.<format> NEW=<TARGET>/classified.<format>
 $antonia-release VERSION_TAG=2026-10-01
 ```
 
-Project controls under `src/sparql/checks/` must return exactly
-`?entity ?property ?value`; `make report` injects only those named in
-`qc/profile.txt` into the effective ROBOT profile. The optional third profile
-field selects `project-source`, `non-mapping-source`, or `post-reason` scope;
-an omitted scope means `post-reason`. `src/sparql/reports/` is reserved for
-non-blocking analytics. External
+Project controls under the directory configured by `SPARQL_CHECKS` must return
+exactly `?entity ?property ?value`; `make report` injects only those named in
+the file configured by `PROFILE` into the effective ROBOT profile. The optional
+third profile field selects `project-source`, `non-mapping-source`, or
+`post-reason` scope;
+an omitted scope means `post-reason`. The configured `SPARQL_REPORTS` directory
+is reserved for non-blocking analytics. External
 pySHACL validation runs only when SHACL shape files exist.
 
 Restart Codex if newly installed skills do not appear in `/skills` immediately.

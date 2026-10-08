@@ -38,8 +38,15 @@ rm "$WORK/config/config.env.bak"
 
 printf '%s\n' 'classified ontology' > "$WORK/tmp/classified.rdf"
 printf '%s\n' 'merged ontology' > "$WORK/tmp/merged.rdf"
+printf '%s\n' 'ontop ql ontology' > "$WORK/tmp/ontop-ql.rdf"
 printf '%s\n' 'base ontology requiring RDF conversion' \
   > "$WORK/src/edit/base.ttl"
+printf '%s\n' \
+  'jdbc.url=jdbc:postgresql://template.example/database' \
+  'jdbc.user=replace-me' \
+  'jdbc.password=replace-me' \
+  'jdbc.driver=org.postgresql.Driver' \
+  > "$WORK/src/edit/myOntology.properties.example"
 printf '%s\n' '@prefix dcat: <http://www.w3.org/ns/dcat#> .' \
   '<https://example.org/service/a> a dcat:DataService .' \
   > "$WORK/src/edit/services/catalog-a.ttl"
@@ -99,6 +106,22 @@ cmp "$WORK/src/edit/base.ttl" \
   "$WORK/releases/archive/2026-10-06/test-ontology.rdf"
 cmp "$WORK/src/edit/base.ttl" "$WORK/releases/test-ontology.owl"
 cmp "$WORK/tmp/merged.rdf" "$WORK/releases/test-ontology-merged.rdf"
+cmp "$WORK/tmp/ontop-ql.rdf" "$WORK/releases/test-ontology-ql.rdf"
+cmp "$WORK/tmp/ontop-ql.rdf" \
+  "$WORK/releases/archive/2026-10-06/test-ontology-ql.rdf"
+grep -Fq "$WORK/releases/archive/2026-10-06/test-ontology-ql.rdf" "$GH_LOG"
+printf '%s\n' \
+  'jdbc.url=' \
+  'jdbc.user=' \
+  'jdbc.password=' \
+  'jdbc.driver=' \
+  > "$TEMP_ROOT/expected.properties.example"
+cmp "$TEMP_ROOT/expected.properties.example" \
+  "$WORK/releases/test-ontology.properties.example"
+cmp "$TEMP_ROOT/expected.properties.example" \
+  "$WORK/releases/archive/2026-10-06/test-ontology.properties.example"
+grep -Fq "$WORK/releases/archive/2026-10-06/test-ontology.properties.example" \
+  "$GH_LOG"
 if cmp -s "$WORK/tmp/classified.rdf" "$WORK/releases/test-ontology.rdf"; then
   echo "Error: the classified graph was published as the base ontology" >&2
   exit 1
@@ -110,6 +133,11 @@ test ! -e "$WORK/releases/service-secret.properties"
 if find "$WORK/releases" -type f -exec grep -Fl 'must-never-be-published' {} + \
     | grep -q .; then
   echo "Error: secret content was copied into a Release asset" >&2
+  exit 1
+fi
+if find "$WORK/releases" -type f -exec grep -El \
+    'template\.example|replace-me' {} + | grep -q .; then
+  echo "Error: properties example values were copied into a Release asset" >&2
   exit 1
 fi
 if grep -Fq 'service-secret.properties' "$GH_LOG"; then

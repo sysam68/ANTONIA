@@ -159,7 +159,14 @@ mkdir -p "$SUCCESS_ROOT/custom/sparql/checks"
 printf '%s\n' 'project-owned skill' \
   > "$SUCCESS_ROOT/.agents/skills/project-specific-skill/SKILL.md"
 printf '%s\n' 'locally modified managed skill' \
-  > "$SUCCESS_ROOT/.agents/skills/antonia-ontology-workflow/SKILL.md"
+  > "$SUCCESS_ROOT/.agents/skills/antonia-onto-steward/SKILL.md"
+# Simulate a skill managed by a previous ANTONIA release. Update must remove it
+# because the make-all stages are now consolidated under the steward.
+mkdir -p "$SUCCESS_ROOT/.agents/skills/antonia-reason"
+printf '%s\n' 'obsolete managed pipeline skill' \
+  > "$SUCCESS_ROOT/.agents/skills/antonia-reason/SKILL.md"
+printf '%s\n' 'skill=skills/antonia-reason' \
+  >> "$SUCCESS_ROOT/.agents/.antonia-managed"
 printf '%s\n' 'project-owned control' \
   > "$SUCCESS_ROOT/custom/sparql/checks/project_owned.rq"
 printf '%s\n' 'stale managed control' \
@@ -191,8 +198,14 @@ test -x "$SUCCESS_ROOT/toolbox/update-antonia.sh"
 cmp "$ROOT/toolbox/qc/example-profile.txt" \
   "$SUCCESS_ROOT/toolbox/qc/example-profile.txt"
 test -f "$SUCCESS_ROOT/.agents/skills/project-specific-skill/SKILL.md"
-grep -q '^name: antonia-ontology-workflow$' \
-  "$SUCCESS_ROOT/.agents/skills/antonia-ontology-workflow/SKILL.md"
+grep -q '^name: antonia-onto-steward$' \
+  "$SUCCESS_ROOT/.agents/skills/antonia-onto-steward/SKILL.md"
+test ! -e "$SUCCESS_ROOT/.agents/skills/antonia-reason"
+if grep -Fqx 'skill=skills/antonia-reason' \
+    "$SUCCESS_ROOT/.agents/.antonia-managed"; then
+  echo "Error: update retained an obsolete pipeline skill" >&2
+  exit 1
+fi
 assert_managed_skills_installed "$SUCCESS_ROOT"
 test -f "$SUCCESS_ROOT/custom/sparql/checks/project_owned.rq"
 cmp "$SUCCESS_ROOT/toolbox/checks/example-forbidden_iri.rq" \
@@ -217,8 +230,8 @@ cp "$SUCCESS_ROOT/qc/profile.txt" "$SUCCESS_ROOT/qc/profile.before-second-update
 ANTONIA_RELEASE_BASE_URL="file://$RELEASE_ROOT" \
   "$SUCCESS_ROOT/toolbox/update-antonia.sh" > "$SUCCESS_ROOT/update-second.log"
 test -f "$SUCCESS_ROOT/.agents/skills/project-specific-skill/SKILL.md"
-grep -q '^name: antonia-ontology-workflow$' \
-  "$SUCCESS_ROOT/.agents/skills/antonia-ontology-workflow/SKILL.md"
+grep -q '^name: antonia-onto-steward$' \
+  "$SUCCESS_ROOT/.agents/skills/antonia-onto-steward/SKILL.md"
 assert_managed_skills_installed "$SUCCESS_ROOT"
 test -f "$SUCCESS_ROOT/custom/sparql/checks/project_owned.rq"
 cmp "$SUCCESS_ROOT/toolbox/checks/example-forbidden_iri.rq" \
@@ -273,9 +286,9 @@ test ! -e "$FAILURE_ROOT/toolbox"
 grep -q 'simulated ROBOT installation failure' "$FAILURE_ROOT/install.log"
 
 git -C "$COLLISION_ROOT" init -q
-mkdir -p "$COLLISION_ROOT/.agents/skills/antonia-ontology-workflow"
+mkdir -p "$COLLISION_ROOT/.agents/skills/antonia-onto-steward"
 printf '%s\n' 'project-owned colliding skill' \
-  > "$COLLISION_ROOT/.agents/skills/antonia-ontology-workflow/SKILL.md"
+  > "$COLLISION_ROOT/.agents/skills/antonia-onto-steward/SKILL.md"
 cp "$ROOT/install-antonia.sh" "$COLLISION_ROOT/install-antonia.sh"
 if ANTONIA_RELEASE_BASE_URL="file://$RELEASE_ROOT" \
     "$COLLISION_ROOT/install-antonia.sh" \
@@ -286,7 +299,7 @@ fi
 test -f "$COLLISION_ROOT/install-antonia.sh"
 test ! -e "$COLLISION_ROOT/toolbox"
 grep -Fqx 'project-owned colliding skill' \
-  "$COLLISION_ROOT/.agents/skills/antonia-ontology-workflow/SKILL.md"
+  "$COLLISION_ROOT/.agents/skills/antonia-onto-steward/SKILL.md"
 grep -q 'refusing to replace unmanaged skill' "$COLLISION_ROOT/install.log"
 
 echo "lifecycle scripts test: passed"
